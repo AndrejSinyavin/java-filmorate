@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -23,7 +24,7 @@ public final class UserController {
     private final Map<Integer, User> users = new HashMap<>();
     private int countId;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public User createUser(@Valid @RequestBody User user) {
         try {
             validateUser(user);
@@ -38,7 +39,7 @@ public final class UserController {
         }
     }
 
-    @PutMapping
+    @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public User updateUser(@Valid @RequestBody User user) {
         try {
             validateUser(user);
