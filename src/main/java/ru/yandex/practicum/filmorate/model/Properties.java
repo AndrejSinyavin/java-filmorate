@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.model;
 
 import java.time.LocalDate;
 
-import static java.time.Month.*;
+import static java.time.Month.DECEMBER;
 
 public final class Properties {
     public static final LocalDate VALID_RELEASE_DATE = LocalDate.of(1895, DECEMBER, 28);

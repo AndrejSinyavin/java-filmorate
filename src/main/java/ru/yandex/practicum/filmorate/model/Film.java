@@ -7,7 +7,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 
 @Data
-public class Film {
+public final class Film {
     private int id;
     @NotBlank(message = "Название фильма не может быть пустым!")
     private String name;
@@ -15,6 +15,6 @@ public class Film {
     private String description;
     @DateTimeFormat(pattern = "dd.MM.yyyy")
     private String releaseDate;
-    @Positive(message = "Поле Продолжительность может быть только положительным")
+    @Positive(message = "Продолжительность фильма может быть только положительным числом")
     private int duration;
 }

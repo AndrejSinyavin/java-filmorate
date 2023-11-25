@@ -2,30 +2,30 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import javax.validation.Valid;
-import java.rmi.ServerException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static ru.yandex.practicum.filmorate.model.Properties.MAX_DESCRIPTION_LENGTH;
 import static ru.yandex.practicum.filmorate.model.Properties.VALID_RELEASE_DATE;
 
-@RestController
-@RequestMapping(path = "/films",
-        consumes = MediaType.APPLICATION_JSON_VALUE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
 @Log4j2
+@RestController
+@RequestMapping("/films")
 public final class FilmController {
     private final Map<Integer, Film> films = new HashMap<>();
     private int countId;
 
     @PostMapping
-    public Film createFilm(@Valid @RequestBody Film film) throws ServerException {
+    public Film createFilm(@Valid @RequestBody Film film) {
         try {
             validateFilm(film);
             int id = newId();
@@ -35,12 +35,12 @@ public final class FilmController {
             return film;
         } catch (ValidateFilmException e) {
             log.error(e.getMessage());
-            throw new ServerException("Сервер не выполнил запрос - недопустимые характеристики фильма");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
     }
 
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody Film film) throws ServerException {
+    public Film updateFilm(@Valid @RequestBody Film film) {
         try {
             validateFilm(film);
             int id = film.getId();
@@ -49,35 +49,30 @@ public final class FilmController {
                 log.info("Фильм успешно обновлен в каталоге");
                 return film;
             } else {
-                id = newId();
-                film.setId(id);
-                films.put(id, film);
-                log.info("Фильм успешно добавлен в каталог");
-                return film;
+                log.warn("Фильм не найден!");
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
             }
         } catch (ValidateFilmException e) {
             log.error(e.getMessage());
-            throw new ServerException("Сервер не выполнил запрос - недопустимые характеристики фильма");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
     }
 
     @GetMapping
-    public Map<Integer, Film> getFilms() {
+    public List<Film> getFilms() {
         log.info("Сервер вернул список всех фильмов");
-        return films;
+        return new ArrayList<>(films.values());
     }
 
     private static void validateFilm(@NonNull Film film) throws ValidateFilmException {
         log.info("Валидация характеристик фильма:");
         String name = film.getName();
-        if (name.isEmpty() || name.isBlank()) {
-            throw new ValidateFilmException("Ошибка! Отсутствует название фильма");
-        } else if (film.getDescription().length() > MAX_DESCRIPTION_LENGTH) {
-            throw new ValidateFilmException("Ошибка! Описание фильма слишком большое (более 200 символов)");
+        if (film.getDescription().length() > MAX_DESCRIPTION_LENGTH) {
+            throw new ValidateFilmException("Описание фильма слишком большое (более 200 символов)");
         } else if ((LocalDate.parse(film.getReleaseDate())).isBefore(VALID_RELEASE_DATE)) {
-            throw new ValidateFilmException("Ошибка! Недопустимая дата релиза - до " + VALID_RELEASE_DATE);
+            throw new ValidateFilmException("Недопустимая дата релиза - до " + VALID_RELEASE_DATE);
         } else if (film.getDuration() <= 0) {
-            throw new ValidateFilmException("Ошибка! Продолжительность фильма не может быть отрицательной или равна 0");
+            throw new ValidateFilmException("Продолжительность фильма не может быть отрицательной или равной 0");
         } else {
             log.info("Ok.");
         }
