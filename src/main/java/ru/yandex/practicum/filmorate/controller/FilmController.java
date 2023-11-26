@@ -22,20 +22,20 @@ public final class FilmController {
     private int countId;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Film createFilm(@NotNull @Valid @RequestBody Film film) {
+    public Film createFilm(@Valid @RequestBody Film film) {
         int id = newId();
         film.setId(id);
         films.put(id, film);
-        log.info("Фильм успешно добавлен в каталог");
+        log.info("Фильм добавлен в каталог: {}", film);
         return film;
     }
 
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Film updateFilm(@NotNull @Valid @RequestBody Film film) {
+    public Film updateFilm(@Valid @RequestBody Film film) {
         int id = film.getId();
         if (films.containsKey(id)) {
             films.put(id, film);
-            log.info("Фильм успешно обновлен в каталоге");
+            log.info("Фильм обновлен в каталоге: {}", film);
             return film;
         } else {
             log.warn("Фильм не найден!");
@@ -44,9 +44,10 @@ public final class FilmController {
     }
 
     @GetMapping
-    public List<Film> getFilms() {
-        log.info("Сервер вернул список всех фильмов");
-        return new ArrayList<>(films.values());
+    public List<@NotNull Film> getFilms() {
+        ArrayList<Film> films = new ArrayList<>(this.films.values());
+        log.info("Сервер вернул список всех фильмов: {}", films);
+        return films;
     }
 
     private int newId() {

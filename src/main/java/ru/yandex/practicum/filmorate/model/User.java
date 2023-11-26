@@ -12,8 +12,8 @@ public final class User {
     private String name;
     @NotBlank(message = "Логин не может быть пустым!")
     private String login;
-    @Email(message = "Неверный формат даты!")
+    @Email(message = "Неверный email!")
     private String email;
-    @DateTimeFormat(pattern = "dd.MM.yyyy")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private String birthday;
 }

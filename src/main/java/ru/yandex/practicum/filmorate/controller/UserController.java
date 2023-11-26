@@ -1,14 +1,15 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,7 +60,7 @@ public final class UserController {
     }
 
     @GetMapping
-    public List<User> getUsers() {
+    public List<@NotNull User> getUsers() {
         log.info("Сервер вернул список всех пользователей");
         return new ArrayList<>(users.values());
     }
@@ -71,8 +72,8 @@ public final class UserController {
         if (birthday.isAfter(LocalDate.now()) && birthday.getYear() > LIFE_TIME) {
             throw new ValidateUserException("Некорректная дата рождения пользователя!");
         }
-        if (name == null || name.isBlank() || name.isEmpty()) {
-            log.warn("Имя пользователя не задано, будет использован логин!");
+        if (name == null || name.isBlank()) {
+            log.warn("Имя пользователя не задано, ему присвоено содержимое поля логин!");
             user.setName(user.getLogin());
         }
         log.info("Ok.");
