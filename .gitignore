@@ -1,8 +1,10 @@
 HELP.md
 target/
-!.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+mvnw
+mvnw.cmd
+.mvn
 
 ### STS ###
 .apt_generated
@@ -32,3 +34,6 @@ build/
 ### VS Code ###
 .vscode/
 !/src/test/java/ru/yandex/practicum/filmorate/FilmorateApplicationTests.java
+!/.mvn/
+!/mvnw.cmd
+!/mvnw
