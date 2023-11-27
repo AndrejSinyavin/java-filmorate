@@ -6,7 +6,6 @@ import org.springframework.validation.annotation.Validated;
 import service.StartYear;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 
