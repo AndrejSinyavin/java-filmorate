@@ -2,116 +2,403 @@ package ru.yandex.practicum.filmorate;
 
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
+import org.springframework.web.server.ResponseStatusException;
+import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+import java.time.LocalDate;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static javax.validation.Validation.buildDefaultValidatorFactory;
+import static org.junit.jupiter.api.Assertions.*;
+import static ru.yandex.practicum.filmorate.FilmorateApplicationTests.Mode.*;
+import static ru.yandex.practicum.filmorate.service.ValidateSettings.MAX_DESCRIPTION_LENGTH;
+import static ru.yandex.practicum.filmorate.service.ValidateSettings.VALID_RELEASE_DATE;
 
 @Log4j2
 class FilmorateApplicationTests {
-	private static Validator validator;
-	private Set<ConstraintViolation<Film>> violations;
-	private Film film;
+    private static Validator validator;
+    private Set<ConstraintViolation<Film>> filmViolations;
+    private Set<ConstraintViolation<User>> userViolations;
+    private Film film;
+    private User user;
+    private Mode infoMode;
 
-	@BeforeAll
-	public static void init() {
-		log.atInfo();
-		ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-		validator = factory.getValidator();
-	}
+    @BeforeAll
+    public static void init() {
+        log.atInfo();
+        ValidatorFactory factory = buildDefaultValidatorFactory();
+        validator = factory.getValidator();
+    }
 
-	@BeforeEach
-	public void setTestContext() {
-		film = new Film();
-		film.setId(1);
-		film.setName("Эквилибриум");
-		film.setDescription("В будущем люди лишены возможности выражать эмоции. Это цена, которую человечество... ");
-		film.setDuration(107);
-		film.setReleaseDate("2002-12-06");
-		log.info("=====================");
-	}
+    @BeforeEach
+    public void setTestContext() {
+        film = new Film();
+        film.setId(1);
+        film.setName("Эквилибриум");
+        film.setDescription("В будущем люди лишены возможности выражать эмоции. Это цена, которую человечество... ");
+        film.setDuration(107);
+        film.setReleaseDate("2002-12-06");
 
-	@AfterEach
-	public void viewViolationMessages() {
-		log.info(film);
-		for (ConstraintViolation<Film> violation : violations) {
-			log.error(violation.getMessage());
-		}
-	}
-	@Test
-	@DisplayName("Все поля фильма корректны")
-	void filmNormalTest() {
-		violations = validator.validate(film);
-		assertTrue(violations.isEmpty());
-	}
+        user = new User();
+        user.setId(1);
+        user.setLogin("user");
+        user.setName("Андрей");
+        user.setBirthday("1976-02-18");
+        user.setEmail("andrejsinyavin@yandex.ru");
+    }
 
-	@Test
-	@DisplayName("Все поля фильма пустые, недопустимо")
-	void filmDefaultTest() {
-		film = new Film();
-		violations = validator.validate(film);
-		assertFalse(violations.isEmpty());
-	}
+    @AfterEach
+    public void viewViolationMessages() {
+        switch (infoMode) {
+            case FILM:
+                log.info("\nID фильма: {}\tДата релиза: {}\tПродолжительность : {} минут\n" +
+                                "Название: {}\t Описание: {}",
+                        film.getId(), film.getReleaseDate(), film.getDuration(), film.getName(), film.getDescription());
+                for (ConstraintViolation<Film> violation : filmViolations) {
+                    log.error(violation.getMessage());
+                }
+                break;
+            case USER:
+                log.info("\nID пользователя: {}\tЛогин: {}\n" +
+                                "Имя пользователя: {}\t Дата рождения: {}\tEmail: {}",
+                        user.getId(), user.getLogin(), user.getName(), user.getBirthday(), user.getEmail());
+                for (ConstraintViolation<User> violation : userViolations) {
+                    log.error(violation.getMessage());
+                }
+                break;
+            case NONE:
+                return;
+            default:
+                break;
+        }
+    }
 
-	@Test
-	@DisplayName("Пустое название фильма, недопустимо")
-	void emptyNameTest() {
-		film.setName("");
-		violations = validator.validate(film);
-		assertFalse(violations.isEmpty());
-	}
+    @Test
+    @DisplayName("Все поля фильма корректны")
+    void filmNormalTest() {
+        filmViolations = validator.validate(film);
+        assertTrue(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
 
-	@Test
-	@DisplayName("Название фильма из пробелов, недопустимо")
-	void blankNameTest() {
-		film.setName(" ");
-		violations = validator.validate(film);
-		assertFalse(violations.isEmpty());
-	}
+    @Test
+    @DisplayName("Все поля фильма пустые, недопустимо")
+    void filmDefaultTest() {
+        film = new Film();
+        filmViolations = validator.validate(film);
+        assertFalse(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
 
-	@Test
-	@DisplayName("Название фильма null, недопустимо")
-	void filmNullTest() {
-		film = new Film();
-		violations = validator.validate(film);
-		assertFalse(violations.isEmpty());
-	}
+    @Test
+    @DisplayName("Пустое название фильма, недопустимо")
+    void emptyNameTest() {
+        film.setName("");
+        filmViolations = validator.validate(film);
+        assertFalse(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
 
-	@Test
-	@DisplayName("Описание фильма null (пустое), допустимо")
-	void descriptionNullTest() {
-		film.setDescription(null);
-		violations = validator.validate(film);
-		assertTrue(violations.isEmpty());
-	}
+    @Test
+    @DisplayName("Название фильма из пробелов, недопустимо")
+    void nameBlankTest() {
+        film.setName(" ");
+        filmViolations = validator.validate(film);
+        assertFalse(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
 
-	@Test
-	@DisplayName("Описание фильма пустое, допустимо")
-	void descriptionEmptyTest() {
-		film.setDescription("");
-		violations = validator.validate(film);
-		assertTrue(violations.isEmpty());
-	}
+    @Test
+    @DisplayName("Название фильма null, недопустимо")
+    void nameNullTest() {
+        film.setName(null);
+        filmViolations = validator.validate(film);
+        assertFalse(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
 
-	@Test
-	@DisplayName("Описание фильма не пустое, допустимо")
-	void descriptionNotEmptyTest() {
-		film.setDescription(" ");
-		violations = validator.validate(film);
-		assertTrue(violations.isEmpty());
-	}
+    @Test
+    @DisplayName("Описание фильма null (пустое), допустимо")
+    void descriptionNullTest() {
+        film.setDescription(null);
+        filmViolations = validator.validate(film);
+        assertTrue(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
 
-	@Test
-	@DisplayName("Описание фильма максимально допустимого размера, допустимо")
-	void descriptionMaxSizeTest() {
-		film.setDescription(" ");
-		violations = validator.validate(film);
-		assertTrue(violations.isEmpty());
-	}
+    @Test
+    @DisplayName("Описание фильма пустое, допустимо")
+    void descriptionEmptyTest() {
+        film.setDescription("");
+        filmViolations = validator.validate(film);
+        assertTrue(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
+
+    @Test
+    @DisplayName("Описание фильма не пустое и меньше предельного размера, допустимо")
+    void descriptionNotEmptyTest() {
+        film.setDescription("Тест");
+        filmViolations = validator.validate(film);
+        assertTrue(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
+
+    @Test
+    @DisplayName("Описание фильма предельного размера, допустимо")
+    void descriptionMaxSizeTest() {
+        film.setDescription("Q".repeat(MAX_DESCRIPTION_LENGTH));
+        filmViolations = validator.validate(film);
+        assertTrue(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
+
+    @Test
+    @DisplayName("Описание фильма с превышением предельного размера, недопустимо")
+    void descriptionOverSizeTest() {
+        film.setDescription("Z".repeat(MAX_DESCRIPTION_LENGTH) + "oversize");
+        filmViolations = validator.validate(film);
+        assertFalse(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
+
+    @Test
+    @DisplayName("Дата релиза не задана, допустимо")
+    void releaseNullTest() {
+        film.setReleaseDate(null);
+        filmViolations = validator.validate(film);
+        assertTrue(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
+
+    @Test
+    @DisplayName("Дата релиза пустая, допустимо")
+    void releaseEmptyTest() {
+        film.setReleaseDate("");
+        filmViolations = validator.validate(film);
+        assertTrue(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
+
+    @Test
+    @DisplayName("Некорректный паттерн даты, недопустимо")
+    void releaseIncorrectTest() {
+        film.setReleaseDate("это не дата");
+        filmViolations = validator.validate(film);
+        assertFalse(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
+
+    @Test
+    @DisplayName("Корректный паттерн даты, дата в допустимых пределах, допустимо")
+    void releaseCorrectTest() {
+        film.setReleaseDate("2000-01-01");
+        filmViolations = validator.validate(film);
+        assertTrue(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
+
+    @Test
+    @DisplayName("Предельная дата, допустимо")
+    void releaseMaxAllowableTest() {
+        film.setReleaseDate(VALID_RELEASE_DATE.toString());
+        filmViolations = validator.validate(film);
+        assertTrue(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
+
+    @Test
+    @DisplayName("Дата раньше предельной, недопустимо")
+    void releaseNotAllowableTest() {
+        film.setReleaseDate("1895-12-27");
+        filmViolations = validator.validate(film);
+        assertFalse(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
+
+    @Test
+    @DisplayName("Дата позже сегодняшней - анонс релиза, допустимо")
+    void releaseAfterTomorrowTest() {
+        film.setReleaseDate((LocalDate.now().plusDays(1)).toString());
+        filmViolations = validator.validate(film);
+        assertTrue(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
+
+    @Test
+    @DisplayName("Корректная длительность фильма, допустимо")
+    void durationNormalTest() {
+        film.setDuration(1);
+        filmViolations = validator.validate(film);
+        assertTrue(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
+
+    @Test
+    @DisplayName("Нулевая длительность фильма, недопустимо")
+    void durationIncorrectTest() {
+        film.setDuration(0);
+        filmViolations = validator.validate(film);
+        assertFalse(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
+
+    @Test
+    @DisplayName("Отрицательная длительность фильма, недопустимо")
+    void durationNegativeTest() {
+        film.setDuration(-1);
+        filmViolations = validator.validate(film);
+        assertFalse(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
+
+    @Test
+    @DisplayName("Корректный ID, допустимо")
+    void validIdTest() {
+        film.setId(1);
+        filmViolations = validator.validate(film);
+        assertTrue(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
+
+    @Test
+    @DisplayName("ID = 0, допустимо")
+    void zeroIdTest() {
+        film.setId(0);
+        filmViolations = validator.validate(film);
+        assertTrue(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
+
+    @Test
+    @DisplayName("Отрицательный ID, недопустимо")
+    void notValidIdTest() {
+        film.setId(-1);
+        filmViolations = validator.validate(film);
+        assertFalse(filmViolations.isEmpty());
+        infoMode = FILM;
+    }
+
+    @Test
+    @DisplayName("Все поля пользователя корректны")
+    void userNormalTest() {
+        userViolations = validator.validate(user);
+        assertTrue(userViolations.isEmpty());
+        infoMode = USER;
+    }
+
+    @Test
+    @DisplayName("Все поля пользователя пустые, недопустимо")
+    void userDefaultTest() {
+        user = new User();
+        userViolations = validator.validate(user);
+        assertFalse(userViolations.isEmpty());
+        infoMode = USER;
+    }
+
+    @Test
+    @DisplayName("Имя может отсутствовать, или быть любым, допустимо")
+    void nameEmptyTest() {
+        user.setName(null);
+        userViolations = validator.validate(user);
+        assertTrue(userViolations.isEmpty());
+        infoMode = USER;
+        viewViolationMessages();
+        user.setName("");
+        userViolations = validator.validate(user);
+        assertTrue(userViolations.isEmpty());
+        viewViolationMessages();
+        user.setName(" ");
+        userViolations = validator.validate(user);
+        assertTrue(userViolations.isEmpty());
+        viewViolationMessages();
+        user.setName("ANDY");
+        userViolations = validator.validate(user);
+        assertTrue(userViolations.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Логин пустой, недопустимо")
+    void loginEmptyTest() {
+        user.setLogin(null);
+        userViolations = validator.validate(user);
+        assertFalse(userViolations.isEmpty());
+        infoMode = USER;
+        viewViolationMessages();
+        user.setLogin("");
+        userViolations = validator.validate(user);
+        assertFalse(userViolations.isEmpty());
+        viewViolationMessages();
+        user.setLogin(" ");
+        userViolations = validator.validate(user);
+        assertFalse(userViolations.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Логин в наличии, допустимо")
+    void loginNormalTest() {
+        user.setLogin("AnDy");
+        userViolations = validator.validate(user);
+        assertTrue(userViolations.isEmpty());
+        infoMode = USER;
+    }
+
+    @Test
+    @DisplayName("Email некорректный, недопустимо")
+    void emailIncorrectTest() {
+        user.setEmail("andrejsinyavinyandex@");
+        userViolations = validator.validate(user);
+        assertFalse(userViolations.isEmpty());
+        infoMode = USER;
+    }
+
+    @Test
+    @DisplayName("Email корректный, допустимо")
+    void emailCorrectTest() {
+        user.setEmail("andrejsinyavin@yandex.ru");
+        userViolations = validator.validate(user);
+        assertTrue(userViolations.isEmpty());
+        infoMode = USER;
+    }
+
+    @Test
+    @DisplayName("Email пустой, недопустимо")
+    void emailEmptyTest() {
+        user.setEmail("");
+        userViolations = validator.validate(user);
+        assertFalse(userViolations.isEmpty());
+        infoMode = USER;
+        viewViolationMessages();
+        user.setEmail(" ");
+        userViolations = validator.validate(user);
+        assertFalse(userViolations.isEmpty());
+        viewViolationMessages();
+        user.setEmail(null);
+        userViolations = validator.validate(user);
+        assertFalse(userViolations.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Дата рождения не может быть в будущем")
+    void userBirthdayTest() {
+        user.setBirthday(LocalDate.now().plusDays(1).toString());
+        UserController testController = new UserController();
+        ResponseStatusException thrown = assertThrows(ResponseStatusException.class,
+                () -> testController.createUser(user));
+        assertEquals("400 BAD_REQUEST \"Некорректная дата рождения пользователя!\"", thrown.getMessage());
+        log.info(thrown.getMessage());
+        infoMode = NONE;
+    }
+
+    enum Mode {
+        FILM,
+        USER,
+        NONE
+    }
+
 }

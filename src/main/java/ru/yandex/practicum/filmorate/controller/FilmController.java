@@ -14,6 +14,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Контроллер обработки HTTP-запросов для работы с фильмотекой. Содержит в себе хранилище фильмов.
+ * Позволяет: добавить фильм в фильмотеку, обновить уже добавленный, получить список имеющихся фильмов
+ */
 @Log4j2
 @RestController
 @RequestMapping("/films")
@@ -21,6 +25,12 @@ public final class FilmController {
     private final Map<Integer, Film> films = new HashMap<>();
     private int countId;
 
+    /**
+     * Метод создает в фильмотеке новую запись "Фильм".
+     *
+     * @param film фильм, получаемый из тела запроса и прошедший валидацию
+     * @return этот же фильм с уже зарегистрированным ID в фильмотеке
+     */
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public Film createFilm(@Valid @RequestBody Film film) {
         int id = newId();
@@ -30,6 +40,13 @@ public final class FilmController {
         return film;
     }
 
+    /**
+     * Метод обновляет в фильмотеке существующий фильм.
+     *
+     * @param film фильм из запроса с установленным ID, по которому ищет этот фильм в фильмотеке, и обновляет его
+     * @return этот же фильм с уже зарегистрированным ID в фильмотеке
+     * @throws ResponseStatusException если фильм не найден
+     */
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public Film updateFilm(@Valid @RequestBody Film film) {
         int id = film.getId();
@@ -43,6 +60,11 @@ public final class FilmController {
         }
     }
 
+    /**
+     * Метод возвращает все фильмы фильмотеки
+     *
+     * @return список всех фильмов, список может быть пустым
+     */
     @GetMapping
     public List<@NotNull Film> getFilms() {
         ArrayList<Film> films = new ArrayList<>(this.films.values());
@@ -50,6 +72,11 @@ public final class FilmController {
         return films;
     }
 
+    /**
+     * Метод авто-генерации ID для создаваемых в фильмотеке фильмов
+     *
+     * @return новый ID
+     */
     private int newId() {
         return ++countId;
     }

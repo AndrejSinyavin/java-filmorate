@@ -10,12 +10,12 @@
 hs_err_pid*
 out/
 target/
+/mvnw
+/mvnw.cmd
+.mvn/
+!.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-.mvn/
-/mvnw.cmd
-/mvnw
-
 
 ### STS ###
 .apt_generated
@@ -46,4 +46,4 @@ build/
 .vscode/
 
 *.db
-db/*!/README.md
+db/*!/mvnw

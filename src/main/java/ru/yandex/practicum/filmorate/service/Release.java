@@ -1,4 +1,4 @@
-package service;
+package ru.yandex.practicum.filmorate.service;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -7,13 +7,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import static ru.yandex.practicum.filmorate.model.Properties.MAX_DESCRIPTION_LENGTH;
-
-@Constraint(validatedBy = StartYearValidator.class)
+@SuppressWarnings("ALL")
+@Constraint(validatedBy = ReleaseValidator.class)
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface StartYear {
-    String message() default "Год релиза не может быть меньше " + MAX_DESCRIPTION_LENGTH;
+public @interface Release {
+    String message() default "Год релиза не может быть ранее 28 декабря 1895";
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 }
