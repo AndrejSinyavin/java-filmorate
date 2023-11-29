@@ -67,9 +67,9 @@ public final class FilmController {
      */
     @GetMapping
     public List<@NotNull Film> getFilms() {
-        ArrayList<Film> films = new ArrayList<>(this.films.values());
-        log.info("Сервер вернул список всех фильмов: {}", films);
-        return films;
+        ArrayList<Film> list = new ArrayList<>(films.values());
+        log.info("Сервер вернул список всех фильмов: {}", list);
+        return list;
     }
 
     /**

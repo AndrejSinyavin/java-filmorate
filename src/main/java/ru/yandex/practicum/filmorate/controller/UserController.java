@@ -39,16 +39,11 @@ public final class UserController {
      */
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public User createUser(@Valid @RequestBody User user) {
-        try {
-            validateUser(user);
-            int id = newId();
-            user.setId(id);
-            users.put(id, user);
-            log.info("Пользователь успешно добавлен в каталог: {}", user);
-        } catch (ValidateUserException e) {
-            log.error(e.getMessage());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
+        validateUser(user);
+        int id = newId();
+        user.setId(id);
+        users.put(id, user);
+        log.info("Пользователь успешно добавлен в каталог: {}", user);
         return user;
     }
 
@@ -61,20 +56,15 @@ public final class UserController {
      */
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public User updateUser(@Valid @RequestBody User user) {
-        try {
-            validateUser(user);
-            int id = user.getId();
-            if (users.containsKey(id)) {
-                users.put(id, user);
-                log.info("Пользователь успешно обновлен в каталоге");
-                return user;
-            } else {
-                log.warn("Пользователь не найден!");
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден!");
-            }
-        } catch (ValidateUserException e) {
-            log.error(e.getMessage());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        validateUser(user);
+        int id = user.getId();
+        if (users.containsKey(id)) {
+            users.put(id, user);
+            log.info("Пользователь успешно обновлен в каталоге");
+            return user;
+        } else {
+            log.warn("Пользователь не найден!");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден!");
         }
     }
 
@@ -93,14 +83,16 @@ public final class UserController {
      * Метод выполняет дополнительную валидацию запроса и корректирует его, если необходимо, либо отклоняет.
      *
      * @param user пользователь, которому нужно провести дополнительные проверки
-     * @throws ValidateUserException если дополнительные проверки не пройдены
+     * @throws ResponseStatusException с кодом {@link HttpStatus#BAD_REQUEST} если дополнительные проверки не пройдены
      */
-    private static void validateUser(@NonNull User user) throws ValidateUserException {
+    private static void validateUser(@NonNull User user) {
         log.info("Валидация характеристик пользователя:");
         String name = user.getName();
         LocalDate birthday = LocalDate.parse(user.getBirthday());
         if (birthday.isAfter(LocalDate.now()) && birthday.getYear() > LIFE_TIME) {
-            throw new ValidateUserException("Некорректная дата рождения пользователя!");
+            String errorMessage = "Некорректная дата рождения пользователя!";
+            log.error(errorMessage);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
         }
         if (name == null || name.isBlank()) {
             log.warn("Имя пользователя не задано, ему присвоено содержимое поля логин!");
@@ -116,14 +108,5 @@ public final class UserController {
      */
     private int newId() {
         return ++countId;
-    }
-
-    /**
-     * Исключение для метода {@link UserController#validateUser(User)}
-     */
-    private static class ValidateUserException extends Exception {
-        public ValidateUserException(String message) {
-            super(message);
-        }
     }
 }
