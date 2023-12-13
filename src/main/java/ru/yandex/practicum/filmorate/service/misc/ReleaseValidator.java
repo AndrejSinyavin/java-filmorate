@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.service.misc;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -8,7 +8,7 @@ import javax.validation.constraints.NotNull;
 import java.time.format.DateTimeParseException;
 
 import static java.time.LocalDate.parse;
-import static ru.yandex.practicum.filmorate.service.ValidateSettings.VALID_RELEASE_DATE;
+import static ru.yandex.practicum.filmorate.service.misc.ValidateSettings.VALID_RELEASE_DATE;
 
 @Slf4j
 public class ReleaseValidator implements ConstraintValidator<Release, String> {
