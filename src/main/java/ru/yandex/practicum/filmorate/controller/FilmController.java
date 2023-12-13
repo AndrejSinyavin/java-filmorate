@@ -15,28 +15,23 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Контроллер обработки HTTP-запросов для работы с фильмотекой. Содержит в себе хранилище фильмов.
- * Позволяет: добавить фильм в фильмотеку, обновить уже добавленный, получить список имеющихся фильмов
+ * Контроллер обработки HTTP-запросов для работы с фильмотекой.
  */
 @Log4j2
 @RestController
 @RequestMapping("/films")
 public final class FilmController {
-    private final Map<Integer, Film> films = new HashMap<>();
-    private int countId;
 
     /**
-     * Метод создает в фильмотеке новую запись "Фильм".
+     * Эндпоинт обрабатывает запрос на создание в фильмотеке новой записи "Фильм".
      *
      * @param film фильм, получаемый из тела запроса и прошедший валидацию
      * @return этот же фильм с уже зарегистрированным ID в фильмотеке
      */
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public Film createFilm(@Valid @RequestBody Film film) {
-        int id = newId();
-        film.setId(id);
-        films.put(id, film);
-        log.info("Фильм добавлен в каталог: {}", film);
+
+        log.info("Обработан запрос клиента на создание записи {},", film);
         return film;
     }
 
@@ -70,14 +65,5 @@ public final class FilmController {
         ArrayList<Film> list = new ArrayList<>(films.values());
         log.info("Сервер вернул список всех фильмов: {}", list);
         return list;
-    }
-
-    /**
-     * Метод авто-генерации ID для создаваемых в фильмотеке фильмов
-     *
-     * @return новый ID
-     */
-    private int newId() {
-        return ++countId;
     }
 }
