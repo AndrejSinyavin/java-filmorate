@@ -10,7 +10,7 @@ import static java.time.Month.DECEMBER;
 public final class ValidateSettings {
     public static final LocalDate VALID_RELEASE_DATE = LocalDate.of(1895, DECEMBER, 28);
     public static final int MAX_DESCRIPTION_LENGTH = 200;
-    public static final int LIFE_TIME = 130;
+    public static final int MAX_AGE = 130;
 
     private ValidateSettings() {
     }

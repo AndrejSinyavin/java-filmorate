@@ -1,9 +1,10 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.user;
 
 import ru.yandex.practicum.filmorate.model.User;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public interface UserStorage {
 
@@ -13,7 +14,7 @@ public interface UserStorage {
      * @param user регистрируемый пользователь
      * @return этот же пользователь с зарегистрированным ID
      */
-    @NotNull User createUser(@NotNull User user);
+    User createUser(User user);
 
     /**
      * Метод обновляет в списке пользователей фильмотеки существующего пользователя.
@@ -21,13 +22,20 @@ public interface UserStorage {
      * @param user пользователь, которого нужно найти и обновить, поиск производится по ID
      * @return обновленный пользователь
      */
-    @NotNull User updateUser(@NotNull User user);
+    User updateUser(User user);
 
     /**
      * Метод возвращает список всех пользователей фильмотеки.
      *
      * @return список пользователей, может быть пустым
      */
-    @NotNull List<User> getUsers();
+    List<User> getUsers();
+
+    /**
+     * Метод возвращает список друзей.
+     *
+     * @return список всех друзей
+     */
+    public Map<Integer, Set<Integer>> getFriends();
 
 }

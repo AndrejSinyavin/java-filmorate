@@ -1,15 +1,13 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.user;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Хранилище и бизнес-логика работы со списком клиентов фильмотеки в памяти.
@@ -20,7 +18,12 @@ public class InMemoryUserStorage implements UserStorage {
     /**
      * Список пользователей хранилища фильмотеки.
      */
-    private final Map<Integer, User> users = new HashMap<>();
+    final Map<Integer, User> users = new HashMap<>();
+    /**
+     * Список друзей каждого пользователя
+     */
+    @Getter
+    final Map<Integer, Set<Integer>> friends = new HashMap<>();
     /**
      * Счетчик ID для зарегистрированных пользователей хранилища фильмотеки
      */

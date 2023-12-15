@@ -1,17 +1,13 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Хранилище и бизнес-логика работы с фильмотекой в памяти.
@@ -23,6 +19,7 @@ public class InMemoryFilmStorage implements FilmStorage {
      * Хранилище записей о фильмах.
      */
     private final Map<Integer, Film> films = new HashMap<>();
+    private final Map<Integer, Set<Integer>> likes = new HashMap<>();
     /**
      * Счетчик ID для зарегистрированных фильмов в хранилище
      */

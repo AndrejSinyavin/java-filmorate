@@ -8,10 +8,13 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 
-import static ru.yandex.practicum.filmorate.service.misc.ValidateSettings.LIFE_TIME;
+import static ru.yandex.practicum.filmorate.service.misc.ValidateSettings.MAX_AGE;
 
 @Slf4j
-public class AdditionalValidator {
+public final class AdditionalUserValidator {
+
+    private AdditionalUserValidator() {
+    }
 
     /**
      * Метод выполняет дополнительную валидацию запроса и корректирует его, если необходимо, либо отклоняет.
@@ -24,7 +27,7 @@ public class AdditionalValidator {
         //ToDo проверить, что пользователь с таким email уже существует
         String name = user.getName();
         LocalDate birthday = LocalDate.parse(user.getBirthday());
-        if (birthday.isAfter(LocalDate.now()) && birthday.getYear() > LIFE_TIME) {
+        if (birthday.isAfter(LocalDate.now()) && birthday.getYear() > MAX_AGE) {
             String errorMessage = "Некорректная дата рождения пользователя!";
             log.error(errorMessage);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);

@@ -9,7 +9,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
-import static ru.yandex.practicum.filmorate.service.misc.AdditionalValidator.validateUser;
+import static ru.yandex.practicum.filmorate.service.misc.AdditionalUserValidator.validateUser;
 
 /**
  * Контроллер обработки HTTP-запросов для работы со списком клиентов фильмотеки.
