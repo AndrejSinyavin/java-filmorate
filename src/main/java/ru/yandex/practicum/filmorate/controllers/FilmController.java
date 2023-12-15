@@ -1,9 +1,9 @@
-package ru.yandex.practicum.filmorate.controller;
+package ru.yandex.practicum.filmorate.controllers;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.models.Film;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -49,9 +49,9 @@ public final class FilmController {
      * @return список всех фильмов фильмотеки, может быть пустым
      */
     @GetMapping
-    public List<@NotNull Film> getFilms() {
+    public @NotNull List<Film> getFilms() {
 
-        log.info("Обработан запрос клиента на получение списка всех фильмов фильмотеки: {}", list);
-        return list;
+        log.info("Обработан запрос клиента на получение списка всех фильмов фильмотеки");
+        return null;
     }
 }

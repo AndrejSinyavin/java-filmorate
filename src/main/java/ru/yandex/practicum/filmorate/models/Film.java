@@ -1,16 +1,16 @@
-package ru.yandex.practicum.filmorate.model;
+package ru.yandex.practicum.filmorate.models;
 
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
-import ru.yandex.practicum.filmorate.service.misc.Release;
+import ru.yandex.practicum.filmorate.services.validation.Release;
 
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 
-import static ru.yandex.practicum.filmorate.service.misc.ValidateSettings.MAX_DESCRIPTION_LENGTH;
+import static ru.yandex.practicum.filmorate.services.validation.ValidateSettings.MAX_DESCRIPTION_LENGTH;
 
 /**
  * Класс описывает фильм для фильмотеки
@@ -35,4 +35,5 @@ public final class Film {
 
     @Positive(message = "Продолжительность фильма может быть только положительным числом!")
     private int duration;
+
 }

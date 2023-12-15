@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.service.misc;
+package ru.yandex.practicum.filmorate.services.validation;
 
 import java.time.LocalDate;
 
@@ -14,4 +14,5 @@ public final class ValidateSettings {
 
     private ValidateSettings() {
     }
+    //ToDo реализовать настройки и окружение в application.properties
 }

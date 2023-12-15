@@ -3,9 +3,9 @@ package ru.yandex.practicum.filmorate;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.web.server.ResponseStatusException;
-import ru.yandex.practicum.filmorate.controller.UserController;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.controllers.UserController;
+import ru.yandex.practicum.filmorate.models.Film;
+import ru.yandex.practicum.filmorate.models.User;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -16,8 +16,8 @@ import java.util.Set;
 import static javax.validation.Validation.buildDefaultValidatorFactory;
 import static org.junit.jupiter.api.Assertions.*;
 import static ru.yandex.practicum.filmorate.FilmorateApplicationTests.Mode.*;
-import static ru.yandex.practicum.filmorate.service.misc.ValidateSettings.MAX_DESCRIPTION_LENGTH;
-import static ru.yandex.practicum.filmorate.service.misc.ValidateSettings.VALID_RELEASE_DATE;
+import static ru.yandex.practicum.filmorate.services.validation.ValidateSettings.MAX_DESCRIPTION_LENGTH;
+import static ru.yandex.practicum.filmorate.services.validation.ValidateSettings.VALID_RELEASE_DATE;
 
 @Log4j2
 class FilmorateApplicationTests {

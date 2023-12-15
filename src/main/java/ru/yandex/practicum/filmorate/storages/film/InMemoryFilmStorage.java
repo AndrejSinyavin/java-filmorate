@@ -1,10 +1,14 @@
-package ru.yandex.practicum.filmorate.storage.film;
+package ru.yandex.practicum.filmorate.storages.film;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.interfaces.FilmStorage;
+import ru.yandex.practicum.filmorate.interfaces.RegistrationService;
+import ru.yandex.practicum.filmorate.models.Film;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
@@ -14,16 +18,16 @@ import java.util.*;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class InMemoryFilmStorage implements FilmStorage {
     /**
      * Хранилище записей о фильмах.
      */
     private final Map<Integer, Film> films = new HashMap<>();
-    private final Map<Integer, Set<Integer>> likes = new HashMap<>();
     /**
-     * Счетчик ID для зарегистрированных фильмов в хранилище
+     * Подключение службы регистрации пользователя в фильмотеке
      */
-    private int countId;
+    private final RegistrationService<Film> registrationService;
 
     /**
      * Метод создает запись о фильме в хранилище.
@@ -33,10 +37,9 @@ public class InMemoryFilmStorage implements FilmStorage {
      */
     @Override
     public @NotNull Film createfilm(@NotNull Film film) {
-        int id = newId();
-        film.setId(id);
+        int id = registrationService.register(film);
         films.put(id, film);
-        log.info("Выполнена запись в хранилище: {}", film);
+        log.info("Выполнена запись информации о фильме в хранилище: {}", film.getName());
         return film;
     }
 
@@ -51,10 +54,10 @@ public class InMemoryFilmStorage implements FilmStorage {
         int id = film.getId();
         if (films.containsKey(id)) {
             films.put(id, film);
-            log.info("Фильм обновлен в хранилище: {}", film);
+            log.info("Запись о фильме обновлена в хранилище: {}", film.getName());
             return film;
         } else {
-            log.warn("Фильм не найден в хранилище!");
+            log.warn("Запись о фильме не найдена в хранилище!");
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
     }
@@ -66,17 +69,8 @@ public class InMemoryFilmStorage implements FilmStorage {
      */
     @Override
     public @NotNull List<Film> getFilms() {
-        ArrayList<Film> list = new ArrayList<>(films.values());
-        log.info("Возвращен список всех фильмов из хранилища: {}", list);
-        return list;
+        log.info("Возвращен список всех фильмов из хранилища");
+        return List.copyOf(films.values());
     }
 
-    /**
-     * Метод авто-генерации ID для создаваемых в фильмотеке фильмов
-     *
-     * @return новый ID
-     */
-    private int newId() {
-        return ++countId;
-    }
 }

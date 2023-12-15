@@ -1,9 +1,9 @@
-package ru.yandex.practicum.filmorate.controller;
+package ru.yandex.practicum.filmorate.controllers;
 
 import lombok.Data;
 
 /**
- * Ошибка, возвращаемая клиенту в ответе
+ * Стандартный формат описания ошибок.
  */
 @Data
 public class ErrorResponse {

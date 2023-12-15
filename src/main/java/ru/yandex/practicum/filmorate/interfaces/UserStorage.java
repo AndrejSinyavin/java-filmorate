@@ -1,7 +1,8 @@
-package ru.yandex.practicum.filmorate.storage.user;
+package ru.yandex.practicum.filmorate.interfaces;
 
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.models.User;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,17 +26,19 @@ public interface UserStorage {
     User updateUser(User user);
 
     /**
+     * Метод удаляет пользователя из фильмотеки.
+     *
+     * @param user удаляемый пользователь
+     */
+    User deleteUser(User user);
+
+    /**
      * Метод возвращает список всех пользователей фильмотеки.
      *
      * @return список пользователей, может быть пустым
      */
-    List<User> getUsers();
+    List<User> getAllUsers();
 
-    /**
-     * Метод возвращает список друзей.
-     *
-     * @return список всех друзей
-     */
-    public Map<Integer, Set<Integer>> getFriends();
+    public User getUser(Integer userId);
 
 }
