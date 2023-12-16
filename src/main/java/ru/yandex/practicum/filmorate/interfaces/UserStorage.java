@@ -2,10 +2,7 @@ package ru.yandex.practicum.filmorate.interfaces;
 
 import ru.yandex.practicum.filmorate.models.User;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public interface UserStorage {
 

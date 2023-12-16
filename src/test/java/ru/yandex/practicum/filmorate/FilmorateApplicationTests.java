@@ -6,6 +6,10 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.controllers.UserController;
 import ru.yandex.practicum.filmorate.models.Film;
 import ru.yandex.practicum.filmorate.models.User;
+import ru.yandex.practicum.filmorate.services.friend.InMemoryFriendsService;
+import ru.yandex.practicum.filmorate.services.registration.UserRegistrationService;
+import ru.yandex.practicum.filmorate.services.user.UserService;
+import ru.yandex.practicum.filmorate.storages.user.InMemoryUserStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -387,7 +391,9 @@ class FilmorateApplicationTests {
     @DisplayName("Дата рождения не может быть в будущем")
     void userBirthdayTest() {
         user.setBirthday(LocalDate.now().plusDays(1).toString());
-        UserController testController = new UserController();
+
+        UserController testController = new UserController(new UserService
+                (new InMemoryUserStorage(new UserRegistrationService()), new InMemoryFriendsService()));
         ResponseStatusException thrown = assertThrows(ResponseStatusException.class,
                 () -> testController.createUser(user));
         assertEquals("400 BAD_REQUEST \"Некорректная дата рождения пользователя!\"", thrown.getMessage());

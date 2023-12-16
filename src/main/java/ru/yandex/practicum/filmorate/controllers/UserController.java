@@ -18,8 +18,9 @@ import static ru.yandex.practicum.filmorate.services.validation.AdditionalUserVa
  */
 @Slf4j
 @RestController
-@RequestMapping(name = "/users", consumes = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/users", consumes = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
+@ResponseBody
 public final class UserController {
     private final UserService users;
 
@@ -96,7 +97,7 @@ public final class UserController {
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<Integer> getCommonFriends(int id, int otherId) {
+    public List<Integer> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
         return users.getCommonFriends(id, otherId);
     }
 }

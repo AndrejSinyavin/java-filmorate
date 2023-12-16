@@ -39,7 +39,7 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public @NotNull User createUser(@NotNull User user) {
         String email = user.getEmail();
-        if(registeredEmail.contains(email)) {
+        if (registeredEmail.contains(email)) {
             String warning = "Пользователь с таким email уже зарегистрирован! ";
             log.warn(warning + email);
             throw new UserAlreadyExistsException(warning);
@@ -62,7 +62,7 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public @NotNull User updateUser(@NotNull User user) {
         Integer id = user.getId();
-        if(users.containsKey(id)) {
+        if (users.containsKey(id)) {
             String newEmail = user.getEmail();
             if (registeredEmail.contains(newEmail)) {
                 String warning = "Пользователь с таким email уже зарегистрирован! ";
