@@ -8,7 +8,7 @@ import javax.validation.constraints.NotNull;
 import java.time.format.DateTimeParseException;
 
 import static java.time.LocalDate.parse;
-import static ru.yandex.practicum.filmorate.services.validation.ValidateSettings.VALID_RELEASE_DATE;
+import static ru.yandex.practicum.filmorate.services.misc.ValidateSettings.VALID_RELEASE_DATE;
 
 @Slf4j
 public class ReleaseValidator implements ConstraintValidator<Release, String> {

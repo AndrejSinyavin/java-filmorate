@@ -8,7 +8,7 @@ import ru.yandex.practicum.filmorate.models.User;
 
 import java.time.LocalDate;
 
-import static ru.yandex.practicum.filmorate.services.validation.ValidateSettings.MAX_AGE;
+import static ru.yandex.practicum.filmorate.services.misc.ValidateSettings.MAX_AGE;
 
 @Slf4j
 public final class AdditionalUserValidator {

@@ -27,7 +27,7 @@ public interface UserStorage {
      *
      * @param user удаляемый пользователь
      */
-    User deleteUser(User user);
+    User deleteUser(int userId);
 
     /**
      * Метод возвращает список всех пользователей фильмотеки.
@@ -36,6 +36,6 @@ public interface UserStorage {
      */
     List<User> getAllUsers();
 
-    public User getUser(Integer userId);
+    public User getUser(int userId);
 
 }

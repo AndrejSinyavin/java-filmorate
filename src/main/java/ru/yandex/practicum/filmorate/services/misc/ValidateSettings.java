@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.services.validation;
+package ru.yandex.practicum.filmorate.services.misc;
 
 import java.time.LocalDate;
 

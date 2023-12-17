@@ -20,8 +20,8 @@ import java.util.Set;
 import static javax.validation.Validation.buildDefaultValidatorFactory;
 import static org.junit.jupiter.api.Assertions.*;
 import static ru.yandex.practicum.filmorate.FilmorateApplicationTests.Mode.*;
-import static ru.yandex.practicum.filmorate.services.validation.ValidateSettings.MAX_DESCRIPTION_LENGTH;
-import static ru.yandex.practicum.filmorate.services.validation.ValidateSettings.VALID_RELEASE_DATE;
+import static ru.yandex.practicum.filmorate.services.misc.ValidateSettings.MAX_DESCRIPTION_LENGTH;
+import static ru.yandex.practicum.filmorate.services.misc.ValidateSettings.VALID_RELEASE_DATE;
 
 @Log4j2
 class FilmorateApplicationTests {

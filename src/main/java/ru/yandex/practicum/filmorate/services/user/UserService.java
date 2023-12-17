@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.services.user;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.UserServiceInternalException;
 import ru.yandex.practicum.filmorate.interfaces.FriendsService;
 import ru.yandex.practicum.filmorate.interfaces.UserStorage;
 import ru.yandex.practicum.filmorate.models.User;
@@ -70,7 +71,10 @@ public class UserService {
      * @return список ID общих друзей
      */
     public List<User> getCommonFriends(int userId, int friendId) {
-        return friends.getCommonFriends(userId, friendId);
+        var frendsIdSet = friends.getCommonFriends(userId, friendId);
+        frendsIdSet.stream()
+                .map(id -> {});
+        return
     }
 
     /**
@@ -80,7 +84,14 @@ public class UserService {
      * @return этот же пользователь с зарегистрированным ID
      */
     public User createUser(User user) {
-        return users.createUser(user);
+        users.createUser(user);
+        if (friends.createNewUser(user.getId())) {
+            return user;
+        } else {
+            throw new UserServiceInternalException("Ошибка синхронизации сервисов!",
+                    "Пользователь зарегистрирован на сервисе, но не зарегистрирован в службе взаимодействия друзей, " +
+                            "обратитесь в службу технической поддержки!");
+        }
     }
 
     /**
@@ -96,14 +107,13 @@ public class UserService {
     /**
      * Метод удаляет пользователя из фильмотеки.
      *
-     * @param user удаляемый пользователь
+     * @param userId удаляемый пользователь
      * @return удаленный пользователь
      */
-    public User deleteUser(User user) {
-        User deletedUser = users.deleteUser(user);
-        Integer deletedUserId = deletedUser.getId();
-        friends.getFriends(deletedUserId)
-                .forEach(friendId -> friends.deleteFriend(friendId, deletedUserId));
+    public User deleteUser(int userId) {
+        User deletedUser = users.deleteUser(userId);
+        friends.getFriends(userId)
+                .forEach(friendId -> friends.deleteFriend(friendId, userId));
         return deletedUser;
     }
 
@@ -121,7 +131,7 @@ public class UserService {
      * @param userId ID пользователя
      * @return искомый пользователь
      */
-    public User getUser(Integer userId) {
+    public User getUser(int userId) {
         return users.getUser(userId);
     }
 
