@@ -31,10 +31,12 @@ public final class UserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public User createUser(@Valid @RequestBody User user) {
+        log.info("Запрос");
+        log.info("==> POST {}", user);
         validateUser(user);
         users.createUser(user);
-        log.info("Пользователь успешно добавлен в список пользователей: {}", user);
-        return users.getUser(user.getId());
+        log.info("<== Пользователь успешно добавлен в список пользователей сервиса: {}", user);
+        return user;
     }
 
     /**
@@ -45,9 +47,11 @@ public final class UserController {
      */
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
+        log.info("Запрос");
+        log.info("==> PUT {}", user);
         validateUser(user);
         users.updateUser(user);
-        log.info("Пользователь успешно обновлен в списке пользователей");
+        log.info("<== Пользователь успешно обновлен в списке пользователей сервиса: {}", user);
         return user;
     }
 
@@ -58,8 +62,10 @@ public final class UserController {
      */
     @GetMapping
     public List<User> getUsers() {
+        log.info("Запрос");
+        log.info("==> GET получить список всех пользователей");
         var result = users.getAllUsers();
-        log.info("Получен список всех пользователей");
+        log.info("<== Список всех пользователей сервиса");
         return result;
     }
 
@@ -70,8 +76,10 @@ public final class UserController {
      */
     @GetMapping("/{id}")
     public User getUserById(@PathVariable int id) {
+        log.info("Запрос");
+        log.info("==> GET получить пользователя");
         var result = users.getUser(id);
-        log.info("Получен пользователь");
+        log.info("<== Пользователь сервиса: ID {}", id);
         return result;
     }
 
@@ -83,39 +91,54 @@ public final class UserController {
      */
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable int id, @PathVariable int friendId) {
+        log.info("Запрос");
+        log.info("==> PUT добавить в друзья");
         users.addFriend(id, friendId);
-        log.info("Пользователи добавлены в друзья");
+        log.info("<== Пользователи сервиса ID {} и ID {} добавлены в друзья", id, friendId);
     }
 
     /**
-     * Эндпоинт обрабатывает запрос на удаление двух пользователей из друзей.
+     * Эндпоинт обрабатывает запрос на удаление пользователей из друзей друг у друга.
      *
      * @param id первый пользователь
      * @param friendId второй пользователь
      */
     @DeleteMapping("/{id}/friends/{friendId}")
     public void deleteFriend(@PathVariable int id, @PathVariable int friendId) {
+        log.info("Запрос");
+        log.info("==> DELETE удалить из друзей");
         users.deleteFriend(id, friendId);
-        log.info("Пользователи удалены из друзей");
+        log.info("<== Пользователи сервиса ID {} и ID {} удалены друг у друга из друзей", id, friendId);
     }
 
     /**
-     * Эндпоинт обрабатывает запрос на получение списка всех ID друзей пользователя.
+     * Эндпоинт обрабатывает запрос на получение списка всех друзей пользователя.
      *
      * @param id ID пользователя
-     * @return список ID всех друзей
+     * @return список всех друзей
      */
     @GetMapping("/{id}/friends")
     public List<User> getFriends(@PathVariable int id) {
+        log.info("Запрос");
+        log.info("==> GET получить список друзей пользователя");
         var result = users.getFriends(id);
-        log.info("Получен список друзей пользователя ID {}", id);
+        log.info("<== Список всех друзей пользователя сервиса ID {}", id);
         return result;
     }
 
+    /**
+     * Эндпоинт обрабатывает запрос на получение списка всех общих друзей двух пользователей.
+     *
+     * @param id      ID одного пользователя
+     * @param otherId ID другого пользователя
+     * @return список всех общих друзей
+     */
     @GetMapping("/{id}/friends/common/{otherId}")
     public List<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
+        log.info("Запрос");
+        log.info("==> GET получить список совместных друзей двух пользователей");
         var result = users.getCommonFriends(id, otherId);
-        log.info("Получен список общих друзей двух пользователей: ID {} и ID {}", id, otherId);
+        log.info("<==  Список общих друзей пользователей сервиса ID {} и ID {}", id, otherId);
         return result;
     }
 }

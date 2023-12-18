@@ -19,7 +19,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private static final String ERROR = "Сервис работы с пользователями не выполнил задачу из-за отказа в сервисе FriendsService";
+    private static final String ERROR =
+            "Сервис работы с пользователями не выполнил задачу из-за отказа в сервисе FriendsService";
     /**
      * Подключение сервиса работы с пользователями.
      */
@@ -32,7 +33,7 @@ public class UserService {
     /**
      * Метод добавляет двух пользователей друг другу в друзья.
      *
-     * @param userId ID пользователя
+     * @param userId   ID пользователя
      * @param friendId ID добавляемого в друзья пользователя
      */
     public void addFriend(int userId, int friendId) {
@@ -47,7 +48,7 @@ public class UserService {
     /**
      * Метод удаляет пользователей из друзей.
      *
-     * @param userId ID пользователя
+     * @param userId   ID пользователя
      * @param friendId ID друга пользователя
      */
     public void deleteFriend(int userId, int friendId) {
@@ -62,7 +63,7 @@ public class UserService {
     /**
      * Метод возвращает список друзей указанного пользователя.
      *
-     * @param userId ID нужного пользователя
+     * @param userId  ID нужного пользователя
      * @return список ID друзей
      */
     public List<User> getFriends(int userId) {
@@ -83,7 +84,7 @@ public class UserService {
      *
      * @param userId   ID пользователя
      * @param friendId ID друга пользователя
-     * @return список ID общих друзей
+     * @return  список ID общих друзей
      */
     public List<User> getCommonFriends(int userId, int friendId) {
         log.info("Получение списка общих друзей двух пользователей:");
@@ -143,7 +144,6 @@ public class UserService {
         friends.getFriends(userId)
                 .forEach(friendId -> friends.deleteFriend(friendId, userId));
         friends.unregisterUser(userId);
-        log.info("Пользователь удален.");
     }
 
     /**
@@ -153,9 +153,7 @@ public class UserService {
      */
     public List<User> getAllUsers() {
         log.info("Получение списка всех записей о пользователях:");
-        var result = users.getAllUsers();
-        log.info("Список получен.");
-        return result;
+        return users.getAllUsers();
     }
 
     /**
@@ -165,9 +163,7 @@ public class UserService {
      */
     public User getUser(int userId) {
         log.info("Получение записи о пользователе ID {} :", userId);
-        var result = users.getUser(userId);
-        log.info("Пользователь получен.");
-        return result;
+        return users.getUser(userId);
     }
 
 }

@@ -1,12 +1,23 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.Map;
 
 /**
- * Стандартный формат описания ошибок.
+ * API для передачи сообщений об ошибках клиенту.
  */
-@Data
-public class ErrorResponse {
-    private final String errorType;
-    private final String errorDescription;
+@Getter
+@Setter
+public final class ErrorResponse {
+    private final Map<String, String> errors;
+
+    public ErrorResponse(String error, String message) {
+        errors = Map.of(error, message);
+    }
+
+    public ErrorResponse(Map<String, String> errors) {
+        this.errors = errors;
+    }
 }

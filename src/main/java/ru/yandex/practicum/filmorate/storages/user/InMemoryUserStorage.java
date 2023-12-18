@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.interfaces.RegistrationService;
 import ru.yandex.practicum.filmorate.interfaces.UserStorage;
 import ru.yandex.practicum.filmorate.models.User;
 
-import javax.validation.constraints.NotNull;
 import java.util.*;
 
 /**
@@ -38,16 +37,17 @@ public class InMemoryUserStorage implements UserStorage {
      */
     @Override
     public User createUser(User user) {
+        log.info("Создание записи о пользователе в хранилище:");
         String email = user.getEmail();
         if (registeredEmail.contains(email)) {
             String message =
-                    String.format("Создать запись о пользователе не удалось, %s уже зарегистрирован!", email);
+                    String.format("Создать запись о пользователе не удалось, email %s уже зарегистрирован!", email);
             log.warn(message);
             throw new UserAlreadyExistsException(STORAGE_INTERNAL_ERROR, message);
         } else {
             users.put(registrationService.register(user), user);
             registeredEmail.add(email);
-            log.info("Пользователь успешно добавлен в хранилище: {}, {}, {} ", user.getId(), user.getLogin(), email);
+            log.info("Пользователь успешно добавлен в хранилище: {}", user);
             return user;
         }
     }
@@ -60,6 +60,7 @@ public class InMemoryUserStorage implements UserStorage {
      */
     @Override
     public User updateUser(User user) {
+        log.info("Обновление записи о пользователе в хранилище:");
         int id = user.getId();
         if (users.containsKey(id)) {
             String newEmail = user.getEmail();
@@ -71,7 +72,7 @@ public class InMemoryUserStorage implements UserStorage {
             }
             registeredEmail.remove(users.get(id).getEmail());
             users.put(id, user);
-            log.info("Пользователь успешно добавлен в хранилище: {}, {}, {}", id, user.getName(), newEmail);
+            log.info("Пользователь успешно обновлен в хранилище: {}", user);
             return user;
         } else {
             String message =
@@ -88,6 +89,7 @@ public class InMemoryUserStorage implements UserStorage {
      */
     @Override
     public User deleteUser(int userId) {
+        log.info("Удаление записи о пользователе из хранилища:");
         User user = users.remove(userId);
         if (user == null) {
             String message =
@@ -96,7 +98,7 @@ public class InMemoryUserStorage implements UserStorage {
             throw new UserNotFoundException(STORAGE_INTERNAL_ERROR, message);
         } else {
             registeredEmail.remove(user.getEmail());
-            log.warn("Пользователь ID {} успешно удален", userId);
+            log.warn("Пользователь ID {} успешно удален из хранилища", userId);
             return user;
         }
     }
@@ -107,8 +109,8 @@ public class InMemoryUserStorage implements UserStorage {
      * @return список пользователей, может быть пустым
      */
     @Override
-    public @NotNull List<User> getAllUsers() {
-        log.info("Получен список всех пользователей хранилища");
+    public List<User> getAllUsers() {
+        log.info("Получен список всех пользователей из хранилища");
         return List.copyOf(users.values());
     }
 
@@ -119,6 +121,7 @@ public class InMemoryUserStorage implements UserStorage {
      */
     @Override
     public User getUser(int userId) {
+        log.info("Получение записи о пользователе из хранилища");
         User user = users.get(userId);
         if (user == null) {
             String message =

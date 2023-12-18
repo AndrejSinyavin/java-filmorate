@@ -14,16 +14,16 @@ import javax.validation.constraints.NotBlank;
 @Data
 @Validated
 public final class User {
-    @DecimalMin("0")
+    @DecimalMin(value = "0", message = "ID записи не может быть отрицательным значением")
     private int id;
 
     private String name;
 
-    @NotBlank(message = "Логин не может быть пустым!")
+    @NotBlank(message = "Логин не может быть пустым")
     private String login;
 
-    @Email(message = "Неверный email!")
-    @NotBlank(message = "email не может быть пустым!")
+    @Email(message = "Неверный email")
+    @NotBlank(message = "email не может быть пустым")
     private String email;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")

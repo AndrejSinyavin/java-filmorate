@@ -11,7 +11,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Release {
-    String message() default "Год релиза не может быть ранее 28 декабря 1895";
+    String text = "Год релиза не может быть ранее 28 декабря 1895," +
+            " либо дата релиза не соответствует паттерну даты";
+    String message() default text;
 
     Class<?>[] groups() default {};
 

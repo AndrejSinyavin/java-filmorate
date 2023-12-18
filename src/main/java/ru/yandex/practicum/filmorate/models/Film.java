@@ -18,22 +18,21 @@ import static ru.yandex.practicum.filmorate.services.misc.ValidateSettings.MAX_D
 @Data
 @Validated
 public final class Film {
-    @DecimalMin("0")
+    @DecimalMin(value = "0", message = "ID записи не может быть отрицательным значением")
     private int id;
 
-    @NotBlank(message = "Название фильма не может быть пустым!")
+    @NotBlank(message = "Название фильма не может быть пустым")
     private String name;
 
     @Size(max = MAX_DESCRIPTION_LENGTH,
-            message = "Описание фильма не должно быть больше " + MAX_DESCRIPTION_LENGTH + " символов!"
-    )
+            message = "Описание фильма не должно быть больше " + MAX_DESCRIPTION_LENGTH + " символов")
     private String description;
 
     @DateTimeFormat(pattern = "yyyy.MM.dd")
     @Release
     private String releaseDate;
 
-    @Positive(message = "Продолжительность фильма может быть только положительным числом!")
+    @Positive(message = "Продолжительность фильма может быть только положительным значением")
     private int duration;
 
 }
