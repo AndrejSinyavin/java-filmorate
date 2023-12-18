@@ -1,11 +1,8 @@
 package ru.yandex.practicum.filmorate.exceptions;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+public class UserServiceInternalException extends CustomException {
 
-@AllArgsConstructor
-@Getter
-public class UserServiceInternalException extends RuntimeException {
-    private final String error;
-    private final String message;
+    public UserServiceInternalException(String error, String message) {
+        super(error, message);
+    }
 }

@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.services.user;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.UserServiceInternalException;
@@ -14,9 +15,11 @@ import java.util.stream.Collectors;
 /**
  * Сервис содержит логику работы с пользователями
  */
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class UserService {
+    private static final String ERROR = "Сервис работы с пользователями не выполнил задачу из-за отказа в сервисе FriendsService";
     /**
      * Подключение сервиса работы с пользователями.
      */
@@ -33,8 +36,11 @@ public class UserService {
      * @param friendId ID добавляемого в друзья пользователя
      */
     public void addFriend(int userId, int friendId) {
+        log.info("Добавление пользователя в друзья:");
         if (!friends.addFriend(userId, friendId)) {
-            throw new UserNotFoundException("Указан неверный ID у одного или более пользователей!");
+            String message = String.format("Пользователи ID %d и/или ID %d не найдены!", userId, friendId);
+            log.error("{}. {}", ERROR, message);
+            throw new UserNotFoundException(ERROR, message);
         }
     }
 
@@ -45,8 +51,11 @@ public class UserService {
      * @param friendId ID друга пользователя
      */
     public void deleteFriend(int userId, int friendId) {
+        log.info("Удаление пользователей из друзей:");
         if (!friends.deleteFriend(userId, friendId)) {
-            throw new UserNotFoundException("Указан неверный ID у одного или более пользователей!");
+            String message = String.format("Пользователи ID %d и/или ID %d не найдены!", userId, friendId);
+            log.error("{}. {}", ERROR, message);
+            throw new UserNotFoundException(ERROR, message);
         }
     }
 
@@ -57,24 +66,40 @@ public class UserService {
      * @return список ID друзей
      */
     public List<User> getFriends(int userId) {
-        if (users.getUser(userId) != )
-        return friends.getFriends(userId).stream()
-                .map(users::getUser)
-                .collect(Collectors.toList());
+        log.info("Получение списка друзей пользователя:");
+        users.getUser(userId);
+        try {
+            return friends.getFriends(userId).stream()
+                    .map(users::getUser)
+                    .collect(Collectors.toList());
+        } catch (UserNotFoundException e) {
+            log.error(ERROR);
+            throw new UserNotFoundException(ERROR, e.getMessage());
+        }
     }
 
     /**
-     * Метод возвращает список общих друзей пользователя и его друга
+     * Метод возвращает список совместных друзей пользователя и его друга
      *
      * @param userId   ID пользователя
      * @param friendId ID друга пользователя
      * @return список ID общих друзей
      */
     public List<User> getCommonFriends(int userId, int friendId) {
+        log.info("Получение списка общих друзей двух пользователей:");
         var frendsIdSet = friends.getCommonFriends(userId, friendId);
-        frendsIdSet.stream()
-                .map(id -> {});
-        return
+        try {
+            return frendsIdSet.stream()
+                    .map(users::getUser)
+                    .collect(Collectors.toList());
+        } catch (UserNotFoundException e) {
+            log.error(ERROR);
+            throw new UserNotFoundException(ERROR, e.getMessage());
+        } catch (NullPointerException e) {
+            log.error(ERROR);
+            throw new UserNotFoundException(
+                    ERROR, String.format("Пользователь ID %d и/или ID %d не найдены!", userId, friendId));
+        }
     }
 
     /**
@@ -84,13 +109,15 @@ public class UserService {
      * @return этот же пользователь с зарегистрированным ID
      */
     public User createUser(User user) {
+        log.info("Создание записи о пользователе {} :", user);
         users.createUser(user);
-        if (friends.createNewUser(user.getId())) {
+        log.info("Регистрация пользователя в сервисе FriendsService:");
+        if (friends.registerNewUser(user.getId())) {
+            log.info("Пользователь создан и зарегистрирован на сервисе.");
             return user;
         } else {
-            throw new UserServiceInternalException("Ошибка синхронизации сервисов!",
-                    "Пользователь зарегистрирован на сервисе, но не зарегистрирован в службе взаимодействия друзей, " +
-                            "обратитесь в службу технической поддержки!");
+            throw new UserServiceInternalException("Сервис работы с пользователями",
+                    "Отказ регистрации пользователя в сервисе FriendsService");
         }
     }
 
@@ -101,6 +128,7 @@ public class UserService {
      * @return обновленный пользователь
      */
     public User updateUser(User user) {
+        log.info("Обновление записи о пользователе {} :", user);
         return users.updateUser(user);
     }
 
@@ -108,13 +136,14 @@ public class UserService {
      * Метод удаляет пользователя из фильмотеки.
      *
      * @param userId удаляемый пользователь
-     * @return удаленный пользователь
      */
-    public User deleteUser(int userId) {
-        User deletedUser = users.deleteUser(userId);
+    public void deleteUser(int userId) {
+        log.info("Удаление записи о пользователе ID {} :", userId);
+        users.deleteUser(userId);
         friends.getFriends(userId)
                 .forEach(friendId -> friends.deleteFriend(friendId, userId));
-        return deletedUser;
+        friends.unregisterUser(userId);
+        log.info("Пользователь удален.");
     }
 
     /**
@@ -123,7 +152,10 @@ public class UserService {
      * @return список всех пользователей, может быть пустым
      */
     public List<User> getAllUsers() {
-        return users.getAllUsers();
+        log.info("Получение списка всех записей о пользователях:");
+        var result = users.getAllUsers();
+        log.info("Список получен.");
+        return result;
     }
 
     /**
@@ -132,7 +164,10 @@ public class UserService {
      * @return искомый пользователь
      */
     public User getUser(int userId) {
-        return users.getUser(userId);
+        log.info("Получение записи о пользователе ID {} :", userId);
+        var result = users.getUser(userId);
+        log.info("Пользователь получен.");
+        return result;
     }
 
 }

@@ -1,11 +1,7 @@
 package ru.yandex.practicum.filmorate.exceptions;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@AllArgsConstructor
-@Getter
-public class UserAlreadyExistsException extends RuntimeException {
-    private final String error;
-    private final String message;
+public class UserAlreadyExistsException extends CustomException {
+    public UserAlreadyExistsException(String error, String message) {
+        super(error, message);
+    }
 }

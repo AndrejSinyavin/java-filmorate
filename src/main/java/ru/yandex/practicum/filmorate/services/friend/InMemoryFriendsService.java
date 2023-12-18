@@ -27,7 +27,7 @@ public class InMemoryFriendsService implements FriendsService {
      * @return true - успешно, false - пользователь уже существует
      */
     @Override
-    public boolean createNewUser(int userId) {
+    public boolean registerNewUser(int userId) {
         if (friends.containsKey(userId)) {
             log.warn("Пользователь с ID {} уже существует!", userId);
             return false;
@@ -45,7 +45,7 @@ public class InMemoryFriendsService implements FriendsService {
      * @return true, если операция успешно выполнена, false - пользователь не найден
      */
     @Override
-    public boolean deleteUser(int userId) {
+    public boolean unregisterUser(int userId) {
         var oldValue = friends.remove(userId);
         if (oldValue != null) {
             oldValue.forEach(id -> friends.get(id).remove(userId));
@@ -69,7 +69,7 @@ public class InMemoryFriendsService implements FriendsService {
         var userFriendList = friends.get(thisId);
         var otherFriendList = friends.get(otherId);
         if (userFriendList == null || otherFriendList == null) {
-            log.warn("Пользователь ID: {} или {} не найдены!", thisId, otherId);
+            log.warn("Пользователь ID {} и/или ID {} не найдены!", thisId, otherId);
             return false;
         } else {
             userFriendList.add(otherId);
@@ -91,12 +91,12 @@ public class InMemoryFriendsService implements FriendsService {
         var thisFriendList = friends.get(thisId);
         var otherFriendList = friends.get(otherId);
         if (thisFriendList == null || otherFriendList == null) {
-            log.warn("Пользователь ID: {} или {} не найдены!", thisId, otherId);
+            log.warn("Пользователь ID {} и/или ID {} не найдены!", thisId, otherId);
             return false;
         } else {
             thisFriendList.remove(otherId);
             otherFriendList.remove(thisId);
-            log.info("Пользователи ID {} и ID {} удалены друг у друга из друзей", thisId, otherId);
+            log.info("Пользователи ID {} и ID {} удалены из друзей", thisId, otherId);
             return true;
         }
     }

@@ -19,7 +19,7 @@ import java.util.*;
 @Component
 @RequiredArgsConstructor
 public class InMemoryUserStorage implements UserStorage {
-    private final static String STORAGE = "Операции с хранилищем в памяти";
+    private static final String STORAGE_INTERNAL_ERROR = "Выполнение операций при работе с хранилищем в памяти";
     /**
      * Список-хранилище пользователей фильмотеки в памяти.
      */
@@ -41,14 +41,13 @@ public class InMemoryUserStorage implements UserStorage {
         String email = user.getEmail();
         if (registeredEmail.contains(email)) {
             String message =
-                    String.format("Создание записи о пользователе не возможно, %s уже зарегистрирован!", email);
+                    String.format("Создать запись о пользователе не удалось, %s уже зарегистрирован!", email);
             log.warn(message);
-            throw new UserAlreadyExistsException(STORAGE, message);
+            throw new UserAlreadyExistsException(STORAGE_INTERNAL_ERROR, message);
         } else {
             users.put(registrationService.register(user), user);
             registeredEmail.add(email);
-            log.info("Пользователь успешно добавлен в хранилище: {}, {} ",
-                    user.getName(), email);
+            log.info("Пользователь успешно добавлен в хранилище: {}, {}, {} ", user.getId(), user.getLogin(), email);
             return user;
         }
     }
@@ -65,21 +64,20 @@ public class InMemoryUserStorage implements UserStorage {
         if (users.containsKey(id)) {
             String newEmail = user.getEmail();
             if (!registeredEmail.add(newEmail)) {
-                String message =
-                        String.format("Обновление записи о пользователе не возможно, %s уже зарегистрирован!", newEmail);
+                String message = String.format(
+                        "Обновить запись о пользователе не удалось, пользователь %s уже зарегистрирован!", newEmail);
                 log.warn(message);
-                throw new UserAlreadyExistsException(STORAGE, message);
+                throw new UserAlreadyExistsException(STORAGE_INTERNAL_ERROR, message);
             }
             registeredEmail.remove(users.get(id).getEmail());
             users.put(id, user);
-            log.info("Пользователь успешно добавлен в хранилище: {}, {}, {}",
-                    id, user.getName(), newEmail);
+            log.info("Пользователь успешно добавлен в хранилище: {}, {}, {}", id, user.getName(), newEmail);
             return user;
         } else {
             String message =
-                    String.format("Обновление записи о пользователе не возможно, пользователь с ID %d не найден!", id);
+                    String.format("Обновить запись о пользователе не удалось, пользователь с ID %d не найден!", id);
             log.warn(message);
-            throw new UserNotFoundException(STORAGE, message);
+            throw new UserNotFoundException(STORAGE_INTERNAL_ERROR, message);
         }
     }
 
@@ -93,9 +91,9 @@ public class InMemoryUserStorage implements UserStorage {
         User user = users.remove(userId);
         if (user == null) {
             String message =
-                    String.format("Удаление записи о пользователе не возможно, пользователь с ID %d не найден!", userId);
+                    String.format("Удалить запись о пользователе не удалось, пользователь с ID %d не найден!", userId);
             log.warn(message);
-            throw new UserNotFoundException(STORAGE, message);
+            throw new UserNotFoundException(STORAGE_INTERNAL_ERROR, message);
         } else {
             registeredEmail.remove(user.getEmail());
             log.warn("Пользователь ID {} успешно удален", userId);
@@ -110,7 +108,7 @@ public class InMemoryUserStorage implements UserStorage {
      */
     @Override
     public @NotNull List<User> getAllUsers() {
-        log.info("Возвращен список всех пользователей хранилища");
+        log.info("Получен список всех пользователей хранилища");
         return List.copyOf(users.values());
     }
 
@@ -124,10 +122,11 @@ public class InMemoryUserStorage implements UserStorage {
         User user = users.get(userId);
         if (user == null) {
             String message =
-                    String.format("Получить запись о пользователе не возможно, пользователь с ID %d не найден!", userId);
+                    String.format("Получить запись о пользователе не удалось, пользователь с ID %d не найден!", userId);
             log.warn(message);
-            throw new UserNotFoundException(STORAGE, message);
+            throw new UserNotFoundException(STORAGE_INTERNAL_ERROR, message);
         }
+        log.info("Получен пользователь ID {}", userId);
         return user;
     }
 

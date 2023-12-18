@@ -2,13 +2,12 @@ package ru.yandex.practicum.filmorate.controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.models.User;
 import ru.yandex.practicum.filmorate.services.user.UserService;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 import static ru.yandex.practicum.filmorate.services.validation.AdditionalUserValidator.validateUser;
@@ -18,9 +17,8 @@ import static ru.yandex.practicum.filmorate.services.validation.AdditionalUserVa
  */
 @Slf4j
 @RestController
-@RequestMapping(path = "/users", consumes = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping("/users")
 @RequiredArgsConstructor
-@ResponseBody
 public final class UserController {
     private final UserService users;
 
@@ -31,11 +29,12 @@ public final class UserController {
      * @return этот же пользователь с уже зарегистрированным ID в фильмотеке
      */
     @PostMapping
-    public @NotNull User createUser(@Valid @RequestBody User user) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public User createUser(@Valid @RequestBody User user) {
         validateUser(user);
         users.createUser(user);
-        log.info("Пользователь успешно добавлен в список пользователей фильмотеки: {}", user);
-        return user;
+        log.info("Пользователь успешно добавлен в список пользователей: {}", user);
+        return users.getUser(user.getId());
     }
 
     /**
@@ -45,10 +44,10 @@ public final class UserController {
      * @return обновленный пользователь
      */
     @PutMapping
-    public @NotNull User updateUser(@Valid @RequestBody User user) {
+    public User updateUser(@Valid @RequestBody User user) {
         validateUser(user);
         users.updateUser(user);
-        log.info("Пользователь успешно обновлен в списке пользователей фильмотеки");
+        log.info("Пользователь успешно обновлен в списке пользователей");
         return user;
     }
 
@@ -58,9 +57,22 @@ public final class UserController {
      * @return список всех пользователей, может быть пустым
      */
     @GetMapping
-    public @NotNull List<User> getUsers() {
-        log.info("Сервер вернул список всех пользователей фильмотеки");
-        return users.getAllUsers();
+    public List<User> getUsers() {
+        var result = users.getAllUsers();
+        log.info("Получен список всех пользователей");
+        return result;
+    }
+
+    /**
+     * Эндпоинт обрабатывает запрос на получение пользователя фильмотеки по его ID.
+     *
+     * @return пользователь
+     */
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable int id) {
+        var result = users.getUser(id);
+        log.info("Получен пользователь");
+        return result;
     }
 
     /**
@@ -72,6 +84,7 @@ public final class UserController {
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable int id, @PathVariable int friendId) {
         users.addFriend(id, friendId);
+        log.info("Пользователи добавлены в друзья");
     }
 
     /**
@@ -83,6 +96,7 @@ public final class UserController {
     @DeleteMapping("/{id}/friends/{friendId}")
     public void deleteFriend(@PathVariable int id, @PathVariable int friendId) {
         users.deleteFriend(id, friendId);
+        log.info("Пользователи удалены из друзей");
     }
 
     /**
@@ -92,12 +106,16 @@ public final class UserController {
      * @return список ID всех друзей
      */
     @GetMapping("/{id}/friends")
-    public List<Integer> getFriends(@PathVariable int id) {
-        return users.getFriends(id);
+    public List<User> getFriends(@PathVariable int id) {
+        var result = users.getFriends(id);
+        log.info("Получен список друзей пользователя ID {}", id);
+        return result;
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<Integer> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
-        return users.getCommonFriends(id, otherId);
+    public List<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
+        var result = users.getCommonFriends(id, otherId);
+        log.info("Получен список общих друзей двух пользователей: ID {} и ID {}", id, otherId);
+        return result;
     }
 }
