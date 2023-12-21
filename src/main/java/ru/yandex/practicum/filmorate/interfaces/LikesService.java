@@ -1,13 +1,15 @@
 package ru.yandex.practicum.filmorate.interfaces;
 
-import ru.yandex.practicum.filmorate.models.Film;
-
 import java.util.List;
 
 public interface LikesService {
-    void likeMovie(int filmId, int userId);
+    boolean registerFilm(int filmId);
 
-    void deleteLike(int filmId, int userId);
+    boolean unregisterFilm(int userId);
 
-    List<Film> getPopularFilm();
+    boolean likeFilm(int filmId, int userId);
+
+    boolean deleteLike(int filmId, int userId);
+
+    List<Integer> getPopularFilm(int topSize);
 }

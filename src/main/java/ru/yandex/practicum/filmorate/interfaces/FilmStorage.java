@@ -29,4 +29,8 @@ public interface FilmStorage {
      */
     List<Film> getFilms();
 
+    public Film getFilm(int filmId);
+
+    public Film deleteFilm(int filmId);
+
 }

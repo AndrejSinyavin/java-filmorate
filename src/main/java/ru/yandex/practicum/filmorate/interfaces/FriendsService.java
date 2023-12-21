@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.interfaces;
 import java.util.Set;
 
 public interface FriendsService {
-    boolean registerNewUser(int userId);
+    boolean registerUser(int userId);
 
     boolean unregisterUser(int userId);
 

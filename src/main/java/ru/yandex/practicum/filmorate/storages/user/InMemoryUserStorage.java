@@ -18,11 +18,15 @@ import java.util.*;
 @Component
 @RequiredArgsConstructor
 public class InMemoryUserStorage implements UserStorage {
-    private static final String STORAGE_INTERNAL_ERROR = "Выполнение операций при работе с хранилищем в памяти";
+    private static final String USER_STORAGE_INTERNAL_ERROR =
+            "Выполнение операций с пользователями в хранилище в памяти";
     /**
-     * Список-хранилище пользователей фильмотеки в памяти.
+     * Хранилище пользователей фильмотеки в памяти.
      */
     private final Map<Integer, User> users = new HashMap<>();
+    /**
+     * Список email зарегистрированных пользователей.
+     */
     private final Set<String> registeredEmail = new HashSet<>();
     /**
      * Подключение службы регистрации пользователя в фильмотеке
@@ -43,11 +47,11 @@ public class InMemoryUserStorage implements UserStorage {
             String message =
                     String.format("Создать запись о пользователе не удалось, email %s уже зарегистрирован!", email);
             log.warn(message);
-            throw new UserAlreadyExistsException(STORAGE_INTERNAL_ERROR, message);
+            throw new UserAlreadyExistsException(USER_STORAGE_INTERNAL_ERROR, message);
         } else {
             users.put(registrationService.register(user), user);
             registeredEmail.add(email);
-            log.info("Пользователь успешно добавлен в хранилище: {}", user);
+            log.info("Пользователь добавлен в хранилище: {}", user);
             return user;
         }
     }
@@ -68,7 +72,7 @@ public class InMemoryUserStorage implements UserStorage {
                 String message = String.format(
                         "Обновить запись о пользователе не удалось, пользователь %s уже зарегистрирован!", newEmail);
                 log.warn(message);
-                throw new UserAlreadyExistsException(STORAGE_INTERNAL_ERROR, message);
+                throw new UserAlreadyExistsException(USER_STORAGE_INTERNAL_ERROR, message);
             }
             registeredEmail.remove(users.get(id).getEmail());
             users.put(id, user);
@@ -78,7 +82,7 @@ public class InMemoryUserStorage implements UserStorage {
             String message =
                     String.format("Обновить запись о пользователе не удалось, пользователь с ID %d не найден!", id);
             log.warn(message);
-            throw new UserNotFoundException(STORAGE_INTERNAL_ERROR, message);
+            throw new UserNotFoundException(USER_STORAGE_INTERNAL_ERROR, message);
         }
     }
 
@@ -95,10 +99,10 @@ public class InMemoryUserStorage implements UserStorage {
             String message =
                     String.format("Удалить запись о пользователе не удалось, пользователь с ID %d не найден!", userId);
             log.warn(message);
-            throw new UserNotFoundException(STORAGE_INTERNAL_ERROR, message);
+            throw new UserNotFoundException(USER_STORAGE_INTERNAL_ERROR, message);
         } else {
             registeredEmail.remove(user.getEmail());
-            log.warn("Пользователь ID {} успешно удален из хранилища", userId);
+            log.warn("Пользователь ID {} удален из хранилища", userId);
             return user;
         }
     }
@@ -110,7 +114,7 @@ public class InMemoryUserStorage implements UserStorage {
      */
     @Override
     public List<User> getAllUsers() {
-        log.info("Получен список всех пользователей из хранилища");
+        log.info("Возвращен список всех пользователей из хранилища");
         return List.copyOf(users.values());
     }
 
@@ -127,7 +131,7 @@ public class InMemoryUserStorage implements UserStorage {
             String message =
                     String.format("Получить запись о пользователе не удалось, пользователь с ID %d не найден!", userId);
             log.warn(message);
-            throw new UserNotFoundException(STORAGE_INTERNAL_ERROR, message);
+            throw new UserNotFoundException(USER_STORAGE_INTERNAL_ERROR, message);
         }
         log.info("Получен пользователь ID {}", userId);
         return user;

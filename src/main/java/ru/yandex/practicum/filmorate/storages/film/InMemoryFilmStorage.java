@@ -2,14 +2,13 @@ package ru.yandex.practicum.filmorate.storages.film;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
+import ru.yandex.practicum.filmorate.exceptions.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
 import ru.yandex.practicum.filmorate.interfaces.FilmStorage;
 import ru.yandex.practicum.filmorate.interfaces.RegistrationService;
 import ru.yandex.practicum.filmorate.models.Film;
 
-import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +20,8 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class InMemoryFilmStorage implements FilmStorage {
+    private static final String FILM_STORAGE_INTERNAL_ERROR =
+            "Выполнение операций с фильмами в хранилище в памяти";
     /**
      * Хранилище записей о фильмах.
      */
@@ -37,41 +38,71 @@ public class InMemoryFilmStorage implements FilmStorage {
      * @return этот же фильм с уже зарегистрированным ID в хранилище
      */
     @Override
-    public @NotNull Film createfilm(@NotNull Film film) {
-        int id = registrationService.register(film);
-        films.put(id, film);
-        log.info("Выполнена запись информации о фильме в хранилище: {}", film.getName());
+    public Film createfilm(Film film) {
+        log.info("Создание записи о фильме в хранилище:");
+        films.put(registrationService.register(film), film);
+        log.info("Фильм добавлен в хранилище: {}", film);
         return film;
     }
 
     /**
-     * Метод обновляет существующую запись о фильме в хранилище.
+     * Метод обновляет в хранилище фильмов существующую запись о фильме.
      *
      * @param film фильм из запроса с установленным ID, по которому ищется этот фильм в хранилище.
      * @return обновленная запись - фильм из хранилища
      */
     @Override
-    public @NotNull Film updateFilm(@NotNull Film film) {
+    public Film updateFilm(Film film) {
+        log.info("Обновление записи о фильме в хранилище:");
         int id = film.getId();
         if (films.containsKey(id)) {
             films.put(id, film);
             log.info("Запись о фильме обновлена в хранилище: {}", film.getName());
             return film;
         } else {
-            log.warn("Запись о фильме не найдена в хранилище!");
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            String message = "Запись о фильме в хранилище не найдена";
+            log.warn(message);
+            throw new UserNotFoundException(FILM_STORAGE_INTERNAL_ERROR, message);
+        }
+    }
+
+    @Override
+    public Film deleteFilm(int filmId) {
+        log.info("Удаление записи о фильме из хранилища");
+        Film film = films.remove((filmId));
+        if (film == null) {
+            String message =
+                    String.format("Удалить запись о фильме не удалось, фильм с ID %d не найден!", filmId);
+            log.warn(message);
+            throw new FilmNotFoundException(FILM_STORAGE_INTERNAL_ERROR, message);
+        } else {
+            log.warn("Запись о фильме ID {} удалена из хранилища", filmId);
+            return film;
         }
     }
 
     /**
-     * Метод возвращает список всех записей - фильмов в хранилище.
+     * Метод возвращает список всех записей о фильмах из хранилища.
      *
      * @return возвращаемый список фильмов, может быть пустым
      */
     @Override
-    public @NotNull List<Film> getFilms() {
+    public List<Film> getFilms() {
         log.info("Возвращен список всех фильмов из хранилища");
         return List.copyOf(films.values());
     }
 
+    @Override
+    public Film getFilm(int filmId) {
+        log.info("Получение записи о фильме из хранилища");
+        Film film = films.get(filmId);
+        if (film == null) {
+            String message =
+                    String.format("Получить запись о фильме не удалось, фильм с ID %d не найден!", filmId);
+            log.warn(message);
+            throw new FilmNotFoundException(FILM_STORAGE_INTERNAL_ERROR, message);
+        }
+        log.info("Получен фильм ID {}", filmId);
+        return film;
+    }
 }

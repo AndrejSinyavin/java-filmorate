@@ -113,7 +113,7 @@ public class UserService {
         log.info("Создание записи о пользователе {} :", user);
         users.createUser(user);
         log.info("Регистрация пользователя в сервисе FriendsService:");
-        if (friends.registerNewUser(user.getId())) {
+        if (friends.registerUser(user.getId())) {
             log.info("Пользователь создан и зарегистрирован на сервисе.");
             return user;
         } else {

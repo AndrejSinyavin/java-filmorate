@@ -10,49 +10,49 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Сервис реализует хранение и обработку списков друзей всех пользователей в памяти.
+ * Сервис реализует хранение и обработку в памяти списков друзей всех пользователей.
  */
 @Slf4j
 @Component
 public class InMemoryFriendsService implements FriendsService {
     /**
-     * Список друзей каждого пользователя
+     * Список друзей каждого пользователя.
      */
     private final Map<Integer, HashSet<Integer>> friends = new HashMap<>();
 
     /**
-     * Метод создает новую запись: ID пользователя и список ID его друзей.
+     * Метод регистрирует ID пользователя в FriendsService.
      *
      * @param userId ID пользователя
-     * @return true - успешно, false - пользователь уже существует
+     * @return true - успешно, false - пользователь уже зарегистрирован.
      */
     @Override
-    public boolean registerNewUser(int userId) {
+    public boolean registerUser(int userId) {
         if (friends.containsKey(userId)) {
-            log.warn("Пользователь с ID {} уже существует!", userId);
+            log.warn("Пользователь с ID {} уже был зарегистрирован в FriendsService!", userId);
             return false;
         } else {
             friends.put(userId, new HashSet<>());
-            log.info("Пользователь с ID {} записан в список учета друзей", userId);
+            log.info("Пользователь с ID {} зарегистрирован в FriendsService", userId);
             return true;
         }
     }
 
     /**
-     * Метод удаляет пользователя, его список друзей и ссылки на него у друзей.
+     * Метод удаляет ID пользователя из FriendsService, его список друзей и ссылки на него у друзей.
      *
      * @param userId ID удаляемого пользователя
-     * @return true, если операция успешно выполнена, false - пользователь не найден
+     * @return true, если операция успешно выполнена, false - пользователь не найден FriendsService
      */
     @Override
     public boolean unregisterUser(int userId) {
         var oldValue = friends.remove(userId);
         if (oldValue != null) {
             oldValue.forEach(id -> friends.get(id).remove(userId));
-            log.info("Пользователь ID {} удален из списка учета друзей", userId);
+            log.info("Пользователь ID {} удален из FriendsService", userId);
             return true;
         } else {
-            log.warn("Пользователь ID {} не найден!", userId);
+            log.warn("Пользователь ID {} не найден в FriendsService!", userId);
             return false;
         }
     }
