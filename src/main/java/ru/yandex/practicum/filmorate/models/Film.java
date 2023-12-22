@@ -34,5 +34,4 @@ public final class Film {
 
     @Positive(message = "Продолжительность фильма может быть только положительным значением")
     private int duration;
-
 }
