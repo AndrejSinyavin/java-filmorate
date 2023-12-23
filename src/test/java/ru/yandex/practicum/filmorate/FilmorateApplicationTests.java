@@ -392,8 +392,8 @@ class FilmorateApplicationTests {
     void userBirthdayTest() {
         user.setBirthday(LocalDate.now().plusDays(1).toString());
 
-        UserController testController = new UserController(new UserService
-                (new InMemoryUserStorage(new UserRegistrationService()), new InMemoryFriendsService()));
+        UserController testController = new UserController(new UserService(
+                new InMemoryUserStorage(new UserRegistrationService()), new InMemoryFriendsService()));
         UserValidationException thrown = assertThrows(UserValidationException.class,
                 () -> testController.createUser(user));
         assertEquals("Некорректная дата рождения пользователя!", thrown.getMessage());
