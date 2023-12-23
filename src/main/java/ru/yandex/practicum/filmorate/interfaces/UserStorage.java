@@ -4,6 +4,9 @@ import ru.yandex.practicum.filmorate.models.User;
 
 import java.util.List;
 
+/**
+ * Интерфейс для служб, работающих с пользователями фильмотеки.
+ */
 public interface UserStorage {
 
     /**
@@ -25,7 +28,7 @@ public interface UserStorage {
     /**
      * Метод удаляет пользователя из фильмотеки.
      *
-     * @param user удаляемый пользователь
+     * @param userId ID удаляемого пользователя
      */
     User deleteUser(int userId);
 
@@ -36,6 +39,12 @@ public interface UserStorage {
      */
     List<User> getAllUsers();
 
-    public User getUser(int userId);
+    /**
+     * Метод удаляет учетную запись пользователя из сервиса
+     *
+     * @param userId ID пользователя
+     * @return ссылка на удаленный аккаунт
+     */
+    User getUser(int userId);
 
 }

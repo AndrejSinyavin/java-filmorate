@@ -4,12 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-import javax.validation.constraints.NotNull;
 import java.time.format.DateTimeParseException;
 
 import static java.time.LocalDate.parse;
 import static ru.yandex.practicum.filmorate.services.misc.ValidateSettings.VALID_RELEASE_DATE;
 
+/**
+ * Реализация кастомной аннотации {@link Release}
+ */
 @Slf4j
 public class ReleaseValidator implements ConstraintValidator<Release, String> {
 

@@ -13,13 +13,16 @@ import java.util.List;
 import static ru.yandex.practicum.filmorate.services.validation.AdditionalUserValidator.validateUser;
 
 /**
- * Контроллер обработки REST-запросов для работы со списком клиентов фильмотеки.
+ * Контроллер обработки REST-запросов для работы с клиентами фильмотеки.
  */
 @Slf4j
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
 public final class UserController {
+    /**
+     * Подключение сервиса работы с пользователями UserService.
+     */
     private final UserService users;
 
     /**
@@ -75,18 +78,18 @@ public final class UserController {
      * @return пользователь
      */
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable int id) {
+    public User getUser(@PathVariable int id) {
         log.info("Запрос");
         log.info("==> GET получить пользователя");
         var result = users.getUser(id);
-        log.info("<== Пользователь сервиса: ID {}", id);
+        log.info("<== Пользователь сервиса: {}", result);
         return result;
     }
 
     /**
      * Эндпоинт обрабатывает запрос на добавление в друзья двух пользователей.
      *
-     * @param id первый пользователь
+     * @param id       первый пользователь
      * @param friendId второй пользователь
      */
     @PutMapping("/{id}/friends/{friendId}")
@@ -100,7 +103,7 @@ public final class UserController {
     /**
      * Эндпоинт обрабатывает запрос на удаление пользователей из друзей друг у друга.
      *
-     * @param id первый пользователь
+     * @param id       первый пользователь
      * @param friendId второй пользователь
      */
     @DeleteMapping("/{id}/friends/{friendId}")

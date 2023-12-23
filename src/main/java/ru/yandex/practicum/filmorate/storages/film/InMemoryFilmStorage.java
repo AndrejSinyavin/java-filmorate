@@ -66,6 +66,12 @@ public class InMemoryFilmStorage implements FilmStorage {
         }
     }
 
+    /**
+     * Метод удаляет запись о фильме из хранилища в памяти.
+     *
+     * @param filmId ID фильма
+     * @return ссылка на удаленную запись
+     */
     @Override
     public Film deleteFilm(int filmId) {
         log.info("Удаление записи о фильме из хранилища");
@@ -92,6 +98,12 @@ public class InMemoryFilmStorage implements FilmStorage {
         return List.copyOf(films.values());
     }
 
+    /**
+     * Метод возвращает запись о фильме из хранилища в памяти.
+     *
+     * @param filmId ID фильма
+     * @return ссылка на запись о фильме
+     */
     @Override
     public Film getFilm(int filmId) {
         log.info("Получение записи о фильме из хранилища");

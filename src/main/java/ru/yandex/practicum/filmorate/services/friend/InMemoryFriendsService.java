@@ -10,11 +10,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Сервис реализует хранение и обработку в памяти списков друзей всех пользователей.
+ * Сервис реализует хранение и обработку в памяти списков друзей для каждого пользователя.
  */
 @Slf4j
 @Component
-public class InMemoryFriendsService implements FriendsService {
+public final class InMemoryFriendsService implements FriendsService {
     /**
      * Список друзей каждого пользователя.
      */
@@ -104,7 +104,7 @@ public class InMemoryFriendsService implements FriendsService {
     /**
      * Метод возвращает список друзей указанного пользователя.
      *
-     * @param userId  ID нужного пользователя
+     * @param userId ID нужного пользователя
      * @return список ID друзей, может быть пустым
      */
     @Override

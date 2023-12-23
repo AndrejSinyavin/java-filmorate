@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public class RestControllerAdviceException extends RuntimeException {
+public abstract class RestControllerAdviceException extends RuntimeException {
     private final String error;
     private final String message;
 }

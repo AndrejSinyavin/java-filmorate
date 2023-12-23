@@ -2,8 +2,8 @@ package ru.yandex.practicum.filmorate;
 
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
-import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.controllers.UserController;
+import ru.yandex.practicum.filmorate.exceptions.UserValidationException;
 import ru.yandex.practicum.filmorate.models.Film;
 import ru.yandex.practicum.filmorate.models.User;
 import ru.yandex.practicum.filmorate.services.friend.InMemoryFriendsService;
@@ -394,9 +394,9 @@ class FilmorateApplicationTests {
 
         UserController testController = new UserController(new UserService
                 (new InMemoryUserStorage(new UserRegistrationService()), new InMemoryFriendsService()));
-        ResponseStatusException thrown = assertThrows(ResponseStatusException.class,
+        UserValidationException thrown = assertThrows(UserValidationException.class,
                 () -> testController.createUser(user));
-        assertEquals("400 BAD_REQUEST \"Некорректная дата рождения пользователя!\"", thrown.getMessage());
+        assertEquals("Некорректная дата рождения пользователя!", thrown.getMessage());
         log.info(thrown.getMessage());
         infoMode = NONE;
     }

@@ -1,9 +1,7 @@
 package ru.yandex.practicum.filmorate.services.validation;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
-import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exceptions.UserValidationException;
 import ru.yandex.practicum.filmorate.models.User;
 
@@ -11,6 +9,9 @@ import java.time.LocalDate;
 
 import static ru.yandex.practicum.filmorate.services.misc.ValidateSettings.MAX_AGE;
 
+/**
+ * Сервисный класс с дополнительными методами валидации данных.
+ */
 @Slf4j
 public final class AdditionalUserValidator {
 
@@ -21,7 +22,7 @@ public final class AdditionalUserValidator {
      * Метод выполняет дополнительную валидацию запроса и корректирует его, если необходимо, либо отклоняет.
      *
      * @param user пользователь, которому нужно провести дополнительные проверки
-     * @throws ResponseStatusException с кодом {@link HttpStatus#BAD_REQUEST} если дополнительные проверки не пройдены
+     * @throws UserValidationException если дополнительные проверки не пройдены
      */
     public static void validateUser(@NonNull User user) {
         log.info("Валидация характеристик пользователя:");

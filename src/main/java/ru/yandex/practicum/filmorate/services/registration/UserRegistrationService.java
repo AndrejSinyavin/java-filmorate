@@ -4,6 +4,9 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.interfaces.RegistrationService;
 import ru.yandex.practicum.filmorate.models.User;
 
+/**
+ * Сервис регистрации пользователей фильмотеки.
+ */
 @Component
 public final class UserRegistrationService implements RegistrationService<User> {
     /**

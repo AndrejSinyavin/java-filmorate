@@ -1,36 +1,51 @@
 package ru.yandex.practicum.filmorate.services.like;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exceptions.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.interfaces.LikesService;
 
 import java.util.*;
 
 /**
- * Сервис реализует хранение и обработку в памяти списков "лайков" пользователей к фильмам.
+ * Сервис реализует хранение и обработку в памяти рейтинга фильмов среди пользователей.
  */
 @Slf4j
 @Component
-public class InMemoryLikesService implements LikesService {
-    private final Map<Integer, FilmRate> rating = new TreeMap<>();
+public final class InMemoryLikesService implements LikesService {
+    private static final String LIKES_SERVICE_INTERNAL_ERROR =
+            "Выполнение операций с лайками в InMemoryLikesService";
+    /**
+     * Хранилище записей ID фильмов и ID тех, кто его "лайкнул".
+     */
+    private final Map<Integer, Node> storage = new HashMap<>();
+    /**
+     * Отсортированный по убыванию рейтинга список ID фильмов с лайками.
+     */
+    private final TreeSet<Node> top = new TreeSet<>(Comparator.comparingInt(Node::getRate));
 
     /**
      * Пользователь ставит лайк фильму.
      *
      * @param filmId фильм
      * @param userId пользователь
+     * @return новый рейтинг фильма
      */
     @Override
-    public void likeFilm(int filmId, int userId) {
-        FilmRate filmRate;
-        if (!rating.containsKey(filmId)) {
-            filmRate = new FilmRate(filmId);
+    public int likeFilm(int filmId, int userId) {
+        Node node = storage.get(filmId);
+        if (node == null) {
+            node = new Node(filmId);
         } else {
-            filmRate = rating.get(filmId);
+            top.remove(node);
         }
-        filmRate.addLike(userId);
-        rating.put(filmId, filmRate);
+        int rate = node.like(userId);
+        storage.put(filmId, node);
+        top.add(node);
+        log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
+        return rate;
     }
 
     /**
@@ -38,55 +53,112 @@ public class InMemoryLikesService implements LikesService {
      *
      * @param filmId фильм
      * @param userId пользователь
+     * @return новый рейтинг фильма
      */
     @Override
-    public void deleteLike(int filmId, int userId) {
-        rating.get(filmId).deleteLike(userId);
+    public int disLikeFilm(int filmId, int userId) {
+        Node node = storage.get(filmId);
+        if (node != null) {
+            top.remove(node);
+            int rate = node.disLike(userId);
+            top.add(node);
+            log.info("Пользователь {} удалил лайк фильму {}", userId, filmId);
+            return rate;
+        } else {
+            log.warn("Фильм не найден! {}", filmId);
+            throw new FilmNotFoundException(LIKES_SERVICE_INTERNAL_ERROR, "НЕ возможно удалить лайк, фильм не найден");
+        }
     }
 
     /**
-     * @return
+     * Метод возвращает топ рейтинга фильмов по количеству лайков
+     *
+     * @return список ID фильмов
      */
     @Override
     public List<Integer> getPopularFilm(int topSize) {
-        return List.
-
+        LinkedList<Integer> result = new LinkedList<>();
+        for (Node node : top) {
+            result.add(node.getFilmId());
+            topSize--;
+            if (topSize < 1) break;
+        }
+        log.info("Получен топ {} фильмов:\n{}", top.size(), result);
+        return result;
     }
 
-    @Getter
-    private final class FilmRate {
-        private int rating;
+    /**
+     * Метод удаляет запись о лайках для фильма
+     *
+     * @param filmId ID фильма
+     */
+    @Override
+    public void deleteFilm(int filmId) {
+        Node deletedNode = storage.remove(filmId);
+        if (deletedNode == null) {
+            log.warn("Удаление не возможно! Фильм с ID {} не найден", filmId);
+        } else {
+            top.remove(deletedNode);
+            log.info("Информация о фильме удалена из LikesService");
+        }
+    }
+
+    /**
+     * ToDo: метод напрямую изменяет рейтинг фильма в обход сервиса.
+     * Написан для тестов Postman, удалить в конечной реализации.
+     *
+     * @param rate - рейтинг фильма
+     */
+    @Override
+    public void backdoor(int filmId, int rate) {
+        Node node = storage.get(filmId);
+        if (node == null) {
+            node = new Node(filmId);
+        }
+        node.rate = rate;
+        top.add(node);
+    }
+
+    /**
+     * Элемент хранилища сервиса лайков
+     */
+    @RequiredArgsConstructor
+    private static final class Node {
+        @Getter
         private final int filmId;
-        private final Set<Integer> users = new HashSet<>();
+        private final Set<Integer> whoLikedIt = new HashSet<>();
+        @Getter
+        private int rate;
 
-        private FilmRate(int filmId) {
-            this.filmId = filmId;
+        public int like(int userId) {
+            if (whoLikedIt.add(userId)) {
+                rate++;
+            }
+            return rate;
         }
 
-        public void addLike(int userId) {
-            users.add(userId);
-            rating++;
+        public int disLike(int userId) {
+            if (whoLikedIt.remove(userId)) {
+                rate--;
+            }
+            return rate;
         }
 
-        public void deleteLike(int userId) {
-            users.remove(userId);
-            rating--;
+        public List<Integer> getWhoLikedIt() {
+            return new ArrayList<>(whoLikedIt);
         }
 
         @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            FilmRate filmRate = (FilmRate) o;
-
-            return rating == filmRate.rating;
+        public boolean equals(Object object) {
+            if (this == object) return true;
+            if (object == null || getClass() != object.getClass()) return false;
+            Node node = (Node) object;
+            return node.rate == rate;
         }
 
         @Override
         public int hashCode() {
-            return filmId;
+            return Objects.hash(filmId);
         }
-
     }
 }

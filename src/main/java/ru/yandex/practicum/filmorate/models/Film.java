@@ -13,7 +13,7 @@ import javax.validation.constraints.Size;
 import static ru.yandex.practicum.filmorate.services.misc.ValidateSettings.MAX_DESCRIPTION_LENGTH;
 
 /**
- * Класс описывает фильм для фильмотеки
+ * Класс описывает поля записи "фильм" в фильмотеке
  */
 @Data
 @Validated
@@ -34,4 +34,6 @@ public final class Film {
 
     @Positive(message = "Продолжительность фильма может быть только положительным значением")
     private int duration;
+
+    private int rate;
 }

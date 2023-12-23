@@ -120,6 +120,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     /**
      * Метод возвращает пользователя по его ID
+     *
      * @param userId ID пользователя
      * @return искомый пользователь
      */

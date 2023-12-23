@@ -9,7 +9,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 
 /**
- * Класс описывает пользователя фильмотеки
+ * Класс описывает поля записи "пользователя" фильмотеки
  */
 @Data
 @Validated

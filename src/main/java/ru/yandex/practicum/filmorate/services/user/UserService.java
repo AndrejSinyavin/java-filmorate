@@ -19,8 +19,11 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private static final String ERROR =
+    private static final String FRIENDS_SERVICE_ERROR =
             "Сервис работы с пользователями не выполнил задачу из-за отказа в сервисе FriendsService";
+    private static final String USER_STORAGE_SERVICE_ERROR =
+            "Сервис работы с пользователями не выполнил задачу из-за отказа в сервисе UserStorage";
+
     /**
      * Подключение сервиса работы с пользователями.
      */
@@ -40,8 +43,8 @@ public class UserService {
         log.info("Добавление пользователя в друзья:");
         if (!friends.addFriend(userId, friendId)) {
             String message = String.format("Пользователи ID %d и/или ID %d не найдены!", userId, friendId);
-            log.error("{}. {}", ERROR, message);
-            throw new UserNotFoundException(ERROR, message);
+            log.error("{}. {}", FRIENDS_SERVICE_ERROR, message);
+            throw new UserNotFoundException(FRIENDS_SERVICE_ERROR, message);
         }
     }
 
@@ -55,15 +58,15 @@ public class UserService {
         log.info("Удаление пользователей из друзей:");
         if (!friends.deleteFriend(userId, friendId)) {
             String message = String.format("Пользователи ID %d и/или ID %d не найдены!", userId, friendId);
-            log.error("{}. {}", ERROR, message);
-            throw new UserNotFoundException(ERROR, message);
+            log.error("{}. {}", FRIENDS_SERVICE_ERROR, message);
+            throw new UserNotFoundException(FRIENDS_SERVICE_ERROR, message);
         }
     }
 
     /**
      * Метод возвращает список друзей указанного пользователя.
      *
-     * @param userId  ID нужного пользователя
+     * @param userId ID нужного пользователя
      * @return список ID друзей
      */
     public List<User> getFriends(int userId) {
@@ -74,8 +77,8 @@ public class UserService {
                     .map(users::getUser)
                     .collect(Collectors.toList());
         } catch (UserNotFoundException e) {
-            log.error(ERROR);
-            throw new UserNotFoundException(ERROR, e.getMessage());
+            log.error(FRIENDS_SERVICE_ERROR);
+            throw new UserNotFoundException(FRIENDS_SERVICE_ERROR, e.getMessage());
         }
     }
 
@@ -84,7 +87,7 @@ public class UserService {
      *
      * @param userId   ID пользователя
      * @param friendId ID друга пользователя
-     * @return  список ID общих друзей
+     * @return список ID общих друзей
      */
     public List<User> getCommonFriends(int userId, int friendId) {
         log.info("Получение списка общих друзей двух пользователей:");
@@ -94,12 +97,12 @@ public class UserService {
                     .map(users::getUser)
                     .collect(Collectors.toList());
         } catch (UserNotFoundException e) {
-            log.error(ERROR);
-            throw new UserNotFoundException(ERROR, e.getMessage());
+            log.error(FRIENDS_SERVICE_ERROR);
+            throw new UserNotFoundException(FRIENDS_SERVICE_ERROR, e.getMessage());
         } catch (NullPointerException e) {
-            log.error(ERROR);
+            log.error(FRIENDS_SERVICE_ERROR);
             throw new UserNotFoundException(
-                    ERROR, String.format("Пользователь ID %d и/или ID %d не найдены!", userId, friendId));
+                    FRIENDS_SERVICE_ERROR, String.format("Пользователь ID %d и/или ID %d не найдены!", userId, friendId));
         }
     }
 
@@ -158,6 +161,7 @@ public class UserService {
 
     /**
      * Метод возвращает пользователя по его ID
+     *
      * @param userId ID пользователя
      * @return искомый пользователь
      */

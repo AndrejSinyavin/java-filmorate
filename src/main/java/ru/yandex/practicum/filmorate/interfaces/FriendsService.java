@@ -2,6 +2,9 @@ package ru.yandex.practicum.filmorate.interfaces;
 
 import java.util.Set;
 
+/**
+ * Интерфейс для служб, работающих с различными комьюнити пользователей.
+ */
 public interface FriendsService {
     boolean registerUser(int userId);
 
