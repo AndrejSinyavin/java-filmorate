@@ -3,8 +3,7 @@ package ru.yandex.practicum.filmorate.storages.film;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.FilmNotFoundException;
-import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.interfaces.FilmStorage;
 import ru.yandex.practicum.filmorate.interfaces.RegistrationService;
 import ru.yandex.practicum.filmorate.models.Film;
@@ -62,7 +61,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         } else {
             String message = "Запись о фильме в хранилище не найдена";
             log.warn(message);
-            throw new UserNotFoundException(FILM_STORAGE_INTERNAL_ERROR, message);
+            throw new EntityNotFoundException(this.getClass().getName(), FILM_STORAGE_INTERNAL_ERROR, message);
         }
     }
 
@@ -80,7 +79,7 @@ public class InMemoryFilmStorage implements FilmStorage {
             String message =
                     String.format("Удалить запись о фильме не удалось, фильм с ID %d не найден!", filmId);
             log.warn(message);
-            throw new FilmNotFoundException(FILM_STORAGE_INTERNAL_ERROR, message);
+            throw new EntityNotFoundException(this.getClass().getName(), FILM_STORAGE_INTERNAL_ERROR, message);
         } else {
             log.warn("Запись о фильме ID {} удалена из хранилища", filmId);
             return film;
@@ -112,7 +111,7 @@ public class InMemoryFilmStorage implements FilmStorage {
             String message =
                     String.format("Получить запись о фильме не удалось, фильм с ID %d не найден!", filmId);
             log.warn(message);
-            throw new FilmNotFoundException(FILM_STORAGE_INTERNAL_ERROR, message);
+            throw new EntityNotFoundException(this.getClass().getName(), FILM_STORAGE_INTERNAL_ERROR, message);
         }
         log.info("Получен фильм ID {}", filmId);
         return film;

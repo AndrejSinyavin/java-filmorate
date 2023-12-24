@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import ru.yandex.practicum.filmorate.controllers.UserController;
-import ru.yandex.practicum.filmorate.exceptions.UserValidationException;
+import ru.yandex.practicum.filmorate.exceptions.EntityValidateException;
 import ru.yandex.practicum.filmorate.models.Film;
 import ru.yandex.practicum.filmorate.models.User;
 import ru.yandex.practicum.filmorate.services.friend.InMemoryFriendsService;
@@ -20,8 +20,8 @@ import java.util.Set;
 import static javax.validation.Validation.buildDefaultValidatorFactory;
 import static org.junit.jupiter.api.Assertions.*;
 import static ru.yandex.practicum.filmorate.FilmorateApplicationTests.Mode.*;
-import static ru.yandex.practicum.filmorate.services.misc.ValidateSettings.MAX_DESCRIPTION_LENGTH;
-import static ru.yandex.practicum.filmorate.services.misc.ValidateSettings.VALID_RELEASE_DATE;
+import static ru.yandex.practicum.filmorate.services.misc.ApplicationSettings.MAX_DESCRIPTION_LENGTH;
+import static ru.yandex.practicum.filmorate.services.misc.ApplicationSettings.VALID_RELEASE_DATE;
 
 @Log4j2
 class FilmorateApplicationTests {
@@ -394,7 +394,7 @@ class FilmorateApplicationTests {
 
         UserController testController = new UserController(new UserService(
                 new InMemoryUserStorage(new UserRegistrationService()), new InMemoryFriendsService()));
-        UserValidationException thrown = assertThrows(UserValidationException.class,
+        EntityValidateException thrown = assertThrows(EntityValidateException.class,
                 () -> testController.createUser(user));
         assertEquals("Некорректная дата рождения пользователя!", thrown.getMessage());
         log.info(thrown.getMessage());

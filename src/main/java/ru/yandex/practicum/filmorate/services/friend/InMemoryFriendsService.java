@@ -130,7 +130,7 @@ public final class InMemoryFriendsService implements FriendsService {
             log.info("Получен список общих друзей");
             return intersection;
         } else {
-            log.warn("Пользователь ID: {} или {} не найдены!", thisId, otherId);
+            log.warn("Пользователь ID: {} и/или {} не найдены!", thisId, otherId);
             return null;
         }
     }

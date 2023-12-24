@@ -10,7 +10,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 
-import static ru.yandex.practicum.filmorate.services.misc.ValidateSettings.MAX_DESCRIPTION_LENGTH;
+import static ru.yandex.practicum.filmorate.services.misc.ApplicationSettings.MAX_DESCRIPTION_LENGTH;
 
 /**
  * Класс описывает поля записи "фильм" в фильмотеке

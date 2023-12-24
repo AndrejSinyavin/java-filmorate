@@ -7,7 +7,7 @@ import javax.validation.ConstraintValidatorContext;
 import java.time.format.DateTimeParseException;
 
 import static java.time.LocalDate.parse;
-import static ru.yandex.practicum.filmorate.services.misc.ValidateSettings.VALID_RELEASE_DATE;
+import static ru.yandex.practicum.filmorate.services.misc.ApplicationSettings.VALID_RELEASE_DATE;
 
 /**
  * Реализация кастомной аннотации {@link Release}

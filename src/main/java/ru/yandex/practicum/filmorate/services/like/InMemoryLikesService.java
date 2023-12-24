@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.interfaces.LikesService;
 
 import java.util.*;
@@ -66,7 +66,8 @@ public final class InMemoryLikesService implements LikesService {
             return rate;
         } else {
             log.warn("Фильм не найден! {}", filmId);
-            throw new FilmNotFoundException(LIKES_SERVICE_INTERNAL_ERROR, "НЕ возможно удалить лайк, фильм не найден");
+            throw new EntityNotFoundException(this.getClass().getName(), LIKES_SERVICE_INTERNAL_ERROR,
+                    "Не возможно удалить лайк, фильм не найден");
         }
     }
 
@@ -83,7 +84,8 @@ public final class InMemoryLikesService implements LikesService {
             topSize--;
             if (topSize < 1) break;
         }
-        log.info("Получен топ {} фильмов:\n{}", top.size(), result);
+        log.info("Фильмов c рейтингом в фильмотеке: {}. Получен топ из {} фильмов: ID {}",
+                storage.size(), result.size(), result);
         return result;
     }
 
@@ -104,17 +106,29 @@ public final class InMemoryLikesService implements LikesService {
     }
 
     /**
-     * ToDo: метод напрямую изменяет рейтинг фильма в обход сервиса.
-     * Написан для тестов Postman, удалить в конечной реализации.
+     * Метод возвращает рейтинг фильма
      *
-     * @param rate - рейтинг фильма
+     * @param filmId ID фильма
+     * @return рейтинг фильма
      */
     @Override
-    public void backdoor(int filmId, int rate) {
+    public int getFilmRating(int filmId) {
+        Node film = storage.get(filmId);
+        int rate = 0;
+        if (film != null) {
+            rate = film.getRate();
+        }
+        return rate;
+    }
+
+    @Override
+    public void setFilmRating(int filmId, int rate) {
         Node node = storage.get(filmId);
         if (node == null) {
             node = new Node(filmId);
+            storage.put(filmId, node);
         }
+        top.remove(node);
         node.rate = rate;
         top.add(node);
     }

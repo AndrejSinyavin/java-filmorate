@@ -3,8 +3,8 @@ package ru.yandex.practicum.filmorate.storages.user;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.UserAlreadyExistsException;
-import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.EntityAlreadyExistsException;
+import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.interfaces.RegistrationService;
 import ru.yandex.practicum.filmorate.interfaces.UserStorage;
 import ru.yandex.practicum.filmorate.models.User;
@@ -47,7 +47,7 @@ public class InMemoryUserStorage implements UserStorage {
             String message =
                     String.format("Создать запись о пользователе не удалось, email %s уже зарегистрирован!", email);
             log.warn(message);
-            throw new UserAlreadyExistsException(USER_STORAGE_INTERNAL_ERROR, message);
+            throw new EntityAlreadyExistsException(this.getClass().getName(), USER_STORAGE_INTERNAL_ERROR, message);
         } else {
             users.put(registrationService.register(user), user);
             registeredEmail.add(email);
@@ -72,7 +72,7 @@ public class InMemoryUserStorage implements UserStorage {
                 String message = String.format(
                         "Обновить запись о пользователе не удалось, пользователь %s уже зарегистрирован!", newEmail);
                 log.warn(message);
-                throw new UserAlreadyExistsException(USER_STORAGE_INTERNAL_ERROR, message);
+                throw new EntityAlreadyExistsException(this.getClass().getName(), USER_STORAGE_INTERNAL_ERROR, message);
             }
             registeredEmail.remove(users.get(id).getEmail());
             users.put(id, user);
@@ -82,7 +82,7 @@ public class InMemoryUserStorage implements UserStorage {
             String message =
                     String.format("Обновить запись о пользователе не удалось, пользователь с ID %d не найден!", id);
             log.warn(message);
-            throw new UserNotFoundException(USER_STORAGE_INTERNAL_ERROR, message);
+            throw new EntityNotFoundException(this.getClass().getName(), USER_STORAGE_INTERNAL_ERROR, message);
         }
     }
 
@@ -99,7 +99,7 @@ public class InMemoryUserStorage implements UserStorage {
             String message =
                     String.format("Удалить запись о пользователе не удалось, пользователь с ID %d не найден!", userId);
             log.warn(message);
-            throw new UserNotFoundException(USER_STORAGE_INTERNAL_ERROR, message);
+            throw new EntityNotFoundException(this.getClass().getName(), USER_STORAGE_INTERNAL_ERROR, message);
         } else {
             registeredEmail.remove(user.getEmail());
             log.warn("Пользователь ID {} удален из хранилища", userId);
@@ -132,7 +132,7 @@ public class InMemoryUserStorage implements UserStorage {
             String message =
                     String.format("Получить запись о пользователе не удалось, пользователь с ID %d не найден!", userId);
             log.warn(message);
-            throw new UserNotFoundException(USER_STORAGE_INTERNAL_ERROR, message);
+            throw new EntityNotFoundException(this.getClass().getName(), USER_STORAGE_INTERNAL_ERROR, message);
         }
         log.info("Получен пользователь ID {}", userId);
         return user;

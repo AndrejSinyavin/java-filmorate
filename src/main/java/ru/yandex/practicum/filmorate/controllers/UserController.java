@@ -3,23 +3,27 @@ package ru.yandex.practicum.filmorate.controllers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.models.User;
 import ru.yandex.practicum.filmorate.services.user.UserService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
 import java.util.List;
 
-import static ru.yandex.practicum.filmorate.services.validation.AdditionalUserValidator.validateUser;
+import static ru.yandex.practicum.filmorate.services.validation.ValidateExtender.validateUser;
 
 /**
  * Контроллер обработки REST-запросов для работы с клиентами фильмотеки.
  */
 @Slf4j
+@Validated
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
-public final class UserController {
+public class UserController {
+    private static final String ID_ERROR = "ID может быть только положительным значением";
     /**
      * Подключение сервиса работы с пользователями UserService.
      */
@@ -34,11 +38,10 @@ public final class UserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public User createUser(@Valid @RequestBody User user) {
-        log.info("Запрос");
-        log.info("==> POST {}", user);
+        log.info("Запрос ==> POST {}", user);
         validateUser(user);
         users.createUser(user);
-        log.info("<== Пользователь успешно добавлен в список пользователей сервиса: {}", user);
+        log.info("Ответ <== 201 Created. Пользователь успешно добавлен в список пользователей сервиса: {}", user);
         return user;
     }
 
@@ -50,11 +53,10 @@ public final class UserController {
      */
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
-        log.info("Запрос");
-        log.info("==> PUT {}", user);
+        log.info("Запрос ==> PUT {}", user);
         validateUser(user);
         users.updateUser(user);
-        log.info("<== Пользователь успешно обновлен в списке пользователей сервиса: {}", user);
+        log.info("Ответ <== 200 Ok. Пользователь успешно обновлен в списке пользователей сервиса: {}", user);
         return user;
     }
 
@@ -65,10 +67,9 @@ public final class UserController {
      */
     @GetMapping
     public List<User> getUsers() {
-        log.info("Запрос");
-        log.info("==> GET получить список всех пользователей");
+        log.info("Запрос ==> GET получить список всех пользователей");
         var result = users.getAllUsers();
-        log.info("<== Список всех пользователей сервиса");
+        log.info("Ответ <== 200 Ok. Список всех пользователей сервиса");
         return result;
     }
 
@@ -78,40 +79,41 @@ public final class UserController {
      * @return пользователь
      */
     @GetMapping("/{id}")
-    public User getUser(@PathVariable int id) {
-        log.info("Запрос");
-        log.info("==> GET получить пользователя");
+    public User getUser(@PathVariable @Positive(message = ID_ERROR) int id) {
+        log.info("Запрос ==> GET получить пользователя");
         var result = users.getUser(id);
-        log.info("<== Пользователь сервиса: {}", result);
+        log.info("Ответ <== 200 Ok. Пользователь сервиса: {}", result);
         return result;
     }
 
     /**
      * Эндпоинт обрабатывает запрос на добавление в друзья двух пользователей.
      *
-     * @param id       первый пользователь
+     * @param id первый пользователь
      * @param friendId второй пользователь
      */
     @PutMapping("/{id}/friends/{friendId}")
-    public void addFriend(@PathVariable int id, @PathVariable int friendId) {
-        log.info("Запрос");
-        log.info("==> PUT добавить в друзья");
+    public void addFriend(
+            @PathVariable @Positive(message = ID_ERROR) int id,
+            @PathVariable @Positive(message = ID_ERROR) int friendId) {
+        log.info("Запрос ==> PUT добавить в друзья");
         users.addFriend(id, friendId);
-        log.info("<== Пользователи сервиса ID {} и ID {} добавлены в друзья", id, friendId);
+        log.info("Ответ <== 200 Ok. Пользователи сервиса ID {} и ID {} добавлены в друзья", id, friendId);
     }
 
     /**
      * Эндпоинт обрабатывает запрос на удаление пользователей из друзей друг у друга.
      *
-     * @param id       первый пользователь
+     * @param id первый пользователь
      * @param friendId второй пользователь
      */
     @DeleteMapping("/{id}/friends/{friendId}")
-    public void deleteFriend(@PathVariable int id, @PathVariable int friendId) {
-        log.info("Запрос");
-        log.info("==> DELETE удалить из друзей");
+    public void deleteFriend(
+            @PathVariable @Positive(message = ID_ERROR) int id,
+            @PathVariable @Positive(message = ID_ERROR) int friendId) {
+        log.info("Запрос ==> DELETE удалить из друзей");
         users.deleteFriend(id, friendId);
-        log.info("<== Пользователи сервиса ID {} и ID {} удалены друг у друга из друзей", id, friendId);
+        log.info("Ответ <== 200 Ok. Пользователи сервиса ID {} и ID {} удалены друг у друга из друзей", id, friendId);
     }
 
     /**
@@ -121,27 +123,28 @@ public final class UserController {
      * @return список всех друзей
      */
     @GetMapping("/{id}/friends")
-    public List<User> getFriends(@PathVariable int id) {
-        log.info("Запрос");
-        log.info("==> GET получить список друзей пользователя");
+    public List<User> getFriends(@PathVariable @Positive(message = ID_ERROR) int id) {
+        log.info("Запрос ==> GET получить список друзей пользователя");
         var result = users.getFriends(id);
-        log.info("<== Список всех друзей пользователя сервиса ID {}", id);
+        log.info("Ответ <== 200 Ok. Список всех друзей пользователя сервиса ID {}", id);
         return result;
     }
 
     /**
      * Эндпоинт обрабатывает запрос на получение списка всех общих друзей двух пользователей.
      *
-     * @param id      ID одного пользователя
+     * @param id ID одного пользователя
      * @param otherId ID другого пользователя
      * @return список всех общих друзей
      */
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
-        log.info("Запрос");
-        log.info("==> GET получить список совместных друзей двух пользователей");
+    public List<User> getCommonFriends(
+            @PathVariable @Positive(message = ID_ERROR) int id,
+            @PathVariable @Positive(message = ID_ERROR) int otherId) {
+        log.info("Запрос ==> GET получить список совместных друзей двух пользователей");
         var result = users.getCommonFriends(id, otherId);
-        log.info("<==  Список общих друзей пользователей сервиса ID {} и ID {}", id, otherId);
+        log.info("Ответ <==  200 Ok. Список общих друзей пользователей сервиса ID {} и ID {}", id, otherId);
         return result;
     }
+
 }

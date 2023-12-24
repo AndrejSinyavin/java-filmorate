@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.services.film;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exceptions.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.interfaces.FilmStorage;
 import ru.yandex.practicum.filmorate.interfaces.LikesService;
 import ru.yandex.practicum.filmorate.interfaces.UserStorage;
@@ -11,6 +11,8 @@ import ru.yandex.practicum.filmorate.models.Film;
 
 import java.util.LinkedList;
 import java.util.List;
+
+import static ru.yandex.practicum.filmorate.services.misc.ApplicationSettings.likeProtected;
 
 /**
  * Сервис содержит логику работы с пользователями
@@ -80,7 +82,7 @@ public final class FilmService {
         top.forEach(id -> {
             try {
                 result.add(films.getFilm(id));
-            } catch (FilmNotFoundException e) {
+            } catch (EntityNotFoundException e) {
                 log.warn("{} {}", e.getError(), e.getMessage());
             }
         });
@@ -106,16 +108,12 @@ public final class FilmService {
      */
     public Film updateFilm(Film film) {
         log.info("Обновление записи о фильме на сервисе: {}", film);
-        var result = films.updateFilm(film);
-        // Следующий фрагмент кода добавлен исключительно для прохождения тестов Postman, считаю
-        // логику изменения рейтинга фильма прямой инициализацией поля rate в объекте Film некорректной и опасной,
-        // любой код вне сервера может "накрутить" рейтинг фильму нечестным образом. Бизнес-логика текущей реализации
-        // предполагает использование отдельного защищенного сервиса рейтинга фильмов с предоставлением API для
-        // получения, изменения рейтинга конкретного фильма и составления топа; поля rate в объекте Film
-        // быть не должно, т.к. оно делает уязвимой всю систему рейтинга фильмотеки.
-        if (film.getRate() != 0) {
-            log.warn("Тестовая модификация рейтинга фильма:");
-            likes.backdoor(film.getId(), film.getRate());
+        int id = film.getId();
+        Film result = films.updateFilm(film);
+        if (likeProtected) {
+            film.setRate(likes.getFilmRating(id));
+        } else {
+            likes.setFilmRating(id, film.getRate());
         }
         return result;
     }
@@ -127,9 +125,8 @@ public final class FilmService {
      */
     public void deleteFilm(int filmId) {
         log.info("Удаление записи о фильме ID {} :", filmId);
-        Film deletedFilm = films.deleteFilm(filmId);
+        films.deleteFilm(filmId);
         likes.deleteFilm(filmId);
-        log.info("Ok");
     }
 
     /**

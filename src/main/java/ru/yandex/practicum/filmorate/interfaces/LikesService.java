@@ -15,6 +15,7 @@ public interface LikesService {
 
     void deleteFilm(int filmId);
 
-    // ToDo: метод для тестов Postman, удалить в конечной реализации
-    void backdoor(int filmId, int rate);
+    int getFilmRating(int filmId);
+
+    void setFilmRating(int filmId, int rate);
 }
