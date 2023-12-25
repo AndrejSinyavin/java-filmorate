@@ -4,29 +4,24 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-import java.time.format.DateTimeParseException;
+import java.time.LocalDate;
+import java.util.Objects;
 
-import static java.time.LocalDate.parse;
 import static ru.yandex.practicum.filmorate.services.misc.ApplicationSettings.VALID_RELEASE_DATE;
 
 /**
  * Реализация кастомной аннотации {@link Release}
  */
 @Slf4j
-public class ReleaseValidator implements ConstraintValidator<Release, String> {
+public class ReleaseValidator implements ConstraintValidator<Release, LocalDate> {
 
     @Override
-    public boolean isValid(String s, ConstraintValidatorContext context) {
-        if (s == null || s.isEmpty()) {
+    public boolean isValid(LocalDate date, ConstraintValidatorContext context) {
+        if (Objects.isNull(date)) {
             log.warn("Дата релиза фильма не задана");
             return true;
         } else {
-            try {
-                return parse(s).isAfter(VALID_RELEASE_DATE.minusDays(1));
-            } catch (DateTimeParseException e) {
-                log.warn("Дата релиза фильма не соответствует установленному паттерну даты yyyy.mm.dd");
-                return false;
-            }
+            return date.isAfter(VALID_RELEASE_DATE.minusDays(1));
         }
     }
 }

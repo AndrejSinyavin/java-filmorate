@@ -27,9 +27,9 @@ public final class ValidateExtender {
     public static void validateUser(@NonNull User user) {
         log.info("Валидация характеристик пользователя:");
         String name = user.getName();
-        LocalDate birthday = LocalDate.parse(user.getBirthday());
-        if (birthday.isAfter(LocalDate.now()) && birthday.getYear() > MAX_AGE) {
-            String errorMessage = "Недопустимая дата рождения пользователя!";
+        int age = LocalDate.now().getYear() - user.getBirthday().getYear();
+        if (age > MAX_AGE) {
+            String errorMessage = String.format("Возраст пользователя не может быть более %d", MAX_AGE);
             log.error(errorMessage);
             throw new EntityValidateException("Сервис дополнительной валидации ->", "Валидация запроса в контроллере ->",
                     errorMessage);

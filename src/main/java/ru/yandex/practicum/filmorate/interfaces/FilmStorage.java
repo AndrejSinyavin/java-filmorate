@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.interfaces;
 import ru.yandex.practicum.filmorate.models.Film;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Интерфейс для служб, работающих с фильмотекой.
@@ -30,7 +31,7 @@ public interface FilmStorage {
      *
      * @return возвращаемый список фильмов, может быть пустым
      */
-    List<Film> getFilms();
+    Optional<List<Film>> getFilms();
 
     /**
      * Метод возвращает запись - фильм по его ID.
@@ -38,14 +39,14 @@ public interface FilmStorage {
      * @param filmId ID фильма
      * @return фильм
      */
-    Film getFilm(int filmId);
+    Optional<Film> getFilm(int filmId);
 
     /**
      * Метод удаляет запись - фильм по его ID.
      *
      * @param filmId ID фильма
-     * @return удаленный фильм
+     * @return
      */
-    Film deleteFilm(int filmId);
+    boolean deleteFilm(int filmId);
 
 }

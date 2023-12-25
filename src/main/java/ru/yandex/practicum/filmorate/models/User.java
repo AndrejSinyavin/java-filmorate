@@ -2,17 +2,17 @@ package ru.yandex.practicum.filmorate.models;
 
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.PastOrPresent;
+import java.time.LocalDate;
 
 /**
  * Класс описывает поля записи "пользователя" фильмотеки
  */
 @Data
-@Validated
 public final class User {
     @DecimalMin(value = "0", message = "ID записи не может быть отрицательным значением")
     private int id;
@@ -27,5 +27,6 @@ public final class User {
     private String email;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private String birthday;
+    @PastOrPresent(message = "Дата рождения не может быть в будущем")
+    private LocalDate birthday;
 }

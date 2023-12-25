@@ -97,8 +97,8 @@ public final class AppErrorResponseController {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleInternalServerFailureResponse(final Throwable e) {
         String message = "Сбой в работе сервера.";
-        log.warn("{} Сформирован ответ '500 Internal Server Error.' {}\n{}",
-                message, e.getMessage(), e.getStackTrace());
-        return new ErrorResponse(message, e.getMessage());
+        log.warn("{} Сформирован ответ '500 Internal Server Error.'\n{}",
+                message, e.getStackTrace());
+        return new ErrorResponse(message, e.toString());
     }
 }

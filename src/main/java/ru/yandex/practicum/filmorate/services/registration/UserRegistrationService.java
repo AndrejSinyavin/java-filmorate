@@ -12,7 +12,7 @@ public final class UserRegistrationService implements RegistrationService<User> 
     /**
      * Счетчик ID для регистрации пользователей в фильмотеке
      */
-    private static int userId;
+    private int userId;
 
     /**
      * Метод регистрации пользователя в фильмотеке

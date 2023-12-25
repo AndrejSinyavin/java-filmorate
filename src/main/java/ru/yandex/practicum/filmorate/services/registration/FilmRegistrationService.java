@@ -12,7 +12,7 @@ public final class FilmRegistrationService implements RegistrationService<Film> 
     /**
      * Счетчик ID для регистрации фильма в фильмотеке
      */
-    private static int filmId;
+    private int filmId;
 
     /**
      * Метод регистрации фильма в фильмотеке

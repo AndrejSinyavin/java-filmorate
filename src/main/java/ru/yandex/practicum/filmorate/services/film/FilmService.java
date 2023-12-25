@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.InternalServiceException;
 import ru.yandex.practicum.filmorate.interfaces.FilmStorage;
 import ru.yandex.practicum.filmorate.interfaces.LikesService;
 import ru.yandex.practicum.filmorate.interfaces.UserStorage;
@@ -124,8 +125,11 @@ public final class FilmService {
      * @param filmId ID удаляемой записи
      */
     public void deleteFilm(int filmId) {
-        log.info("Удаление записи о фильме ID {} :", filmId);
-        films.deleteFilm(filmId);
+        log.info("Удаление записи о фильме ID {}:", filmId);
+        if (!films.deleteFilm(filmId)) {
+            String errorMessage = String.format("Удалить запись о фильме не удалось, фильм с ID %d не найден!", filmId);
+            throw new EntityNotFoundException(films.getClass().getName(), FILM_STORAGE_SERVICE_ERROR, errorMessage);
+        }
         likes.deleteFilm(filmId);
     }
 
@@ -135,7 +139,10 @@ public final class FilmService {
      * @return список фильмов
      */
     public List<Film> getFilms() {
-        return films.getFilms();
+        log.info("Получение списка всех фильмов:");
+        var errorMessage = "Получить список фильмов не удалось";
+        return films.getFilms().orElseThrow(() -> new InternalServiceException(
+                films.getClass().getName(), FILM_STORAGE_SERVICE_ERROR, errorMessage));
     }
 
     /**
@@ -145,8 +152,11 @@ public final class FilmService {
      * @return найденная запись о фильме
      */
     public Film getFilm(int filmId) {
-        log.info("Получение фильма");
-        return films.getFilm(filmId);
+        log.info("Получение фильма:");
+        var errorMessage = String.format("Получить запись о фильме не удалось, фильм с ID %d не найден!", filmId);
+        return films.getFilm(filmId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        films.getClass().getName(), FILM_STORAGE_SERVICE_ERROR, errorMessage));
     }
 
 }

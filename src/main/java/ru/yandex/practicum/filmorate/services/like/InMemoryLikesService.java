@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.interfaces.LikesService;
 
+import javax.validation.constraints.Positive;
 import java.util.*;
 
 /**
@@ -95,10 +96,10 @@ public final class InMemoryLikesService implements LikesService {
      * @param filmId ID фильма
      */
     @Override
-    public void deleteFilm(int filmId) {
+    public void deleteFilm(@Positive int filmId) {
         Node deletedNode = storage.remove(filmId);
         if (deletedNode == null) {
-            log.warn("Удаление не возможно! Фильм с ID {} не найден", filmId);
+            log.warn("Удаление не выполнено! Фильм с ID {} не найден", filmId);
         } else {
             top.remove(deletedNode);
             log.info("Информация о фильме удалена из LikesService");

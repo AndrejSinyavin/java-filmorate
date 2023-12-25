@@ -8,9 +8,8 @@ import ru.yandex.practicum.filmorate.interfaces.FilmStorage;
 import ru.yandex.practicum.filmorate.interfaces.RegistrationService;
 import ru.yandex.practicum.filmorate.models.Film;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.validation.constraints.Positive;
+import java.util.*;
 
 /**
  * Хранилище и бизнес-логика работы с фильмотекой в памяти.
@@ -69,20 +68,17 @@ public class InMemoryFilmStorage implements FilmStorage {
      * Метод удаляет запись о фильме из хранилища в памяти.
      *
      * @param filmId ID фильма
-     * @return ссылка на удаленную запись
+     * @return true, если запись удалена, false - если такой записи не было
      */
     @Override
-    public Film deleteFilm(int filmId) {
-        log.info("Удаление записи о фильме из хранилища");
-        Film film = films.remove((filmId));
-        if (film == null) {
-            String message =
-                    String.format("Удалить запись о фильме не удалось, фильм с ID %d не найден!", filmId);
-            log.warn(message);
-            throw new EntityNotFoundException(this.getClass().getName(), FILM_STORAGE_INTERNAL_ERROR, message);
+    public boolean deleteFilm(@Positive int filmId) {
+        log.info("Удаление записи о фильме из хранилища:");
+        if (Objects.isNull(films.remove((filmId)))) {
+            log.warn("Удалить запись о фильме не удалось, фильм с ID {} не найден!", filmId);
+            return false;
         } else {
-            log.warn("Запись о фильме ID {} удалена из хранилища", filmId);
-            return film;
+            log.info("Запись о фильме ID {} удалена из хранилища", filmId);
+            return true;
         }
     }
 
@@ -92,9 +88,9 @@ public class InMemoryFilmStorage implements FilmStorage {
      * @return возвращаемый список фильмов, может быть пустым
      */
     @Override
-    public List<Film> getFilms() {
-        log.info("Возвращен список всех фильмов из хранилища");
-        return List.copyOf(films.values());
+    public Optional<List<Film>> getFilms() {
+        log.info("Получаем список всех записей о фильмах из хранилища");
+        return Optional.of(List.copyOf(films.values()));
     }
 
     /**
@@ -104,16 +100,8 @@ public class InMemoryFilmStorage implements FilmStorage {
      * @return ссылка на запись о фильме
      */
     @Override
-    public Film getFilm(int filmId) {
-        log.info("Получение записи о фильме из хранилища");
-        Film film = films.get(filmId);
-        if (film == null) {
-            String message =
-                    String.format("Получить запись о фильме не удалось, фильм с ID %d не найден!", filmId);
-            log.warn(message);
-            throw new EntityNotFoundException(this.getClass().getName(), FILM_STORAGE_INTERNAL_ERROR, message);
-        }
-        log.info("Получен фильм ID {}", filmId);
-        return film;
+    public Optional<Film> getFilm(@Positive int filmId) {
+        log.info("Получаем запись о фильме ID {} из хранилища", filmId);
+        return Optional.ofNullable(films.get(filmId));
     }
 }
