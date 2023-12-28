@@ -4,20 +4,22 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.interfaces.LikesService;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.*;
+
+import static ru.yandex.practicum.filmorate.services.misc.ApplicationSettings.LIKE_PROTECTED_MODE;
 
 /**
  * Сервис реализует хранение и обработку в памяти рейтинга фильмов среди пользователей.
  */
 @Slf4j
 @Component
-public final class InMemoryLikesService implements LikesService {
-    private static final String LIKES_SERVICE_INTERNAL_ERROR =
-            "Выполнение операций с лайками в InMemoryLikesService";
+@Valid
+public class InMemoryLikesService implements LikesService {
     /**
      * Хранилище записей ID фильмов и ID тех, кто его "лайкнул".
      */
@@ -32,12 +34,12 @@ public final class InMemoryLikesService implements LikesService {
      *
      * @param filmId фильм
      * @param userId пользователь
-     * @return новый рейтинг фильма
+     * @return Optional<новый рейтинг>
      */
     @Override
-    public int likeFilm(int filmId, int userId) {
+    public Optional<Integer> likeFilm(@Positive int filmId, @Positive int userId) {
         Node node = storage.get(filmId);
-        if (node == null) {
+        if (Objects.isNull(node)) {
             node = new Node(filmId);
         } else {
             top.remove(node);
@@ -46,7 +48,7 @@ public final class InMemoryLikesService implements LikesService {
         storage.put(filmId, node);
         top.add(node);
         log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
-        return rate;
+        return Optional.of(rate);
     }
 
     /**
@@ -54,21 +56,20 @@ public final class InMemoryLikesService implements LikesService {
      *
      * @param filmId фильм
      * @param userId пользователь
-     * @return новый рейтинг фильма
+     * @return Optional<новый рейтинг>, или Optional.empty - если фильм не найден
      */
     @Override
-    public int disLikeFilm(int filmId, int userId) {
+    public Optional<Integer> disLikeFilm(@Positive int filmId, @Positive int userId) {
         Node node = storage.get(filmId);
-        if (node != null) {
+        if (!Objects.isNull(node)) {
             top.remove(node);
-            int rate = node.disLike(userId);
+            Integer rate = node.disLike(userId);
             top.add(node);
             log.info("Пользователь {} удалил лайк фильму {}", userId, filmId);
-            return rate;
+            return Optional.of(rate);
         } else {
-            log.warn("Фильм не найден! {}", filmId);
-            throw new EntityNotFoundException(this.getClass().getName(), LIKES_SERVICE_INTERNAL_ERROR,
-                    "Не возможно удалить лайк, фильм не найден");
+            log.warn("В службе LikesService отсутствует информация о фильме! {}", filmId);
+            return Optional.empty();
         }
     }
 
@@ -78,7 +79,7 @@ public final class InMemoryLikesService implements LikesService {
      * @return список ID фильмов
      */
     @Override
-    public List<Integer> getPopularFilm(int topSize) {
+    public List<Integer> getPopularFilm(@Positive int topSize) {
         LinkedList<Integer> result = new LinkedList<>();
         for (Node node : top) {
             result.add(node.getFilmId());
@@ -97,13 +98,8 @@ public final class InMemoryLikesService implements LikesService {
      */
     @Override
     public void deleteFilm(@Positive int filmId) {
-        Node deletedNode = storage.remove(filmId);
-        if (deletedNode == null) {
-            log.warn("Удаление не выполнено! Фильм с ID {} не найден", filmId);
-        } else {
-            top.remove(deletedNode);
-            log.info("Информация о фильме удалена из LikesService");
-        }
+        storage.remove(filmId);
+        log.info("Информация о фильме удалена из LikesService");
     }
 
     /**
@@ -113,25 +109,32 @@ public final class InMemoryLikesService implements LikesService {
      * @return рейтинг фильма
      */
     @Override
-    public int getFilmRating(int filmId) {
+    public int unregisterFilm(@Positive int filmId) {
         Node film = storage.get(filmId);
         int rate = 0;
-        if (film != null) {
+        if (!Objects.isNull(film)) {
             rate = film.getRate();
+            if (LIKE_PROTECTED_MODE && film.getWhoLikedIt().size() != film.getRate()) {
+                return 0;
+            }
         }
         return rate;
     }
 
     @Override
-    public void setFilmRating(int filmId, int rate) {
+    public void registerFilm(@Positive int filmId, @PositiveOrZero int rate) {
         Node node = storage.get(filmId);
-        if (node == null) {
+        if (Objects.isNull(node)) {
             node = new Node(filmId);
             storage.put(filmId, node);
+            if (LIKE_PROTECTED_MODE) {
+                top.remove(node);
+                rate = 0;
+            }
+            node.rate = rate;
+            top.add(node);
         }
-        top.remove(node);
-        node.rate = rate;
-        top.add(node);
+
     }
 
     /**
@@ -145,14 +148,14 @@ public final class InMemoryLikesService implements LikesService {
         @Getter
         private int rate;
 
-        public int like(int userId) {
+        public int like(@Positive int userId) {
             if (whoLikedIt.add(userId)) {
                 rate++;
             }
             return rate;
         }
 
-        public int disLike(int userId) {
+        public int disLike(@Positive int userId) {
             if (whoLikedIt.remove(userId)) {
                 rate--;
             }

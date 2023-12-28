@@ -13,7 +13,7 @@ import java.time.LocalDate;
  * Класс описывает поля записи "пользователя" фильмотеки
  */
 @Data
-public final class User {
+public class User {
     @DecimalMin(value = "0", message = "ID записи не может быть отрицательным значением")
     private int id;
 

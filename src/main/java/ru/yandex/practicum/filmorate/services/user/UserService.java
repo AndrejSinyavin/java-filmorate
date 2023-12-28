@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.interfaces.FriendsService;
 import ru.yandex.practicum.filmorate.interfaces.UserStorage;
 import ru.yandex.practicum.filmorate.models.User;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,32 +20,29 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private static final String FRIENDS_SERVICE_ERROR =
-            "Сервис работы с пользователями не выполнил задачу из-за отказа в сервисе FriendsService";
-    private static final String USER_STORAGE_SERVICE_ERROR =
-            "Сервис работы с пользователями не выполнил задачу из-за отказа в сервисе UserStorage";
-
+    private final String thisService = this.getClass().getName();
     /**
      * Подключение сервиса работы с пользователями.
      */
     private final UserStorage users;
+    private final String userService = users.getClass().getName();
     /**
      * Подключение сервиса работы с друзьями.
      */
     private final FriendsService friends;
+    private final String friendService = friends.getClass().getName();
 
     /**
      * Метод добавляет двух пользователей друг другу в друзья.
      *
-     * @param userId   ID пользователя
+     * @param userId ID пользователя
      * @param friendId ID добавляемого в друзья пользователя
      */
     public void addFriend(int userId, int friendId) {
         log.info("Добавление пользователя в друзья:");
         if (!friends.addFriend(userId, friendId)) {
-            String message = String.format("Пользователи ID %d и/или ID %d не найдены!", userId, friendId);
-            log.error("{}. {}", FRIENDS_SERVICE_ERROR, message);
-            throw new EntityNotFoundException(this.getClass().getName(), FRIENDS_SERVICE_ERROR, message);
+            throw new EntityNotFoundException(thisService, friendService, String.format(
+                    "Пользователи ID %d и/или ID %d не найдены!", userId, friendId));
         }
     }
 
@@ -57,23 +55,25 @@ public class UserService {
     public void deleteFriend(int userId, int friendId) {
         log.info("Удаление пользователей из друзей:");
         if (!friends.deleteFriend(userId, friendId)) {
-            String message = String.format("Пользователи ID %d и/или ID %d не найдены!", userId, friendId);
-            log.error("{}. {}", FRIENDS_SERVICE_ERROR, message);
-            throw new EntityNotFoundException(this.getClass().getName(),FRIENDS_SERVICE_ERROR, message);
+            throw new EntityNotFoundException(thisService,friendService,
+                    String.format("Пользователи ID %d и/или ID %d не найдены!", userId, friendId));
         }
     }
 
     /**
      * Метод возвращает список друзей указанного пользователя.
      *
-     * @param userId ID нужного пользователя
+     * @param id ID нужного пользователя
      * @return список ID друзей
      */
-    public List<User> getFriends(int userId) {
+    public List<User> getFriends(int id) {
         log.info("Получение списка друзей пользователя:");
-        users.getUser(userId);
-        return friends.getFriends(userId).stream()
+        users.getUser(id);
+        return friends.getFriends(id).stream()
                 .map(users::getUser)
+                .map(user -> user.orElseThrow(() ->
+                        new EntityNotFoundException(
+                                thisService, friendService, String.format("Пользователь ID %d не найден!", id))))
                 .collect(Collectors.toList());
     }
 
@@ -82,23 +82,17 @@ public class UserService {
      *
      * @param userId   ID пользователя
      * @param friendId ID друга пользователя
-     * @return список ID общих друзей
+     * @return список общих друзей
      */
     public List<User> getCommonFriends(int userId, int friendId) {
         log.info("Получение списка общих друзей двух пользователей:");
         var frendsIdSet = friends.getCommonFriends(userId, friendId);
-        try {
-            return frendsIdSet.stream()
-                    .map(users::getUser)
-                    .collect(Collectors.toList());
-        } catch (EntityNotFoundException e) {
-            log.error(FRIENDS_SERVICE_ERROR);
-            throw new EntityNotFoundException(this.getClass().getName(), FRIENDS_SERVICE_ERROR, e.getMessage());
-        } catch (NullPointerException e) {
-            log.error(FRIENDS_SERVICE_ERROR);
-            throw new EntityNotFoundException(this.getClass().getName(),
-                    FRIENDS_SERVICE_ERROR, String.format("Пользователь ID %d и/или ID %d не найдены!", userId, friendId));
-        }
+        return frendsIdSet.stream()
+                .map(users::getUser)
+                .map(user -> user.orElseThrow(() ->
+                        new EntityNotFoundException(thisService, userService,
+                        String.format("Пользователь ID %d и/или ID %d не найдены!", userId, friendId))))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -108,16 +102,12 @@ public class UserService {
      * @return этот же пользователь с зарегистрированным ID
      */
     public User createUser(User user) {
-        log.info("Создание записи о пользователе {} :", user);
-        users.createUser(user);
-        log.info("Регистрация пользователя в сервисе FriendsService:");
+        log.info("Создание записи о пользователе и его регистрация на сервисе: {} :", user);
+        var result = users.createUser(user).orElseThrow(() -> new InternalServiceException(thisService, userService,
+                "Ошибка сервиса, не удалось создать запись о пользователе"));
         if (friends.registerUser(user.getId())) {
             log.info("Пользователь создан и зарегистрирован на сервисе.");
-            return user;
-        } else {
-            throw new InternalServiceException(this.getClass().getName(), "Сервис работы с пользователями",
-                    "Отказ регистрации пользователя в сервисе FriendsService");
-        }
+        return result;
     }
 
     /**
@@ -162,7 +152,7 @@ public class UserService {
      */
     public User getUser(int userId) {
         log.info("Получение записи о пользователе ID {} :", userId);
-        return users.getUser(userId);
+        return users.getUser(userId).orElseThrow();
     }
 
 }

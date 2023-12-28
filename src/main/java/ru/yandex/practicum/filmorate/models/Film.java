@@ -13,7 +13,7 @@ import static ru.yandex.practicum.filmorate.services.misc.ApplicationSettings.MA
  * Класс описывает поля записи "фильм" в фильмотеке
  */
 @Data
-public final class Film {
+public class Film {
     @DecimalMin(value = "0", message = "ID записи не может быть отрицательным значением")
     private int id;
 

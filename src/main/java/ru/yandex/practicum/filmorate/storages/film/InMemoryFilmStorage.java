@@ -3,11 +3,11 @@ package ru.yandex.practicum.filmorate.storages.film;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.interfaces.FilmStorage;
 import ru.yandex.practicum.filmorate.interfaces.RegistrationService;
 import ru.yandex.practicum.filmorate.models.Film;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.util.*;
 
@@ -18,10 +18,8 @@ import java.util.*;
 @Component
 @RequiredArgsConstructor
 public class InMemoryFilmStorage implements FilmStorage {
-    private static final String FILM_STORAGE_INTERNAL_ERROR =
-            "Выполнение операций с фильмами в хранилище в памяти";
     /**
-     * Хранилище записей о фильмах.
+     * Хранилище записей о фильмах в памяти.
      */
     private final Map<Integer, Film> films = new HashMap<>();
     /**
@@ -36,31 +34,30 @@ public class InMemoryFilmStorage implements FilmStorage {
      * @return этот же фильм с уже зарегистрированным ID в хранилище
      */
     @Override
-    public Film createfilm(Film film) {
+    public Optional<Film> createfilm(@NotNull Film film) {
         log.info("Создание записи о фильме в хранилище:");
         films.put(registrationService.register(film), film);
         log.info("Фильм добавлен в хранилище: {}", film);
-        return film;
+        return Optional.of(film);
     }
 
     /**
      * Метод обновляет в хранилище фильмов существующую запись о фильме.
      *
      * @param film фильм из запроса с установленным ID, по которому ищется этот фильм в хранилище.
-     * @return обновленная запись - фильм из хранилища
+     * @return обновленный фильм из хранилища
      */
     @Override
-    public Film updateFilm(Film film) {
+    public Optional<Film> updateFilm(@NotNull Film film) {
         log.info("Обновление записи о фильме в хранилище:");
         int id = film.getId();
-        if (films.containsKey(id)) {
-            films.put(id, film);
-            log.info("Запись о фильме обновлена в хранилище: {}", film.getName());
-            return film;
+        if (!films.containsKey(id)) {
+            log.info("Запись о фильме не найдена в хранилище: {}", film);
+            return Optional.empty();
         } else {
-            String message = "Запись о фильме в хранилище не найдена";
-            log.warn(message);
-            throw new EntityNotFoundException(this.getClass().getName(), FILM_STORAGE_INTERNAL_ERROR, message);
+            films.put(id, film);
+            log.info("Запись о фильме обновлена в хранилище: {}", film);
+            return Optional.of(film);
         }
     }
 
@@ -97,11 +94,12 @@ public class InMemoryFilmStorage implements FilmStorage {
      * Метод возвращает запись о фильме из хранилища в памяти.
      *
      * @param filmId ID фильма
-     * @return ссылка на запись о фильме
+     * @return запись о фильме
      */
     @Override
     public Optional<Film> getFilm(@Positive int filmId) {
         log.info("Получаем запись о фильме ID {} из хранилища", filmId);
         return Optional.ofNullable(films.get(filmId));
     }
+
 }

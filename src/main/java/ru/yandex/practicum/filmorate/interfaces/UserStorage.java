@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.interfaces;
 import ru.yandex.practicum.filmorate.models.User;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Интерфейс для служб, работающих с пользователями фильмотеки.
@@ -15,7 +16,7 @@ public interface UserStorage {
      * @param user регистрируемый пользователь
      * @return этот же пользователь с зарегистрированным ID
      */
-    User createUser(User user);
+    Optional<User> createUser(User user);
 
     /**
      * Метод обновляет в списке пользователей фильмотеки существующего пользователя.
@@ -23,28 +24,28 @@ public interface UserStorage {
      * @param user пользователь, которого нужно найти и обновить, поиск производится по ID
      * @return обновленный пользователь
      */
-    User updateUser(User user);
+    Optional<User> updateUser(User user);
 
     /**
      * Метод удаляет пользователя из фильмотеки.
      *
      * @param userId ID удаляемого пользователя
      */
-    User deleteUser(int userId);
+    boolean deleteUser(int userId);
 
     /**
      * Метод возвращает список всех пользователей фильмотеки.
      *
      * @return список пользователей, может быть пустым
      */
-    List<User> getAllUsers();
+    Optional<List<User>> getAllUsers();
 
     /**
-     * Метод удаляет учетную запись пользователя из сервиса
+     * Метод получает учетную запись пользователя из сервиса
      *
      * @param userId ID пользователя
-     * @return ссылка на удаленный аккаунт
+     * @return ссылка на полученный аккаунт пользователя
      */
-    User getUser(int userId);
+    Optional<User> getUser(int userId);
 
 }

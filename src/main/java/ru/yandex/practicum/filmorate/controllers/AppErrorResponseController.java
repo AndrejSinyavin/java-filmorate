@@ -18,7 +18,7 @@ import java.util.Map;
  */
 @Slf4j
 @RestControllerAdvice("ru.yandex.practicum.filmorate.controllers")
-public final class AppErrorResponseController {
+public class AppErrorResponseController {
 
     /**
      * Обработчик исключений для ответов BAD_REQUEST.

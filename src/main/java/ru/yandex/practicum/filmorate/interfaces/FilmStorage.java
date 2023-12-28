@@ -16,7 +16,7 @@ public interface FilmStorage {
      * @param film запись о фильме, которую нужно создать в фильмотеке
      * @return этот же фильм с уже зарегистрированным ID в фильмотеке
      */
-    Film createfilm(Film film);
+    Optional<Film> createfilm(Film film);
 
     /**
      * Метод обновляет существующую запись о фильме в фильмотеке.
@@ -24,7 +24,7 @@ public interface FilmStorage {
      * @param film фильм из запроса с установленным ID, по которому ищется этот фильм в фильмотеке.
      * @return обновленная запись - фильм из фильмотеки
      */
-    Film updateFilm(Film film);
+    Optional<Film> updateFilm(Film film);
 
     /**
      * Метод возвращает список всех записей - фильмов в фильмотеке.

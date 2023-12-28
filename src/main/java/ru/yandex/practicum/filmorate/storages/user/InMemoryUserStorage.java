@@ -3,12 +3,12 @@ package ru.yandex.practicum.filmorate.storages.user;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.EntityAlreadyExistsException;
-import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.interfaces.RegistrationService;
 import ru.yandex.practicum.filmorate.interfaces.UserStorage;
 import ru.yandex.practicum.filmorate.models.User;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.util.*;
 
 /**
@@ -18,8 +18,6 @@ import java.util.*;
 @Component
 @RequiredArgsConstructor
 public class InMemoryUserStorage implements UserStorage {
-    private static final String USER_STORAGE_INTERNAL_ERROR =
-            "Выполнение операций с пользователями в хранилище в памяти";
     /**
      * Хранилище пользователей фильмотеки в памяти.
      */
@@ -40,19 +38,17 @@ public class InMemoryUserStorage implements UserStorage {
      * @return этот же пользователь с зарегистрированным ID
      */
     @Override
-    public User createUser(User user) {
+    public Optional<User> createUser(@NotNull User user) {
         log.info("Создание записи о пользователе в хранилище:");
         String email = user.getEmail();
         if (registeredEmail.contains(email)) {
-            String message =
-                    String.format("Создать запись о пользователе не удалось, email %s уже зарегистрирован!", email);
-            log.warn(message);
-            throw new EntityAlreadyExistsException(this.getClass().getName(), USER_STORAGE_INTERNAL_ERROR, message);
+            log.warn("Создать запись о пользователе не удалось, имейл {} уже зарегистрирован!", email);
+            return Optional.empty();
         } else {
             users.put(registrationService.register(user), user);
             registeredEmail.add(email);
             log.info("Пользователь добавлен в хранилище: {}", user);
-            return user;
+            return Optional.of(user);
         }
     }
 
@@ -63,47 +59,34 @@ public class InMemoryUserStorage implements UserStorage {
      * @return обновленный пользователь
      */
     @Override
-    public User updateUser(User user) {
+    public Optional<User> updateUser(@NotNull User user) {
         log.info("Обновление записи о пользователе в хранилище:");
         int id = user.getId();
-        if (users.containsKey(id)) {
-            String newEmail = user.getEmail();
-            if (!registeredEmail.add(newEmail)) {
-                String message = String.format(
-                        "Обновить запись о пользователе не удалось, пользователь %s уже зарегистрирован!", newEmail);
-                log.warn(message);
-                throw new EntityAlreadyExistsException(this.getClass().getName(), USER_STORAGE_INTERNAL_ERROR, message);
-            }
-            registeredEmail.remove(users.get(id).getEmail());
-            users.put(id, user);
-            log.info("Пользователь успешно обновлен в хранилище: {}", user);
-            return user;
+        if (!Objects.isNull(users.put(id, user))) {
+            log.info("Запись о пользователе обновлена в хранилище: {}", user);
+            return Optional.of(user);
         } else {
-            String message =
-                    String.format("Обновить запись о пользователе не удалось, пользователь с ID %d не найден!", id);
-            log.warn(message);
-            throw new EntityNotFoundException(this.getClass().getName(), USER_STORAGE_INTERNAL_ERROR, message);
+            log.warn("Обновить запись о пользователе не удалось, пользователь с ID {} не найден!", id);
+            return Optional.empty();
         }
     }
 
     /**
-     * Метод удаляет пользователя из хранилища.
+     * Метод удаляет запись о пользователе из хранилища.
      *
      * @param userId удаляемый пользователь
+     * @return true, если запись удалена, false - если такой записи не было
      */
     @Override
-    public User deleteUser(int userId) {
+    public boolean deleteUser(@Positive int userId) {
         log.info("Удаление записи о пользователе из хранилища:");
-        User user = users.remove(userId);
-        if (user == null) {
-            String message =
-                    String.format("Удалить запись о пользователе не удалось, пользователь с ID %d не найден!", userId);
-            log.warn(message);
-            throw new EntityNotFoundException(this.getClass().getName(), USER_STORAGE_INTERNAL_ERROR, message);
+        if (Objects.isNull(users.remove(userId))) {
+            log.warn("Удалить запись о пользователе не удалось, пользователь с ID {} не найден!", userId);
+            return false;
         } else {
-            registeredEmail.remove(user.getEmail());
-            log.warn("Пользователь ID {} удален из хранилища", userId);
-            return user;
+            registeredEmail.remove(users.get(userId).getEmail());
+            log.warn("Запись о пользователе ID {} удалена из хранилища", userId);
+            return true;
         }
     }
 
@@ -113,29 +96,21 @@ public class InMemoryUserStorage implements UserStorage {
      * @return список пользователей, может быть пустым
      */
     @Override
-    public List<User> getAllUsers() {
+    public Optional<List<User>> getAllUsers() {
         log.info("Возвращен список всех пользователей из хранилища");
-        return List.copyOf(users.values());
+        return Optional.of(List.copyOf(users.values()));
     }
 
     /**
-     * Метод возвращает пользователя по его ID
+     * Метод возвращает запись о пользователе по его ID
      *
      * @param userId ID пользователя
-     * @return искомый пользователь
+     * @return запись о пользователе
      */
     @Override
-    public User getUser(int userId) {
-        log.info("Получение записи о пользователе из хранилища");
-        User user = users.get(userId);
-        if (user == null) {
-            String message =
-                    String.format("Получить запись о пользователе не удалось, пользователь с ID %d не найден!", userId);
-            log.warn(message);
-            throw new EntityNotFoundException(this.getClass().getName(), USER_STORAGE_INTERNAL_ERROR, message);
-        }
-        log.info("Получен пользователь ID {}", userId);
-        return user;
+    public Optional<User> getUser(@Positive int userId) {
+        log.info("Получение записи о пользователе ID {} из хранилища", userId);
+        return Optional.ofNullable(users.get(userId));
     }
 
 }

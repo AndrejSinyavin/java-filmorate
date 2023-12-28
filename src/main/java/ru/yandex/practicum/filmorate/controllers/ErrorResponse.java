@@ -10,7 +10,7 @@ import java.util.Map;
  */
 @Getter
 @Setter
-public final class ErrorResponse {
+public class ErrorResponse {
     private final Map<String, String> errors;
 
     public ErrorResponse(String error, String message) {

@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.interfaces.FriendsService;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Positive;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -14,7 +16,8 @@ import java.util.Set;
  */
 @Slf4j
 @Component
-public final class InMemoryFriendsService implements FriendsService {
+@Valid
+public class InMemoryFriendsService implements FriendsService {
     /**
      * Список друзей каждого пользователя.
      */
@@ -23,17 +26,17 @@ public final class InMemoryFriendsService implements FriendsService {
     /**
      * Метод регистрирует ID пользователя в FriendsService.
      *
-     * @param userId ID пользователя
+     * @param id ID пользователя
      * @return true - успешно, false - пользователь уже зарегистрирован.
      */
     @Override
-    public boolean registerUser(int userId) {
-        if (friends.containsKey(userId)) {
-            log.warn("Пользователь с ID {} уже был зарегистрирован в FriendsService!", userId);
+    public boolean registerUser(@Positive int id) {
+        if (friends.containsKey(id)) {
+            log.warn("Пользователь с ID {} уже был зарегистрирован в FriendsService!", d);
             return false;
         } else {
-            friends.put(userId, new HashSet<>());
-            log.info("Пользователь с ID {} зарегистрирован в FriendsService", userId);
+            friends.put(id, new HashSet<>());
+            log.info("Пользователь с ID {} зарегистрирован в FriendsService", id);
             return true;
         }
     }
@@ -45,7 +48,7 @@ public final class InMemoryFriendsService implements FriendsService {
      * @return true, если операция успешно выполнена, false - пользователь не найден FriendsService
      */
     @Override
-    public boolean unregisterUser(int userId) {
+    public boolean unregisterUser(@Positive int userId) {
         var oldValue = friends.remove(userId);
         if (oldValue != null) {
             oldValue.forEach(id -> friends.get(id).remove(userId));
