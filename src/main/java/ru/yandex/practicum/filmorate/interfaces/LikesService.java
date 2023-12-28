@@ -10,13 +10,15 @@ public interface LikesService {
 
     Optional<Integer> likeFilm(int filmId, int userId);
 
-    Optional<Integer> disLikeFilm(int filmId, int userId);
+    Optional<Integer> unlikeFilm(int filmId, int userId);
 
-    List<Integer> getPopularFilm(int topSize);
+    Optional<List<Integer>> getPopularFilm(int topSize);
 
-    void deleteFilm(int filmId);
+    Optional<String> deleteFilmRate(int filmId);
 
-    int unregisterFilm(int filmId);
+    Optional<Integer> getFilmRate(int filmId);
 
-    void registerFilm(int filmId, int rate);
+    Optional<String> createFilmRate(int filmId, int rate);
+
+    public Optional<String> updateFilmRate(int filmId, int rate);
 }

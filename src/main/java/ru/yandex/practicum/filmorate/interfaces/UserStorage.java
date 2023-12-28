@@ -31,7 +31,7 @@ public interface UserStorage {
      *
      * @param userId ID удаляемого пользователя
      */
-    boolean deleteUser(int userId);
+    Optional<User> deleteUser(int userId);
 
     /**
      * Метод возвращает список всех пользователей фильмотеки.

@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.services.user;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exceptions.EntityAlreadyExistsException;
 import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.InternalServiceException;
 import ru.yandex.practicum.filmorate.interfaces.FriendsService;
@@ -40,10 +41,8 @@ public class UserService {
      */
     public void addFriend(int userId, int friendId) {
         log.info("Добавление пользователя в друзья:");
-        if (!friends.addFriend(userId, friendId)) {
-            throw new EntityNotFoundException(thisService, friendService, String.format(
-                    "Пользователи ID %d и/или ID %d не найдены!", userId, friendId));
-        }
+        friends.addFriend(userId, friendId).ifPresent(
+                error -> {throw new EntityNotFoundException(thisService, friendService, error);});
     }
 
     /**
@@ -54,10 +53,8 @@ public class UserService {
      */
     public void deleteFriend(int userId, int friendId) {
         log.info("Удаление пользователей из друзей:");
-        if (!friends.deleteFriend(userId, friendId)) {
-            throw new EntityNotFoundException(thisService,friendService,
-                    String.format("Пользователи ID %d и/или ID %d не найдены!", userId, friendId));
-        }
+        friends.deleteFriend(userId, friendId).ifPresent(
+                error -> {throw new EntityNotFoundException(thisService,friendService, error);});
     }
 
     /**
@@ -68,12 +65,13 @@ public class UserService {
      */
     public List<User> getFriends(int id) {
         log.info("Получение списка друзей пользователя:");
-        users.getUser(id);
+        String error = String.format(
+                "Ошибка при получении списка друзей пользователя: друг ID %d не найден на сервисе!", id);
+        users.getUser(id).orElseThrow(() -> new EntityNotFoundException(thisService, userService,
+                String.format("Пользователь ID %d не найден на сервисе!", id)));
         return friends.getFriends(id).stream()
                 .map(users::getUser)
-                .map(user -> user.orElseThrow(() ->
-                        new EntityNotFoundException(
-                                thisService, friendService, String.format("Пользователь ID %d не найден!", id))))
+                .map(user -> user.orElseThrow(() -> new EntityNotFoundException(thisService, friendService, error)))
                 .collect(Collectors.toList());
     }
 
@@ -103,10 +101,11 @@ public class UserService {
      */
     public User createUser(User user) {
         log.info("Создание записи о пользователе и его регистрация на сервисе: {} :", user);
-        var result = users.createUser(user).orElseThrow(() -> new InternalServiceException(thisService, userService,
-                "Ошибка сервиса, не удалось создать запись о пользователе"));
+        var result = users.createUser(user).orElseThrow(() -> new EntityAlreadyExistsException(thisService, userService,
+                "Пользователь уже был создан и зарегистрирован на сервисе."));
         if (friends.registerUser(user.getId())) {
             log.info("Пользователь создан и зарегистрирован на сервисе.");
+        }
         return result;
     }
 
@@ -118,6 +117,7 @@ public class UserService {
      */
     public User updateUser(User user) {
         log.info("Обновление записи о пользователе {} :", user);
+        var result = users.updateUser(user).orElseThrow()
         return users.updateUser(user);
     }
 

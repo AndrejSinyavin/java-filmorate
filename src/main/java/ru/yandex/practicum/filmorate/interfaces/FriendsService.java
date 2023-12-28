@@ -1,20 +1,21 @@
 package ru.yandex.practicum.filmorate.interfaces;
 
+import java.util.Optional;
 import java.util.Set;
 
 /**
  * Интерфейс для служб, работающих с различными комьюнити пользователей.
  */
 public interface FriendsService {
-    boolean registerUser(int userId);
+    Optional<String> registerUser(int userId);
 
-    boolean unregisterUser(int userId);
+    Optional<String> unregisterUser(int userId);
 
-    boolean addFriend(int thisId, int otherId);
+    Optional<String> addFriend(int thisId, int otherId);
 
-    boolean deleteFriend(int thisId, int otherId);
+    Optional<String> deleteFriend(int thisId, int otherId);
 
-    Set<Integer> getFriends(int userId);
+    Optional<Set<Integer>> getFriends(int userId);
 
-    Set<Integer> getCommonFriends(int thisId, int otherId);
+    Optional<Set<Integer>> getCommonFriends(int thisId, int otherId);
 }

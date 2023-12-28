@@ -6,10 +6,7 @@ import ru.yandex.practicum.filmorate.interfaces.FriendsService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Сервис реализует хранение и обработку в памяти списков друзей для каждого пользователя.
@@ -18,6 +15,7 @@ import java.util.Set;
 @Component
 @Valid
 public class InMemoryFriendsService implements FriendsService {
+    private static final String ID_ERROR = "ID может быть только положительным значением";
     /**
      * Список друзей каждого пользователя.
      */
@@ -27,17 +25,16 @@ public class InMemoryFriendsService implements FriendsService {
      * Метод регистрирует ID пользователя в FriendsService.
      *
      * @param id ID пользователя
-     * @return true - успешно, false - пользователь уже зарегистрирован.
+     * @return пустое значение - успешно, текст ошибки - если пользователь уже зарегистрирован.
      */
     @Override
-    public boolean registerUser(@Positive int id) {
+    public Optional<String> registerUser(@Positive(message = ID_ERROR) int id) {
         if (friends.containsKey(id)) {
-            log.warn("Пользователь с ID {} уже был зарегистрирован в FriendsService!", d);
-            return false;
+            return Optional.of(String.format("Пользователь с ID %d уже был зарегистрирован в FriendsService!", id));
         } else {
             friends.put(id, new HashSet<>());
             log.info("Пользователь с ID {} зарегистрирован в FriendsService", id);
-            return true;
+            return Optional.empty();
         }
     }
 
@@ -45,18 +42,17 @@ public class InMemoryFriendsService implements FriendsService {
      * Метод удаляет ID пользователя из FriendsService, его список друзей и ссылки на него у друзей.
      *
      * @param userId ID удаляемого пользователя
-     * @return true, если операция успешно выполнена, false - пользователь не найден FriendsService
+     * @return пустое значение - успешно, текст ошибки - если пользователь не найден в FriendsService
      */
     @Override
-    public boolean unregisterUser(@Positive int userId) {
+    public Optional<String> unregisterUser(@Positive(message = ID_ERROR) int userId) {
         var oldValue = friends.remove(userId);
-        if (oldValue != null) {
+        if (Objects.isNull(oldValue)) {
+            return Optional.of(String.format("Пользователь ID %d не найден в FriendsService!", userId));
+        } else {
             oldValue.forEach(id -> friends.get(id).remove(userId));
             log.info("Пользователь ID {} удален из FriendsService", userId);
-            return true;
-        } else {
-            log.warn("Пользователь ID {} не найден в FriendsService!", userId);
-            return false;
+            return Optional.empty();
         }
     }
 
@@ -65,42 +61,43 @@ public class InMemoryFriendsService implements FriendsService {
      *
      * @param thisId  ID пользователя
      * @param otherId ID добавляемого в друзья пользователя
-     * @return true, если операция выполнена, false - если пользователи не найдены
+     * @return пустое значение - успешно, текст ошибки - если какой-либо пользователь не найден в FriendsService
      */
     @Override
-    public boolean addFriend(int thisId, int otherId) {
+    public Optional<String> addFriend(@Positive(message = ID_ERROR) int thisId,
+                                      @Positive(message = ID_ERROR) int otherId) {
         var userFriendList = friends.get(thisId);
         var otherFriendList = friends.get(otherId);
-        if (userFriendList == null || otherFriendList == null) {
-            log.warn("Пользователь ID {} и/или ID {} не найдены!", thisId, otherId);
-            return false;
+        if (Objects.isNull(userFriendList) || Objects.isNull(otherFriendList)) {
+            return Optional.of(String.format(
+                    "Пользователь ID %d и/или ID %d не найдены  FriendsService!", thisId, otherId));
         } else {
             userFriendList.add(otherId);
             otherFriendList.add(thisId);
             log.info("Пользователи ID {} и ID {} добавлены друг другу в друзья", thisId, otherId);
-            return true;
+            return Optional.empty();
         }
     }
 
     /**
-     * Метод удаляет друга из списка друзей пользователя, и ссылку на него у друга.
+     * Метод удаляет друзей из совместного френд-листа.
      *
      * @param thisId  ID пользователя
      * @param otherId ID друга пользователя
-     * @return true, если операция выполнена, false - если пользователи не найдены
+     * @return пустое значение - успешно, иначе текст ошибки
      */
     @Override
-    public boolean deleteFriend(int thisId, int otherId) {
+    public Optional<String> deleteFriend(@Positive(message = ID_ERROR) int thisId,
+                                         @Positive(message = ID_ERROR) int otherId) {
         var thisFriendList = friends.get(thisId);
         var otherFriendList = friends.get(otherId);
-        if (thisFriendList == null || otherFriendList == null) {
-            log.warn("Пользователь ID {} и/или ID {} не найдены!", thisId, otherId);
-            return false;
+        if (Objects.isNull(thisFriendList) || Objects.isNull(otherFriendList)) {
+            return Optional.of(String.format(
+                    "Пользователь ID %d и/или ID %d не найдены в  FriendsService!", thisId, otherId));
+        } else if (thisFriendList.remove(otherId) & otherFriendList.remove(thisId)) {
+            return Optional.of(String.format("Пользователи ID %d и ID %d удалены из друзей", thisId, otherId));
         } else {
-            thisFriendList.remove(otherId);
-            otherFriendList.remove(thisId);
-            log.info("Пользователи ID {} и ID {} удалены из друзей", thisId, otherId);
-            return true;
+            return Optional.empty();
         }
     }
 
@@ -108,12 +105,12 @@ public class InMemoryFriendsService implements FriendsService {
      * Метод возвращает список друзей указанного пользователя.
      *
      * @param userId ID нужного пользователя
-     * @return список ID друзей, может быть пустым
+     * @return список ID друзей (может быть пустым) или пустое значение, если ошибка
      */
     @Override
-    public Set<Integer> getFriends(int userId) {
+    public Optional<Set<Integer>> getFriends(@Positive(message = ID_ERROR) int userId) {
         log.info("Получен список друзей пользователя ID {}", userId);
-        return friends.get(userId);
+        return Optional.of(friends.get(userId));
     }
 
     /**
@@ -121,20 +118,21 @@ public class InMemoryFriendsService implements FriendsService {
      *
      * @param thisId  ID пользователя
      * @param otherId ID друга пользователя
-     * @return список ID общих друзей (может быть пустым), или null - если хотя бы один пользователь не найден
+     * @return список ID общих друзей (может быть пустым), или пустое значение - если кто-то из пользователей не найден
      */
     @Override
-    public Set<Integer> getCommonFriends(int thisId, int otherId) {
+    public Optional<Set<Integer>> getCommonFriends(@Positive(message = ID_ERROR) int thisId,
+                                                   @Positive(message = ID_ERROR) int otherId) {
         if (friends.containsKey(thisId) && friends.containsKey(otherId)) {
             Set<Integer> intersection = new HashSet<>(friends.get(thisId));
             intersection.retainAll(friends.get(otherId));
             intersection.remove(thisId);
             intersection.remove(otherId);
             log.info("Получен список общих друзей");
-            return intersection;
+            return Optional.of(intersection);
         } else {
             log.warn("Пользователь ID: {} и/или {} не найдены!", thisId, otherId);
-            return null;
+            return Optional.empty();
         }
     }
 }

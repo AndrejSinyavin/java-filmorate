@@ -47,6 +47,6 @@ public interface FilmStorage {
      * @param filmId ID фильма
      * @return
      */
-    boolean deleteFilm(int filmId);
+    Optional<Film> deleteFilm(int filmId);
 
 }

@@ -40,11 +40,11 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public User createUser(@Valid @RequestBody User user) {
         log.info("Запрос ==> POST {}", user);
-        String errorMessage = validateUser(user);
-        if (!errorMessage.isEmpty()) {
-            throw new EntityValidateException("Сервис дополнительной валидации", "Валидация запроса в контроллере " +
+        validateUser(user).ifPresent(errorMessage -> {
+            throw new EntityValidateException(
+                    "Сервис дополнительной валидации", "Валидация запроса в контроллере " +
                     this.getClass().getCanonicalName(), errorMessage);
-        }
+        });
         users.createUser(user);
         log.info("Ответ <== 201 Created. Пользователь успешно добавлен в список пользователей сервиса: {}", user);
         return user;

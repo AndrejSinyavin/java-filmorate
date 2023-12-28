@@ -60,7 +60,7 @@ public class FilmService {
         Film film = films.getFilm(filmId).orElseThrow(() -> new EntityNotFoundException(
                 thisService, filmService,
                 String.format("Запись о фильме c ID %d на сервисе не найдена", userId)));
-        film.setRate(likes.disLikeFilm(filmId, userId).orElseThrow(() -> new InternalServiceException(
+        film.setRate(likes.unlikeFilm(filmId, userId).orElseThrow(() -> new InternalServiceException(
                 thisService, likesService,
                 "Фильм присутствует на сервере, но не обнаружен в службе LikesService!")));
     }
@@ -95,7 +95,7 @@ public class FilmService {
         if (LIKE_PROTECTED_MODE) {
             rate = 0;
         }
-        likes.registerFilm(film.getId(), rate);
+        likes.createFilmRate(film.getId(), rate);
         return result;
     }
 
@@ -111,9 +111,9 @@ public class FilmService {
                 "Запись о фильме на сервисе не найдена"));
         int id = film.getId();
         if (LIKE_PROTECTED_MODE) {
-            film.setRate(likes.unregisterFilm(id));
+            film.setRate(likes.getFilmRate(id));
         } else {
-            likes.registerFilm(id, film.getRate());
+            likes.createFilmRate(id, film.getRate());
         }
         return result;
     }
@@ -129,7 +129,7 @@ public class FilmService {
             throw new EntityNotFoundException(thisService, filmService,
                     String.format("Удалить запись не удалось, фильм с ID %d не найден!", id));
         }
-        likes.deleteFilm(id);
+        likes.deleteFilmRate(id);
     }
 
     /**

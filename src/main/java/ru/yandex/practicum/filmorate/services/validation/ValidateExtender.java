@@ -1,10 +1,12 @@
 package ru.yandex.practicum.filmorate.services.validation;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import ru.yandex.practicum.filmorate.models.User;
 
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.Objects;
+import java.util.Optional;
 
 import static ru.yandex.practicum.filmorate.services.misc.ApplicationSettings.MAX_AGE;
 
@@ -13,28 +15,29 @@ import static ru.yandex.practicum.filmorate.services.misc.ApplicationSettings.MA
  */
 @Slf4j
 public final class ValidateExtender {
+    private static final String ENTITY_ERROR = "Пользователь не существует";
 
     private ValidateExtender() {
     }
 
     /**
-     * Метод выполняет дополнительную валидацию запроса и корректирует его, если необходимо, либо отклоняет.
+     * Метод выполняет дополнительную валидацию пользователя и корректирует его, если необходимо.
      *
      * @param user пользователь, которому нужно провести дополнительные проверки
-     * @return текст ошибки, если дополнительные проверки не пройдены, иначе пустая строка
+     * @return сообщение об ошибке, если дополнительные проверки не пройдены, иначе пустое значение
      */
-    public static String validateUser(@NonNull User user) {
+    public static Optional<String> validateUser(@NotNull(message = ENTITY_ERROR) User user) {
         log.info("Дополнительная валидация характеристик пользователя:");
         String name = user.getName();
         int age = LocalDate.now().getYear() - user.getBirthday().getYear();
         if (age > MAX_AGE) {
-            return String.format("Возраст пользователя не может быть более %d", MAX_AGE);
+            return Optional.of(String.format("Возраст пользователя не может быть более %d", MAX_AGE));
         }
-        if (name == null || name.isBlank()) {
-            log.warn("Имя пользователя не задано, ему присвоено содержимое поля 'логин'!");
+        if (Objects.isNull(name) || name.isBlank()) {
+            log.warn("Имя пользователя не было задано, ему присвоено содержимое поля 'логин'");
             user.setName(user.getLogin());
         }
         log.info("Ok.");
-        return "";
+        return Optional.empty();
     }
 }

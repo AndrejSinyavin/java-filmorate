@@ -6,15 +6,11 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.interfaces.RegistrationService;
 import ru.yandex.practicum.filmorate.models.Film;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-
 /**
  * Сервис регистрации фильмов в фильмотеке.
  */
 @Slf4j
 @Component
-@Valid
 public class FilmRegistrationService implements RegistrationService<Film> {
     /**
      * Счетчик ID для регистрации фильма в фильмотеке
@@ -25,7 +21,7 @@ public class FilmRegistrationService implements RegistrationService<Film> {
      * Метод регистрации фильма в фильмотеке
      */
     @Override
-    public @Positive int register(@NonNull Film film) {
+    public int register(@NonNull Film film) {
         film.setId(++filmId);
         log.info("Фильм зарегистрирован, ID = {}", filmId);
         return filmId;

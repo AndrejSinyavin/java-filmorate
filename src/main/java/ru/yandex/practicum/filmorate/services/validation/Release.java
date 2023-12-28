@@ -8,7 +8,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Кастомная аннотация для валидации года релиза фильма.
+ * Пользовательская аннотация для валидации года релиза фильма.
  */
 @Constraint(validatedBy = ReleaseValidator.class)
 @Retention(RetentionPolicy.RUNTIME)

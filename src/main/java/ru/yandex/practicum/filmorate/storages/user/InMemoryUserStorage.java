@@ -18,6 +18,8 @@ import java.util.*;
 @Component
 @RequiredArgsConstructor
 public class InMemoryUserStorage implements UserStorage {
+    private static final String ID_ERROR = "ID может быть только положительным значением";
+    private static final String ENTITY_ERROR = "Пользователь не существует";
     /**
      * Хранилище пользователей фильмотеки в памяти.
      */
@@ -34,15 +36,16 @@ public class InMemoryUserStorage implements UserStorage {
     /**
      * Метод создает в списке пользователей хранилища нового пользователя с уникальным ID и email.
      *
-     * @param user регистрируемый пользователь
-     * @return этот же пользователь с зарегистрированным ID
+     * @param user запись о пользователе, которую нужно создать в хранилище
+     * @return этот же пользователь с зарегистрированным ID; пустое значение - если пользователь с такой почтой
+     * уже зарегистрирован
      */
     @Override
-    public Optional<User> createUser(@NotNull User user) {
+    public Optional<User> createUser(@NotNull(message = ENTITY_ERROR) User user) {
         log.info("Создание записи о пользователе в хранилище:");
         String email = user.getEmail();
         if (registeredEmail.contains(email)) {
-            log.warn("Создать запись о пользователе не удалось, имейл {} уже зарегистрирован!", email);
+            log.warn("Создать запись о пользователе не удалось, почта {} уже зарегистрирована!", email);
             return Optional.empty();
         } else {
             users.put(registrationService.register(user), user);
@@ -56,17 +59,18 @@ public class InMemoryUserStorage implements UserStorage {
      * Метод обновляет в списке пользователей хранилища существующего пользователя.
      *
      * @param user пользователь, которого нужно найти и обновить
-     * @return обновленный пользователь
+     * @return обновленный пользователь, если он уже существовал, иначе пустое значение
      */
     @Override
-    public Optional<User> updateUser(@NotNull User user) {
+    public Optional<User> updateUser(@NotNull(message = ENTITY_ERROR) User user) {
         log.info("Обновление записи о пользователе в хранилище:");
         int id = user.getId();
-        if (!Objects.isNull(users.put(id, user))) {
+        if (users.containsKey(id)) {
+            users.put(id, user);
             log.info("Запись о пользователе обновлена в хранилище: {}", user);
             return Optional.of(user);
         } else {
-            log.warn("Обновить запись о пользователе не удалось, пользователь с ID {} не найден!", id);
+            log.warn("Запись о пользователе не найдена в хранилище: {}", user);
             return Optional.empty();
         }
     }
@@ -75,18 +79,19 @@ public class InMemoryUserStorage implements UserStorage {
      * Метод удаляет запись о пользователе из хранилища.
      *
      * @param userId удаляемый пользователь
-     * @return true, если запись удалена, false - если такой записи не было
+     * @return удаленный пользователь, если запись удалена, пустое значение - если такой записи не было
      */
     @Override
-    public boolean deleteUser(@Positive int userId) {
+    public Optional<User> deleteUser(@Positive(message = ID_ERROR) int userId) {
         log.info("Удаление записи о пользователе из хранилища:");
-        if (Objects.isNull(users.remove(userId))) {
+        User deletedUser = users.remove(userId);
+        if (Objects.isNull(deletedUser)) {
             log.warn("Удалить запись о пользователе не удалось, пользователь с ID {} не найден!", userId);
-            return false;
+            return Optional.empty();
         } else {
-            registeredEmail.remove(users.get(userId).getEmail());
-            log.warn("Запись о пользователе ID {} удалена из хранилища", userId);
-            return true;
+            registeredEmail.remove(deletedUser.getEmail());
+            log.warn("Запись о пользователе {} удалена из хранилища", deletedUser);
+            return Optional.of(deletedUser);
         }
     }
 
@@ -108,7 +113,7 @@ public class InMemoryUserStorage implements UserStorage {
      * @return запись о пользователе
      */
     @Override
-    public Optional<User> getUser(@Positive int userId) {
+    public Optional<User> getUser(@Positive(message = ID_ERROR) int userId) {
         log.info("Получение записи о пользователе ID {} из хранилища", userId);
         return Optional.ofNullable(users.get(userId));
     }

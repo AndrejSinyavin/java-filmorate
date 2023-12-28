@@ -18,6 +18,8 @@ import java.util.*;
 @Component
 @RequiredArgsConstructor
 public class InMemoryFilmStorage implements FilmStorage {
+    private static final String ID_ERROR = "ID может быть только положительным значением";
+    private static final String ENTITY_ERROR = "Фильм не существует";
     /**
      * Хранилище записей о фильмах в памяти.
      */
@@ -34,7 +36,7 @@ public class InMemoryFilmStorage implements FilmStorage {
      * @return этот же фильм с уже зарегистрированным ID в хранилище
      */
     @Override
-    public Optional<Film> createfilm(@NotNull Film film) {
+    public Optional<Film> createfilm(@NotNull(message = ENTITY_ERROR) Film film) {
         log.info("Создание записи о фильме в хранилище:");
         films.put(registrationService.register(film), film);
         log.info("Фильм добавлен в хранилище: {}", film);
@@ -45,37 +47,38 @@ public class InMemoryFilmStorage implements FilmStorage {
      * Метод обновляет в хранилище фильмов существующую запись о фильме.
      *
      * @param film фильм из запроса с установленным ID, по которому ищется этот фильм в хранилище.
-     * @return обновленный фильм из хранилища
+     * @return обновленный фильм, если он уже существовал; иначе пустое значение
      */
     @Override
-    public Optional<Film> updateFilm(@NotNull Film film) {
+    public Optional<Film> updateFilm(@NotNull(message = ENTITY_ERROR) Film film) {
         log.info("Обновление записи о фильме в хранилище:");
         int id = film.getId();
-        if (!films.containsKey(id)) {
-            log.info("Запись о фильме не найдена в хранилище: {}", film);
-            return Optional.empty();
-        } else {
+        if (films.containsKey(id)) {
             films.put(id, film);
             log.info("Запись о фильме обновлена в хранилище: {}", film);
             return Optional.of(film);
+        } else {
+            log.info("Запись о фильме не найдена в хранилище: {}", film);
+            return Optional.empty();
         }
     }
 
     /**
-     * Метод удаляет запись о фильме из хранилища в памяти.
+     * Метод удаляет запись о фильме из хранилища.
      *
-     * @param filmId ID фильма
-     * @return true, если запись удалена, false - если такой записи не было
+     * @param filmId удаляемый фильм
+     * @return удаленный фильм, если запись удалена, пустое значение - если такой записи не было
      */
     @Override
-    public boolean deleteFilm(@Positive int filmId) {
+    public Optional<Film> deleteFilm(@Positive(message = ID_ERROR) int filmId) {
         log.info("Удаление записи о фильме из хранилища:");
-        if (Objects.isNull(films.remove((filmId)))) {
+        Film deletedFilm = films.remove((filmId));
+        if (Objects.isNull(deletedFilm)) {
             log.warn("Удалить запись о фильме не удалось, фильм с ID {} не найден!", filmId);
-            return false;
+            return Optional.empty();
         } else {
             log.info("Запись о фильме ID {} удалена из хранилища", filmId);
-            return true;
+            return Optional.of(deletedFilm);
         }
     }
 
@@ -97,7 +100,7 @@ public class InMemoryFilmStorage implements FilmStorage {
      * @return запись о фильме
      */
     @Override
-    public Optional<Film> getFilm(@Positive int filmId) {
+    public Optional<Film> getFilm(@Positive(message = ID_ERROR) int filmId) {
         log.info("Получаем запись о фильме ID {} из хранилища", filmId);
         return Optional.ofNullable(films.get(filmId));
     }
