@@ -25,7 +25,7 @@ public class InMemoryFriendsService implements FriendsService {
      * Метод регистрирует ID пользователя в FriendsService.
      *
      * @param id ID пользователя
-     * @return пустое значение - успешно, текст ошибки - если пользователь уже зарегистрирован.
+     * @return пустое значение - если успешно, текст ошибки - если пользователь уже зарегистрирован.
      */
     @Override
     public Optional<String> registerUser(@Positive(message = ID_ERROR) int id) {
@@ -42,7 +42,7 @@ public class InMemoryFriendsService implements FriendsService {
      * Метод удаляет ID пользователя из FriendsService, его список друзей и ссылки на него у друзей.
      *
      * @param userId ID удаляемого пользователя
-     * @return пустое значение - успешно, текст ошибки - если пользователь не найден в FriendsService
+     * @return пустое значение - если успешно, текст ошибки - если пользователь не найден в FriendsService
      */
     @Override
     public Optional<String> unregisterUser(@Positive(message = ID_ERROR) int userId) {
@@ -61,7 +61,7 @@ public class InMemoryFriendsService implements FriendsService {
      *
      * @param thisId  ID пользователя
      * @param otherId ID добавляемого в друзья пользователя
-     * @return пустое значение - успешно, текст ошибки - если какой-либо пользователь не найден в FriendsService
+     * @return пустое значение - если успешно, текст ошибки - если какой-либо пользователь не найден в FriendsService
      */
     @Override
     public Optional<String> addFriend(@Positive(message = ID_ERROR) int thisId,
@@ -84,7 +84,7 @@ public class InMemoryFriendsService implements FriendsService {
      *
      * @param thisId  ID пользователя
      * @param otherId ID друга пользователя
-     * @return пустое значение - успешно, иначе текст ошибки
+     * @return пустое значение - если успешно, иначе текст ошибки
      */
     @Override
     public Optional<String> deleteFriend(@Positive(message = ID_ERROR) int thisId,
@@ -93,11 +93,11 @@ public class InMemoryFriendsService implements FriendsService {
         var otherFriendList = friends.get(otherId);
         if (Objects.isNull(thisFriendList) || Objects.isNull(otherFriendList)) {
             return Optional.of(String.format(
-                    "Пользователь ID %d и/или ID %d не найдены в  FriendsService!", thisId, otherId));
+                    "Пользователь ID %d и/или ID %d не найдены в FriendsService!", thisId, otherId));
         } else if (thisFriendList.remove(otherId) & otherFriendList.remove(thisId)) {
-            return Optional.of(String.format("Пользователи ID %d и ID %d удалены из друзей", thisId, otherId));
-        } else {
             return Optional.empty();
+        } else {
+            return Optional.of(String.format("Ошибка при удалении ID %d или ID %d из друзей", thisId, otherId));
         }
     }
 
@@ -105,7 +105,7 @@ public class InMemoryFriendsService implements FriendsService {
      * Метод возвращает список друзей указанного пользователя.
      *
      * @param userId ID нужного пользователя
-     * @return список ID друзей (может быть пустым) или пустое значение, если ошибка
+     * @return список ID друзей (может быть пустым), или пустое значение, если ошибка
      */
     @Override
     public Optional<Set<Integer>> getFriends(@Positive(message = ID_ERROR) int userId) {

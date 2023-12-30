@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.interfaces.FriendsService;
 import ru.yandex.practicum.filmorate.interfaces.UserStorage;
 import ru.yandex.practicum.filmorate.models.User;
 
-import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,12 +25,10 @@ public class UserService {
      * Подключение сервиса работы с пользователями.
      */
     private final UserStorage users;
-    private final String userService = users.getClass().getName();
     /**
      * Подключение сервиса работы с друзьями.
      */
     private final FriendsService friends;
-    private final String friendService = friends.getClass().getName();
 
     /**
      * Метод добавляет двух пользователей друг другу в друзья.
@@ -41,8 +38,8 @@ public class UserService {
      */
     public void addFriend(int userId, int friendId) {
         log.info("Добавление пользователя в друзья:");
-        friends.addFriend(userId, friendId).ifPresent(
-                error -> {throw new EntityNotFoundException(thisService, friendService, error);});
+        friends.addFriend(userId, friendId).ifPresent(error -> {
+            throw new EntityNotFoundException(thisService, friends.getClass().getName(), error); });
     }
 
     /**
@@ -53,8 +50,8 @@ public class UserService {
      */
     public void deleteFriend(int userId, int friendId) {
         log.info("Удаление пользователей из друзей:");
-        friends.deleteFriend(userId, friendId).ifPresent(
-                error -> {throw new EntityNotFoundException(thisService,friendService, error);});
+        friends.deleteFriend(userId, friendId).ifPresent(error -> {
+                    throw new EntityNotFoundException(thisService,friends.getClass().getName(), error); });
     }
 
     /**
@@ -67,11 +64,15 @@ public class UserService {
         log.info("Получение списка друзей пользователя:");
         String error = String.format(
                 "Ошибка при получении списка друзей пользователя: друг ID %d не найден на сервисе!", id);
-        users.getUser(id).orElseThrow(() -> new EntityNotFoundException(thisService, userService,
+        users.getUser(id).orElseThrow(() -> new EntityNotFoundException(thisService, users.getClass().getName(),
                 String.format("Пользователь ID %d не найден на сервисе!", id)));
-        return friends.getFriends(id).stream()
+        return friends.getFriends(id).orElseThrow(() -> new EntityNotFoundException(
+                thisService, friends.getClass().getName(),
+                        "Ошибка при получении списка ID друзей пользователя"))
+                .stream()
                 .map(users::getUser)
-                .map(user -> user.orElseThrow(() -> new EntityNotFoundException(thisService, friendService, error)))
+                .map(user -> user.orElseThrow(() -> new EntityNotFoundException(
+                        thisService, friends.getClass().getName(), error)))
                 .collect(Collectors.toList());
     }
 
@@ -84,11 +85,13 @@ public class UserService {
      */
     public List<User> getCommonFriends(int userId, int friendId) {
         log.info("Получение списка общих друзей двух пользователей:");
-        var frendsIdSet = friends.getCommonFriends(userId, friendId);
+        var frendsIdSet = friends.getCommonFriends(userId, friendId).orElseThrow(() ->
+                new EntityNotFoundException(thisService, friends.getClass().getName(),
+                        String.format("Пользователь ID %d и/или ID %d не найдены!", userId, friendId)));
         return frendsIdSet.stream()
                 .map(users::getUser)
                 .map(user -> user.orElseThrow(() ->
-                        new EntityNotFoundException(thisService, userService,
+                        new EntityNotFoundException(thisService, users.getClass().getName(),
                         String.format("Пользователь ID %d и/или ID %d не найдены!", userId, friendId))))
                 .collect(Collectors.toList());
     }
@@ -101,11 +104,11 @@ public class UserService {
      */
     public User createUser(User user) {
         log.info("Создание записи о пользователе и его регистрация на сервисе: {} :", user);
-        var result = users.createUser(user).orElseThrow(() -> new EntityAlreadyExistsException(thisService, userService,
+        var result = users.createUser(user).orElseThrow(() -> new EntityAlreadyExistsException(
+                thisService, users.getClass().getName(),
                 "Пользователь уже был создан и зарегистрирован на сервисе."));
-        if (friends.registerUser(user.getId())) {
-            log.info("Пользователь создан и зарегистрирован на сервисе.");
-        }
+        friends.registerUser(user.getId()).ifPresent(message -> {
+            throw new EntityAlreadyExistsException(thisService, friends.getClass().getName(), message); });
         return result;
     }
 
@@ -117,8 +120,8 @@ public class UserService {
      */
     public User updateUser(User user) {
         log.info("Обновление записи о пользователе {} :", user);
-        var result = users.updateUser(user).orElseThrow()
-        return users.updateUser(user);
+        return users.updateUser(user).orElseThrow(() -> new EntityNotFoundException(
+                thisService, users.getClass().getName(), "Запись о пользователе на сервисе не найдена"));
     }
 
     /**
@@ -128,10 +131,17 @@ public class UserService {
      */
     public void deleteUser(int userId) {
         log.info("Удаление записи о пользователе ID {} :", userId);
-        users.deleteUser(userId);
-        friends.getFriends(userId)
-                .forEach(friendId -> friends.deleteFriend(friendId, userId));
-        friends.unregisterUser(userId);
+        users.deleteUser(userId).orElseThrow(() -> new EntityNotFoundException(thisService, users.getClass().getName(),
+                String.format("Удалить запись не удалось, пользователь с ID %d не найден!", userId)));
+        friends.getFriends(userId).orElseThrow(() -> new InternalServiceException(
+                thisService, friends.getClass().getName(),
+                        "Ошибка сервиса, не удалось получить список друзей пользователя"))
+                .forEach(friendId -> friends.deleteFriend(friendId, userId).ifPresent(message -> {
+                    throw new InternalServiceException(thisService, friends.getClass().getName(), message);
+                }));
+        friends.unregisterUser(userId).ifPresent(message -> {
+            throw new InternalServiceException(thisService, friends.getClass().getName(), message);
+        });
     }
 
     /**
@@ -141,7 +151,9 @@ public class UserService {
      */
     public List<User> getAllUsers() {
         log.info("Получение списка всех записей о пользователях:");
-        return users.getAllUsers();
+        return users.getAllUsers().orElseThrow(() -> new InternalServiceException(
+                thisService, users.getClass().getName(),
+                "Ошибка сервиса, не удалось получить список всех пользователей"));
     }
 
     /**
@@ -152,7 +164,9 @@ public class UserService {
      */
     public User getUser(int userId) {
         log.info("Получение записи о пользователе ID {} :", userId);
-        return users.getUser(userId).orElseThrow();
+        return users.getUser(userId).orElseThrow(() -> new EntityNotFoundException(
+                thisService, users.getClass().getName(),
+                String.format("Получить запись о пользователе не удалось, пользователь с ID %d не найден!", userId)));
     }
 
 }

@@ -30,6 +30,7 @@ public interface UserStorage {
      * Метод удаляет пользователя из фильмотеки.
      *
      * @param userId ID удаляемого пользователя
+     * @return удаленный пользователь
      */
     Optional<User> deleteUser(int userId);
 
@@ -41,10 +42,10 @@ public interface UserStorage {
     Optional<List<User>> getAllUsers();
 
     /**
-     * Метод получает учетную запись пользователя из сервиса
+     * Метод получает пользователя фильмотеки
      *
      * @param userId ID пользователя
-     * @return ссылка на полученный аккаунт пользователя
+     * @return пользователь
      */
     Optional<User> getUser(int userId);
 

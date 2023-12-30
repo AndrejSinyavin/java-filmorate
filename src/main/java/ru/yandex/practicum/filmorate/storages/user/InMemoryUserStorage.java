@@ -79,7 +79,7 @@ public class InMemoryUserStorage implements UserStorage {
      * Метод удаляет запись о пользователе из хранилища.
      *
      * @param userId удаляемый пользователь
-     * @return удаленный пользователь, если запись удалена, пустое значение - если такой записи не было
+     * @return удаленный пользователь, если запись удалена; пустое значение - если такой записи не было
      */
     @Override
     public Optional<User> deleteUser(@Positive(message = ID_ERROR) int userId) {

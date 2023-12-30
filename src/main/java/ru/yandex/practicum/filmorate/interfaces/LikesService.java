@@ -14,11 +14,11 @@ public interface LikesService {
 
     Optional<List<Integer>> getPopularFilm(int topSize);
 
-    Optional<String> deleteFilmRate(int filmId);
+    Optional<String> deleteFilm(int filmId);
 
     Optional<Integer> getFilmRate(int filmId);
 
-    Optional<String> createFilmRate(int filmId, int rate);
+    Optional<String> createFilm(int filmId, int rate);
 
-    public Optional<String> updateFilmRate(int filmId, int rate);
+    public Optional<String> updateFilm(int filmId, int rate);
 }

@@ -45,7 +45,7 @@ public interface FilmStorage {
      * Метод удаляет запись - фильм по его ID.
      *
      * @param filmId ID фильма
-     * @return
+     * @return удаленный фильм
      */
     Optional<Film> deleteFilm(int filmId);
 
