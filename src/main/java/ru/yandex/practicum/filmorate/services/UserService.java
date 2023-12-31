@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.services.user;
+package ru.yandex.practicum.filmorate.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -6,15 +6,14 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.EntityAlreadyExistsException;
 import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.InternalServiceException;
-import ru.yandex.practicum.filmorate.interfaces.FriendsService;
-import ru.yandex.practicum.filmorate.interfaces.UserStorage;
+import ru.yandex.practicum.filmorate.storages.UserStorage;
 import ru.yandex.practicum.filmorate.models.User;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Сервис содержит логику работы с пользователями
+ * Сервис содержит логику работы с пользователями, используется контроллером UserController.
  */
 @Log4j2
 @Service
@@ -29,6 +28,10 @@ public class UserService {
      * Подключение сервиса работы с друзьями.
      */
     private final FriendsService friends;
+    /**
+     * Подключение сервиса работы с лайками.
+     */
+    private final LikesService likes;
 
     /**
      * Метод добавляет двух пользователей друг другу в друзья.
@@ -109,6 +112,9 @@ public class UserService {
                 "Пользователь уже был создан и зарегистрирован на сервисе."));
         friends.registerUser(user.getId()).ifPresent(message -> {
             throw new EntityAlreadyExistsException(thisService, friends.getClass().getName(), message); });
+        likes.registerUser(user.getId()).ifPresent(errorMessage -> {
+            throw new InternalServiceException(thisService, likes.getClass().getName(), errorMessage);
+        });
         return result;
     }
 
@@ -141,6 +147,9 @@ public class UserService {
                 }));
         friends.unregisterUser(userId).ifPresent(message -> {
             throw new InternalServiceException(thisService, friends.getClass().getName(), message);
+        });
+        likes.unregisterUser(userId).ifPresent(errorMessage -> {
+            throw new InternalServiceException(thisService, likes.getClass().getName(), errorMessage);
         });
     }
 

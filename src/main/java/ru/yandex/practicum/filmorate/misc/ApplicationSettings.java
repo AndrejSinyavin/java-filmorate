@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.services.misc;
+package ru.yandex.practicum.filmorate.misc;
 
 import java.time.LocalDate;
 
@@ -9,8 +9,6 @@ import static java.time.Month.DECEMBER;
  */
 public class ApplicationSettings {
     // ToDo реализовать настройки и окружение в application.properties
-    // Секция настроек сервиса лайков.
-    public static final boolean LIKE_PROTECTED_MODE = false;
     // Секция настроек валидации.
     public static final LocalDate VALID_RELEASE_DATE = LocalDate.of(1895, DECEMBER, 28);
     public static final int MAX_DESCRIPTION_LENGTH = 200;

@@ -7,13 +7,13 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.EntityValidateException;
 import ru.yandex.practicum.filmorate.models.User;
-import ru.yandex.practicum.filmorate.services.user.UserService;
+import ru.yandex.practicum.filmorate.services.UserService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import java.util.List;
 
-import static ru.yandex.practicum.filmorate.services.validation.ValidateExtender.validateUser;
+import static ru.yandex.practicum.filmorate.validations.ValidateExtender.validateUser;
 
 /**
  * Контроллер обработки REST-запросов для работы с клиентами фильмотеки.
@@ -31,7 +31,7 @@ public class UserController {
     private final UserService users;
 
     /**
-     * Эндпоинт обрабатывает запрос на создание нового пользователя фильмотеки.
+     * Endpoint обрабатывает запрос на создание нового пользователя фильмотеки.
      *
      * @param user пользователь, полученный из тела запроса
      * @return этот же пользователь с уже зарегистрированным ID в фильмотеке
@@ -51,7 +51,7 @@ public class UserController {
     }
 
     /**
-     * Эндпоинт обрабатывает запрос на обновление в фильмотеке существующего пользователя.
+     * Endpoint обрабатывает запрос на обновление в фильмотеке существующего пользователя.
      *
      * @param user пользователь, полученный из тела запроса
      * @return обновленный пользователь
@@ -66,7 +66,7 @@ public class UserController {
     }
 
     /**
-     * Эндпоинт обрабатывает запрос на получение всех пользователей фильмотеки
+     * Endpoint обрабатывает запрос на получение всех пользователей фильмотеки
      *
      * @return список всех пользователей, может быть пустым
      */
@@ -79,7 +79,7 @@ public class UserController {
     }
 
     /**
-     * Эндпоинт обрабатывает запрос на получение пользователя фильмотеки по его ID.
+     * Endpoint обрабатывает запрос на получение пользователя фильмотеки по его ID.
      *
      * @return пользователь
      */
@@ -92,7 +92,7 @@ public class UserController {
     }
 
     /**
-     * Эндпоинт обрабатывает запрос на добавление в друзья двух пользователей.
+     * Endpoint обрабатывает запрос на добавление в друзья двух пользователей.
      *
      * @param id первый пользователь
      * @param friendId второй пользователь
@@ -107,7 +107,7 @@ public class UserController {
     }
 
     /**
-     * Эндпоинт обрабатывает запрос на удаление пользователей из друзей друг у друга.
+     * Endpoint обрабатывает запрос на удаление пользователей из друзей друг у друга.
      *
      * @param id первый пользователь
      * @param friendId второй пользователь
@@ -122,7 +122,7 @@ public class UserController {
     }
 
     /**
-     * Эндпоинт обрабатывает запрос на получение списка всех друзей пользователя.
+     * Endpoint обрабатывает запрос на получение списка всех друзей пользователя.
      *
      * @param id ID пользователя
      * @return список всех друзей
@@ -136,7 +136,7 @@ public class UserController {
     }
 
     /**
-     * Эндпоинт обрабатывает запрос на получение списка всех общих друзей двух пользователей.
+     * Endpoint обрабатывает запрос на получение списка всех общих друзей двух пользователей.
      *
      * @param id ID одного пользователя
      * @param otherId ID другого пользователя

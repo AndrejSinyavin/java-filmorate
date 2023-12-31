@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.services.film;
+package ru.yandex.practicum.filmorate.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -6,15 +6,14 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.EntityAlreadyExistsException;
 import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.InternalServiceException;
-import ru.yandex.practicum.filmorate.interfaces.FilmStorage;
-import ru.yandex.practicum.filmorate.interfaces.LikesService;
+import ru.yandex.practicum.filmorate.storages.FilmStorage;
 import ru.yandex.practicum.filmorate.models.Film;
 
 import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Сервис содержит логику работы с пользователями
+ * Сервис содержит логику работы с пользователями, используется контроллером FilmController.
  */
 @Log4j2
 @Service
@@ -37,12 +36,16 @@ public class FilmService {
      * @param userId ID пользователя
      */
     public void addLike(int filmId, int userId) {
-        log.info("Добавление лайка фильму:");
-        Film film = films.getFilm(filmId).orElseThrow(() -> new EntityNotFoundException(
-                thisService, films.getClass().getName(),
-                String.format("Запись о фильме c ID %d на сервисе не найдена", userId)));
-        film.setRate(likes.likeFilm(filmId, userId).orElseThrow(() -> new EntityAlreadyExistsException(
-                thisService, likes.getClass().getName(), "Пользователь уже ставил лайк фильму!")));
+        log.info("Добавление лайка фильму на сервисе:");
+        Film film = films.getFilm(filmId).orElseThrow(
+                () -> new EntityNotFoundException(thisService, films.getClass().getName(),
+                String.format("Запись о фильме c ID %d на сервисе не найдена", userId))
+        );
+        likes.likeFilm(filmId, userId).ifPresent(exception -> {
+            throw exception; });
+        film.setRate(likes.getFilmRate(filmId).orElseThrow(
+                () -> new InternalServiceException(thisService, likes.getClass().getName(),
+                        String.format("Ошибка сервиса: информация о фильме ID %d не найдена!", filmId))));
     }
 
     /**
@@ -56,8 +59,11 @@ public class FilmService {
         Film film = films.getFilm(filmId).orElseThrow(() -> new EntityNotFoundException(
                 thisService, films.getClass().getName(),
                 String.format("Запись о фильме c ID %d на сервисе не найдена", userId)));
-        film.setRate(likes.unlikeFilm(filmId, userId).orElseThrow(() -> new InternalServiceException(
-                thisService, likes.getClass().getName(), "Пользователь уже отменил лайк фильму!")));
+        likes.unlikeFilm(filmId, userId).ifPresent(exception -> {
+            throw exception; });
+        film.setRate(likes.getFilmRate(filmId).orElseThrow(
+                () -> new InternalServiceException(thisService, likes.getClass().getName(),
+                        String.format("Ошибка сервиса: информация о фильме ID %d не найдена!", filmId))));
     }
 
     /**
@@ -86,13 +92,15 @@ public class FilmService {
      */
     public Film createfilm(Film film) {
         log.info("Создание записи о фильме и его регистрация на сервисе: {}", film);
-        film.setRate(0);
-        var result = films.createfilm(film).orElseThrow(
-                () -> new InternalServiceException(thisService, films.getClass().getName(),
-                "Ошибка сервиса, не удалось создать запись о фильме в фильмотеке"));
-        likes.createFilm(film.getId(), 0).ifPresent(error -> {
-            throw new InternalServiceException(thisService, likes.getClass().getName(), error); });
-        return result;
+        film = films.createfilm(film).orElseThrow(
+                () -> new EntityAlreadyExistsException(thisService, films.getClass().getName(),
+                "Запись о фильме уже существует в фильмотеке"));
+        // ToDo Тесты Postman допускают модификацию рейтинга фильма через поле rate со стороны клиента и используют
+        //  это при проверках. Это нарушает безопасность всей системы рейтинга сервиса, в будущем нужно убрать
+        //  поле rate из класса Film.
+        likes.registerFilm(film.getId(), film.getRate()).ifPresent(exception -> {
+            throw exception; });
+        return film;
     }
 
     /**
@@ -103,12 +111,15 @@ public class FilmService {
      */
     public Film updateFilm(Film film) {
         log.info("Обновление записи о фильме на сервисе: {}", film);
-        var result = films.updateFilm(film).orElseThrow(
-                () -> new EntityNotFoundException(
-                        thisService, films.getClass().getName(), "Запись о фильме на сервисе не найдена"));
-        likes.updateFilm(film.getId(), film.getRate()).ifPresent(error -> {
-            throw new InternalServiceException(thisService, likes.getClass().getName(), error); });
-        return result;
+        film = films.updateFilm(film).orElseThrow(
+                () -> new EntityNotFoundException(thisService, films.getClass().getName(),
+                        "Запись о фильме не найдена в фильмотеке."));
+        // ToDo Тесты Postman допускают модификацию рейтинга фильма через поле rate со стороны клиента и используют
+        //  это при проверках. Это нарушает безопасность всей системы рейтинга сервиса, в будущем нужно убрать
+        //  поле rate из класса Film.
+        likes.updateFilm(film.getId(), film.getRate()).ifPresent(exception -> {
+            throw exception; });
+        return film;
     }
 
     /**
@@ -120,8 +131,8 @@ public class FilmService {
         log.info("Удаление с сервиса записи о фильме ID {}:", id);
         films.deleteFilm(id).orElseThrow(() -> new EntityNotFoundException(thisService, films.getClass().getName(),
                 String.format("Удалить запись не удалось, фильм с ID %d не найден!", id)));
-        likes.deleteFilm(id).ifPresent(message -> {
-            throw new InternalServiceException(thisService, likes.getClass().getName(), message); });
+        likes.unregisterFilm(id).ifPresent(exception -> {
+            throw exception; });
     }
 
     /**
@@ -131,11 +142,8 @@ public class FilmService {
      */
     public List<Film> getFilms() {
         log.info("Получение списка всех фильмов сервиса:");
-        var result = films.getFilms().orElseThrow(() -> new InternalServiceException(thisService, films.getClass().getName(),
-                "Ошибка сервиса, не удалось получить список всех фильмов"));
-        result.forEach(film ->
-            film.setRate(likes.getFilmRate(film.getId()).get()));
-        return result;
+        return films.getFilms().orElseThrow(() -> new InternalServiceException(
+                thisService, films.getClass().getName(), "Ошибка сервиса, не удалось получить список всех фильмов"));
     }
 
     /**
@@ -146,12 +154,9 @@ public class FilmService {
      */
     public Film getFilm(int id) {
         log.info("Получение с сервиса записи о фильме:");
-        var result = films.getFilm(id).orElseThrow(() -> new EntityNotFoundException(
+        return films.getFilm(id).orElseThrow(() -> new EntityNotFoundException(
                 thisService, films.getClass().getName(),
                 String.format("Получить запись о фильме не удалось, фильм с ID %d не найден!", id)));
-        result.setRate(likes.getFilmRate(id).orElseThrow(() -> new InternalServiceException(
-                thisService, likes.getClass().getName(), String.format("Информация о фильме ID %d не найдена!", id))));
-        return result;
     }
 
 }

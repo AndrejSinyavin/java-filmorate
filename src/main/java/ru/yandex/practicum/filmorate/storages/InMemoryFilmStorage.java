@@ -1,10 +1,9 @@
-package ru.yandex.practicum.filmorate.storages.film;
+package ru.yandex.practicum.filmorate.storages;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.interfaces.FilmStorage;
-import ru.yandex.practicum.filmorate.interfaces.RegistrationService;
+import ru.yandex.practicum.filmorate.services.RegistrationService;
 import ru.yandex.practicum.filmorate.models.Film;
 
 import javax.validation.constraints.NotNull;
@@ -33,14 +32,19 @@ public class InMemoryFilmStorage implements FilmStorage {
      * Метод создает запись о фильме в хранилище.
      *
      * @param film запись о фильме, которую нужно создать в хранилище
-     * @return этот же фильм с уже зарегистрированным ID в хранилище
+     * @return этот же фильм с уже зарегистрированным ID в хранилище, или пустое значение при ошибке
      */
     @Override
     public Optional<Film> createfilm(@NotNull(message = ENTITY_ERROR) Film film) {
         log.info("Создание записи о фильме в хранилище:");
-        films.put(registrationService.register(film), film);
-        log.info("Фильм добавлен в хранилище: {}", film);
-        return Optional.of(film);
+        if (films.containsKey(film.getId())) {
+            log.error("Запись о фильме уже существует");
+            return Optional.empty();
+        } else {
+            films.put(registrationService.register(film), film);
+            log.info("Запись о фильме создана в хранилище: {}", film);
+            return Optional.of(film);
+        }
     }
 
     /**
@@ -58,7 +62,7 @@ public class InMemoryFilmStorage implements FilmStorage {
             log.info("Запись о фильме обновлена в хранилище: {}", film);
             return Optional.of(film);
         } else {
-            log.info("Запись о фильме не найдена в хранилище: {}", film);
+            log.error("Запись о фильме не найдена в хранилище: {}", film);
             return Optional.empty();
         }
     }
@@ -67,17 +71,17 @@ public class InMemoryFilmStorage implements FilmStorage {
      * Метод удаляет запись о фильме из хранилища.
      *
      * @param filmId удаляемый фильм
-     * @return удаленный фильм, если запись удалена, пустое значение - если такой записи не было
+     * @return удаленная запись о фильме; пустое значение - если такой записи не было найдено
      */
     @Override
     public Optional<Film> deleteFilm(@Positive(message = ID_ERROR) int filmId) {
         log.info("Удаление записи о фильме из хранилища:");
         Film deletedFilm = films.remove((filmId));
-        if (Objects.isNull(deletedFilm)) {
-            log.warn("Удалить запись о фильме не удалось, фильм с ID {} не найден!", filmId);
+        if (deletedFilm == null) {
+            log.error("Удалить запись о фильме не удалось, фильм с ID {} не найден!", filmId);
             return Optional.empty();
         } else {
-            log.info("Запись о фильме ID {} удалена из хранилища", filmId);
+            log.info("Запись о фильме удалена из хранилища: {}", deletedFilm);
             return Optional.of(deletedFilm);
         }
     }
@@ -85,23 +89,24 @@ public class InMemoryFilmStorage implements FilmStorage {
     /**
      * Метод возвращает список всех записей о фильмах из хранилища.
      *
-     * @return возвращаемый список фильмов, может быть пустым
+     * @return список фильмов, может быть пустым
      */
     @Override
     public Optional<List<Film>> getFilms() {
-        log.info("Получаем список всех записей о фильмах из хранилища");
-        return Optional.of(List.copyOf(films.values()));
+        var result = List.copyOf(films.values());
+        log.info("Получен список всех записей о фильмах из хранилища, размер: {}", result.size());
+        return Optional.of(result);
     }
 
     /**
      * Метод возвращает запись о фильме из хранилища в памяти.
      *
      * @param filmId ID фильма
-     * @return запись о фильме
+     * @return запись о фильме; либо пустое значение, если запись о фильме не найдена в хранилище
      */
     @Override
     public Optional<Film> getFilm(@Positive(message = ID_ERROR) int filmId) {
-        log.info("Получаем запись о фильме ID {} из хранилища", filmId);
+        log.info("Получение записи о фильме ID {} из хранилища", filmId);
         return Optional.ofNullable(films.get(filmId));
     }
 

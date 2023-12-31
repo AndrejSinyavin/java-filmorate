@@ -1,8 +1,7 @@
-package ru.yandex.practicum.filmorate.services.friend;
+package ru.yandex.practicum.filmorate.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.interfaces.FriendsService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -30,10 +29,11 @@ public class InMemoryFriendsService implements FriendsService {
     @Override
     public Optional<String> registerUser(@Positive(message = ID_ERROR) int id) {
         if (friends.containsKey(id)) {
-            return Optional.of(String.format("Пользователь с ID %d уже был зарегистрирован в FriendsService!", id));
+            return Optional.of(String.format(
+                    "Пользователь с ID %d уже был зарегистрирован в %s!", id, this.getClass().getName()));
         } else {
             friends.put(id, new HashSet<>());
-            log.info("Пользователь с ID {} зарегистрирован в FriendsService", id);
+            log.info("Пользователь с ID {} зарегистрирован в {}", id, this.getClass().getName());
             return Optional.empty();
         }
     }
@@ -46,12 +46,12 @@ public class InMemoryFriendsService implements FriendsService {
      */
     @Override
     public Optional<String> unregisterUser(@Positive(message = ID_ERROR) int userId) {
-        var oldValue = friends.remove(userId);
-        if (Objects.isNull(oldValue)) {
-            return Optional.of(String.format("Пользователь ID %d не найден в FriendsService!", userId));
+        var deletedUserFriends = friends.remove(userId);
+        if (deletedUserFriends == null) {
+            return Optional.of(String.format("Пользователь ID %d не найден в %s!", userId, this.getClass().getName()));
         } else {
-            oldValue.forEach(id -> friends.get(id).remove(userId));
-            log.info("Пользователь ID {} удален из FriendsService", userId);
+            deletedUserFriends.forEach(friendId -> friends.get(friendId).remove(userId));
+            log.info("Пользователь ID {} удален из {}", userId, this.getClass().getName());
             return Optional.empty();
         }
     }
@@ -59,22 +59,22 @@ public class InMemoryFriendsService implements FriendsService {
     /**
      * Метод добавляет пользователя и другого пользователя в друзья.
      *
-     * @param thisId  ID пользователя
-     * @param otherId ID добавляемого в друзья пользователя
+     * @param firstUserId  ID пользователя
+     * @param secondUserId ID добавляемого в друзья пользователя
      * @return пустое значение - если успешно, текст ошибки - если какой-либо пользователь не найден в FriendsService
      */
     @Override
-    public Optional<String> addFriend(@Positive(message = ID_ERROR) int thisId,
-                                      @Positive(message = ID_ERROR) int otherId) {
-        var userFriendList = friends.get(thisId);
-        var otherFriendList = friends.get(otherId);
-        if (Objects.isNull(userFriendList) || Objects.isNull(otherFriendList)) {
-            return Optional.of(String.format(
-                    "Пользователь ID %d и/или ID %d не найдены  FriendsService!", thisId, otherId));
+    public Optional<String> addFriend(@Positive(message = ID_ERROR) int firstUserId,
+                                      @Positive(message = ID_ERROR) int secondUserId) {
+        var firstUserFriendList = friends.get(firstUserId);
+        var secondUserFriendList = friends.get(secondUserId);
+        if (firstUserFriendList == null || secondUserFriendList == null) {
+            return Optional.of(String.format("Пользователь ID %d и/или ID %d не найдены в %s!",
+                    firstUserId, secondUserId, this.getClass().getName()));
         } else {
-            userFriendList.add(otherId);
-            otherFriendList.add(thisId);
-            log.info("Пользователи ID {} и ID {} добавлены друг другу в друзья", thisId, otherId);
+            firstUserFriendList.add(secondUserId);
+            secondUserFriendList.add(firstUserId);
+            log.info("Пользователи ID {} и ID {} добавлены друг другу в друзья", firstUserId, secondUserId);
             return Optional.empty();
         }
     }
@@ -91,9 +91,9 @@ public class InMemoryFriendsService implements FriendsService {
                                          @Positive(message = ID_ERROR) int otherId) {
         var thisFriendList = friends.get(thisId);
         var otherFriendList = friends.get(otherId);
-        if (Objects.isNull(thisFriendList) || Objects.isNull(otherFriendList)) {
+        if (thisFriendList == null || otherFriendList == null) {
             return Optional.of(String.format(
-                    "Пользователь ID %d и/или ID %d не найдены в FriendsService!", thisId, otherId));
+                    "Пользователь ID %d и/или ID %d не найдены в %s!", thisId, otherId, this.getClass().getName()));
         } else if (thisFriendList.remove(otherId) & otherFriendList.remove(thisId)) {
             return Optional.empty();
         } else {
@@ -102,10 +102,10 @@ public class InMemoryFriendsService implements FriendsService {
     }
 
     /**
-     * Метод возвращает список друзей указанного пользователя.
+     * Метод возвращает список друзей выбранного пользователя.
      *
-     * @param userId ID нужного пользователя
-     * @return список ID друзей (может быть пустым), или пустое значение, если ошибка
+     * @param userId ID выбранного пользователя
+     * @return список ID друзей (может быть пустым)
      */
     @Override
     public Optional<Set<Integer>> getFriends(@Positive(message = ID_ERROR) int userId) {
@@ -116,22 +116,23 @@ public class InMemoryFriendsService implements FriendsService {
     /**
      * Метод возвращает список общих друзей двух пользователей.
      *
-     * @param thisId  ID пользователя
-     * @param otherId ID друга пользователя
+     * @param firstUserId  ID первого пользователя
+     * @param secondUserId ID второго пользователя
      * @return список ID общих друзей (может быть пустым), или пустое значение - если кто-то из пользователей не найден
      */
     @Override
-    public Optional<Set<Integer>> getCommonFriends(@Positive(message = ID_ERROR) int thisId,
-                                                   @Positive(message = ID_ERROR) int otherId) {
-        if (friends.containsKey(thisId) && friends.containsKey(otherId)) {
-            Set<Integer> intersection = new HashSet<>(friends.get(thisId));
-            intersection.retainAll(friends.get(otherId));
-            intersection.remove(thisId);
-            intersection.remove(otherId);
+    public Optional<Set<Integer>> getCommonFriends(@Positive(message = ID_ERROR) int firstUserId,
+                                                   @Positive(message = ID_ERROR) int secondUserId) {
+        if (friends.containsKey(firstUserId) && friends.containsKey(secondUserId)) {
+            Set<Integer> commonFriendsId = new HashSet<>(friends.get(firstUserId));
+            commonFriendsId.retainAll(friends.get(secondUserId));
+            commonFriendsId.remove(firstUserId);
+            commonFriendsId.remove(secondUserId);
             log.info("Получен список общих друзей");
-            return Optional.of(intersection);
+            return Optional.of(commonFriendsId);
         } else {
-            log.warn("Пользователь ID: {} и/или {} не найдены!", thisId, otherId);
+            log.warn("Пользователь ID: {} и/или {} не найдены в {}!",
+                    firstUserId, secondUserId, this.getClass().getName());
             return Optional.empty();
         }
     }

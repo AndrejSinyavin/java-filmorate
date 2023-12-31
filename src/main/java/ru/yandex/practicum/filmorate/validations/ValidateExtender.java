@@ -1,27 +1,26 @@
-package ru.yandex.practicum.filmorate.services.validation;
+package ru.yandex.practicum.filmorate.validations;
 
 import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.models.User;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
-import java.util.Objects;
 import java.util.Optional;
 
-import static ru.yandex.practicum.filmorate.services.misc.ApplicationSettings.MAX_AGE;
+import static ru.yandex.practicum.filmorate.misc.ApplicationSettings.MAX_AGE;
 
 /**
  * Сервисный класс с дополнительными методами валидации данных.
  */
 @Slf4j
 public final class ValidateExtender {
-    private static final String ENTITY_ERROR = "Пользователь не существует";
+    private static final String ENTITY_ERROR = "Пользователь не должен быть null";
 
     private ValidateExtender() {
     }
 
     /**
-     * Метод выполняет дополнительную валидацию пользователя и корректирует его, если необходимо.
+     * Метод выполняет дополнительную валидацию пользователя и корректирует его поля, если необходимо.
      *
      * @param user пользователь, которому нужно провести дополнительные проверки
      * @return сообщение об ошибке, если дополнительные проверки не пройдены, иначе пустое значение
@@ -33,7 +32,7 @@ public final class ValidateExtender {
         if (age > MAX_AGE) {
             return Optional.of(String.format("Возраст пользователя не может быть более %d", MAX_AGE));
         }
-        if (Objects.isNull(name) || name.isBlank()) {
+        if (name == null || name.isBlank()) {
             log.warn("Имя пользователя не было задано, ему присвоено содержимое поля 'логин'");
             user.setName(user.getLogin());
         }

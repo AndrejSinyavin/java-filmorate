@@ -6,10 +6,10 @@ import ru.yandex.practicum.filmorate.controllers.UserController;
 import ru.yandex.practicum.filmorate.exceptions.EntityValidateException;
 import ru.yandex.practicum.filmorate.models.Film;
 import ru.yandex.practicum.filmorate.models.User;
-import ru.yandex.practicum.filmorate.services.friend.InMemoryFriendsService;
-import ru.yandex.practicum.filmorate.services.registration.UserRegistrationService;
-import ru.yandex.practicum.filmorate.services.user.UserService;
-import ru.yandex.practicum.filmorate.storages.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.services.InMemoryFriendsService;
+import ru.yandex.practicum.filmorate.services.UserRegistrationService;
+import ru.yandex.practicum.filmorate.services.UserService;
+import ru.yandex.practicum.filmorate.storages.InMemoryUserStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -20,8 +20,8 @@ import java.util.Set;
 import static javax.validation.Validation.buildDefaultValidatorFactory;
 import static org.junit.jupiter.api.Assertions.*;
 import static ru.yandex.practicum.filmorate.FilmorateApplicationTests.Mode.*;
-import static ru.yandex.practicum.filmorate.services.misc.ApplicationSettings.MAX_DESCRIPTION_LENGTH;
-import static ru.yandex.practicum.filmorate.services.misc.ApplicationSettings.VALID_RELEASE_DATE;
+import static ru.yandex.practicum.filmorate.misc.ApplicationSettings.MAX_DESCRIPTION_LENGTH;
+import static ru.yandex.practicum.filmorate.misc.ApplicationSettings.VALID_RELEASE_DATE;
 
 @Log4j2
 class FilmorateApplicationTests {

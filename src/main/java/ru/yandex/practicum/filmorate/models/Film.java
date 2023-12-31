@@ -2,12 +2,12 @@ package ru.yandex.practicum.filmorate.models;
 
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
-import ru.yandex.practicum.filmorate.services.validation.Release;
+import ru.yandex.practicum.filmorate.validations.Release;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
 
-import static ru.yandex.practicum.filmorate.services.misc.ApplicationSettings.MAX_DESCRIPTION_LENGTH;
+import static ru.yandex.practicum.filmorate.misc.ApplicationSettings.MAX_DESCRIPTION_LENGTH;
 
 /**
  * Класс описывает поля записи "фильм" в фильмотеке

@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.interfaces;
+package ru.yandex.practicum.filmorate.services;
 
 /**
  * Интерфейс для служб регистрации.

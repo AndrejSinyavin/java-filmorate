@@ -1,10 +1,10 @@
-package ru.yandex.practicum.filmorate.services.registration;
+package ru.yandex.practicum.filmorate.services;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.interfaces.RegistrationService;
 import ru.yandex.practicum.filmorate.models.Film;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * Сервис регистрации фильмов в фильмотеке.
@@ -21,7 +21,7 @@ public class FilmRegistrationService implements RegistrationService<Film> {
      * Метод регистрации фильма в фильмотеке
      */
     @Override
-    public int register(@NonNull Film film) {
+    public int register(@NotNull(message = "Пользователь не должен быть null") Film film) {
         film.setId(++filmId);
         log.info("Фильм зарегистрирован, ID = {}", filmId);
         return filmId;

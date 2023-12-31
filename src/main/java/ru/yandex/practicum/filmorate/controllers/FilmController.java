@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.models.Film;
-import ru.yandex.practicum.filmorate.services.film.FilmService;
+import ru.yandex.practicum.filmorate.services.FilmService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -28,7 +28,7 @@ public class FilmController {
     private final FilmService films;
 
     /**
-     * Эндпоинт обрабатывает запрос на создание в фильмотеке новой записи "Фильм".
+     * Endpoint обрабатывает запрос на создание в фильмотеке новой записи "Фильм".
      *
      * @param film фильм, получаемый из тела запроса
      * @return созданная запись - фильм с уже зарегистрированным ID в фильмотеке
@@ -43,7 +43,7 @@ public class FilmController {
     }
 
     /**
-     * Эндпоинт обрабатывает запрос на обновление фильма в фильмотеке.
+     * Endpoint обрабатывает запрос на обновление фильма в фильмотеке.
      *
      * @param film фильм из запроса с установленным ID, по которому ищется этот фильм в фильмотеке
      * @return обновленная запись - фильм из фильмотеки
@@ -57,7 +57,7 @@ public class FilmController {
     }
 
     /**
-     * Эндпоинт обрабатывает запрос на получение списка всех фильмов.
+     * Endpoint обрабатывает запрос на получение списка всех фильмов.
      *
      * @return список всех фильмов фильмотеки, может быть пустым
      */
@@ -70,7 +70,7 @@ public class FilmController {
     }
 
     /**
-     * Эндпоинт обрабатывает запрос на получение фильма из фильмотеки.
+     * Endpoint обрабатывает запрос на получение фильма из фильмотеки.
      *
      * @param id ID фильма
      * @return фильм
@@ -84,7 +84,7 @@ public class FilmController {
     }
 
     /**
-     * Эндпоинт обрабатывает запрос на удаление фильма из фильмотеки.
+     * Endpoint обрабатывает запрос на удаление фильма из фильмотеки.
      *
      * @param id ID фильма
      */
@@ -96,7 +96,7 @@ public class FilmController {
     }
 
     /**
-     * Эндпоинт обрабатывает запрос на лайк фильма пользователем.
+     * Endpoint обрабатывает запрос на лайк фильма пользователем.
      *
      * @param id     фильма
      * @param userId пользователя
@@ -111,7 +111,7 @@ public class FilmController {
     }
 
     /**
-     * Эндпоинт обрабатывает запрос на дизлайк фильма пользователем.
+     * Endpoint обрабатывает запрос на дизлайк фильма пользователем.
      *
      * @param id фильма
      * @param userId пользователя
@@ -126,7 +126,7 @@ public class FilmController {
     }
 
     /**
-     * Эндпоинт обрабатывает запрос на получение топа рейтинга фильмов по лайкам пользователей.
+     * Endpoint обрабатывает запрос на получение топа рейтинга фильмов по лайкам пользователей.
      *
      * @param count размер топа рейтинга
      * @return список из фильмов в порядке понижения рейтинга
