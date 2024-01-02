@@ -2,14 +2,8 @@ package ru.yandex.practicum.filmorate;
 
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
-import ru.yandex.practicum.filmorate.controllers.UserController;
-import ru.yandex.practicum.filmorate.exceptions.EntityValidateException;
 import ru.yandex.practicum.filmorate.models.Film;
 import ru.yandex.practicum.filmorate.models.User;
-import ru.yandex.practicum.filmorate.services.InMemoryFriendsService;
-import ru.yandex.practicum.filmorate.services.UserRegistrationService;
-import ru.yandex.practicum.filmorate.services.UserService;
-import ru.yandex.practicum.filmorate.storages.InMemoryUserStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -18,8 +12,10 @@ import java.time.LocalDate;
 import java.util.Set;
 
 import static javax.validation.Validation.buildDefaultValidatorFactory;
-import static org.junit.jupiter.api.Assertions.*;
-import static ru.yandex.practicum.filmorate.FilmorateApplicationTests.Mode.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static ru.yandex.practicum.filmorate.FilmorateApplicationTests.Mode.FILM;
+import static ru.yandex.practicum.filmorate.FilmorateApplicationTests.Mode.USER;
 import static ru.yandex.practicum.filmorate.misc.ApplicationSettings.MAX_DESCRIPTION_LENGTH;
 import static ru.yandex.practicum.filmorate.misc.ApplicationSettings.VALID_RELEASE_DATE;
 
@@ -46,13 +42,13 @@ class FilmorateApplicationTests {
         film.setName("Эквилибриум");
         film.setDescription("В будущем люди лишены возможности выражать эмоции. Это цена, которую человечество... ");
         film.setDuration(107);
-        film.setReleaseDate("2002-12-06");
+        film.setReleaseDate(LocalDate.parse("2002-12-06"));
 
         user = new User();
         user.setId(1);
         user.setLogin("user");
         user.setName("Андрей");
-        user.setBirthday("1976-02-18");
+        user.setBirthday(LocalDate.parse("1976-02-18"));
         user.setEmail("andrejsinyavin@yandex.ru");
     }
 
@@ -127,11 +123,11 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    @DisplayName("Описание фильма null (пустое), допустимо")
+    @DisplayName("Описание фильма null (пустое), недопустимо")
     void descriptionNullTest() {
         film.setDescription(null);
         filmViolations = validator.validate(film);
-        assertTrue(filmViolations.isEmpty());
+        assertFalse(filmViolations.isEmpty());
         infoMode = FILM;
     }
 
@@ -183,25 +179,16 @@ class FilmorateApplicationTests {
     @Test
     @DisplayName("Дата релиза пустая, допустимо")
     void releaseEmptyTest() {
-        film.setReleaseDate("");
+        film.setReleaseDate(null);
         filmViolations = validator.validate(film);
         assertTrue(filmViolations.isEmpty());
         infoMode = FILM;
     }
 
     @Test
-    @DisplayName("Некорректный паттерн даты, недопустимо")
-    void releaseIncorrectTest() {
-        film.setReleaseDate("это не дата");
-        filmViolations = validator.validate(film);
-        assertFalse(filmViolations.isEmpty());
-        infoMode = FILM;
-    }
-
-    @Test
     @DisplayName("Корректный паттерн даты, дата в допустимых пределах, допустимо")
     void releaseCorrectTest() {
-        film.setReleaseDate("2000-01-01");
+        film.setReleaseDate(LocalDate.parse("2000-01-01"));
         filmViolations = validator.validate(film);
         assertTrue(filmViolations.isEmpty());
         infoMode = FILM;
@@ -210,7 +197,7 @@ class FilmorateApplicationTests {
     @Test
     @DisplayName("Предельная дата, допустимо")
     void releaseMaxAllowableTest() {
-        film.setReleaseDate(VALID_RELEASE_DATE.toString());
+        film.setReleaseDate(VALID_RELEASE_DATE);
         filmViolations = validator.validate(film);
         assertTrue(filmViolations.isEmpty());
         infoMode = FILM;
@@ -219,7 +206,7 @@ class FilmorateApplicationTests {
     @Test
     @DisplayName("Дата раньше предельной, недопустимо")
     void releaseNotAllowableTest() {
-        film.setReleaseDate("1895-12-27");
+        film.setReleaseDate(LocalDate.parse("1895-12-27"));
         filmViolations = validator.validate(film);
         assertFalse(filmViolations.isEmpty());
         infoMode = FILM;
@@ -228,7 +215,7 @@ class FilmorateApplicationTests {
     @Test
     @DisplayName("Дата позже сегодняшней - анонс релиза, допустимо")
     void releaseAfterTomorrowTest() {
-        film.setReleaseDate((LocalDate.now().plusDays(1)).toString());
+        film.setReleaseDate((LocalDate.now().plusDays(1)));
         filmViolations = validator.validate(film);
         assertTrue(filmViolations.isEmpty());
         infoMode = FILM;
@@ -390,15 +377,10 @@ class FilmorateApplicationTests {
     @Test
     @DisplayName("Дата рождения не может быть в будущем")
     void userBirthdayTest() {
-        user.setBirthday(LocalDate.now().plusDays(1).toString());
-
-        UserController testController = new UserController(new UserService(
-                new InMemoryUserStorage(new UserRegistrationService()), new InMemoryFriendsService()));
-        EntityValidateException thrown = assertThrows(EntityValidateException.class,
-                () -> testController.createUser(user));
-        assertEquals("Некорректная дата рождения пользователя!", thrown.getMessage());
-        log.info(thrown.getMessage());
-        infoMode = NONE;
+        user.setBirthday(LocalDate.now().plusDays(1));
+        userViolations = validator.validate(user);
+        assertFalse(userViolations.isEmpty());
+        infoMode = USER;
     }
 
     enum Mode {

@@ -3,10 +3,7 @@ package ru.yandex.practicum.filmorate.models;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.PastOrPresent;
+import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 /**
@@ -26,7 +23,7 @@ public class User {
     @NotBlank(message = "email не может быть пустым")
     private String email;
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @PastOrPresent(message = "Дата рождения не может быть в будущем")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthday;
 }

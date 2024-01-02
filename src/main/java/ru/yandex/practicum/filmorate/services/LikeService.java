@@ -8,7 +8,7 @@ import java.util.Optional;
 /**
  * Интерфейс для служб, работающих с рейтингом фильмов.
  */
-public interface LikesService {
+public interface LikeService {
 
     /**
      * Пользователь ставит лайк фильму.
@@ -29,7 +29,7 @@ public interface LikesService {
     Optional<? extends AppException> unlikeFilm(int filmId, int userId);
 
     /**
-     * Метод вызывается при создании фильма в фильмотеке. Регистрирует фильм в сервисе LikesService.
+     * Метод вызывается при создании фильма в фильмотеке. Регистрирует фильм в сервисе LikeService.
      *
      * @param filmId ID фильма
      * @param rate   рейтинг фильма
@@ -38,7 +38,7 @@ public interface LikesService {
     Optional<? extends AppException> registerFilm(int filmId, int rate);
 
     /**
-     * Метод вызывается при удалении фильма из фильмотеки. Отменяет регистрацию фильма в сервисе LikesService.
+     * Метод вызывается при удалении фильма из фильмотеки. Отменяет регистрацию фильма в сервисе LikeService.
      *
      * @param filmId ID фильма
      * @return пустое значение, если операция завершена успешно, иначе сообщение с ошибкой.
@@ -71,7 +71,7 @@ public interface LikesService {
     Optional<List<Integer>> getPopularFilm(int topSize);
 
     /**
-     * Метод вызывается при создании пользователя в фильмотеке. Регистрирует пользователя в LikesService.
+     * Метод вызывается при создании пользователя в фильмотеке. Регистрирует пользователя в LikeService.
      *
      * @param userId ID пользователя
      * @return пустое значение, если операция завершена успешно, иначе сообщение об ошибке
@@ -79,7 +79,7 @@ public interface LikesService {
     Optional<String> registerUser(int userId);
 
     /**
-     * Метод вызывается при удалении пользователя из фильмотеки. Отменяет регистрацию пользователя в LikesService.
+     * Метод вызывается при удалении пользователя из фильмотеки. Отменяет регистрацию пользователя в LikeService.
      *
      * @param userId ID пользователя
      * @return пустое значение, если операция завершена успешно, иначе сообщение об ошибке

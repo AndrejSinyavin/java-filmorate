@@ -31,7 +31,7 @@ public class UserService {
     /**
      * Подключение сервиса работы с лайками.
      */
-    private final LikesService likes;
+    private final LikeService likes;
 
     /**
      * Метод добавляет двух пользователей друг другу в друзья.

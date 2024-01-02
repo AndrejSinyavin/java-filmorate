@@ -18,7 +18,7 @@ import java.util.*;
 @Slf4j
 @Valid
 @Component
-public class InMemoryLikeService implements LikesService  {
+public class InMemoryLikeService implements LikeService {
     private static final String ID_ERROR = "ID может быть только положительным значением";
     private static final String RATE_ERROR = "Рейтинг фильма не может быть отрицательным значением";
     private final String source = this.getClass().getSimpleName();
@@ -41,30 +41,26 @@ public class InMemoryLikeService implements LikesService  {
                                                      @Positive(message = ID_ERROR)int userId) {
         String error = String.format("Пользователь ID %d ставит лайк фильму ID %d", userId, filmId);
         log.info(error);
-        var film = films.get(filmId);
+        FilmContext film = films.get(filmId);
         if (film == null) {
             return Optional.of(new EntityNotFoundException(source, error, "Фильм не найден"));
         }
-        UserContext user;
-        if (users.get(userId) == null) {
+        UserContext user = users.get(userId);
+        if (user == null) {
             return Optional.of(new EntityNotFoundException(source, error, "Пользователь не найден"));
-        } else {
-            user = users.get(userId);
         }
         if (user.whatLiked.contains(filmId)) {
             return Optional.of(new EntityAlreadyExistsException(
                     source, error, "Пользователь уже поставил лайк фильму"));
-        } else {
-            user.whatLiked.add(filmId);
         }
+        user.whatLiked.add(filmId);
         film.whoLiked.add(userId);
         int rate = film.rate;
-        var members = rating.get(rate++);
+        HashSet<FilmContext> members = rating.get(rate++);
         members.remove(film);
         film.rate++;
-        members = rating.computeIfAbsent(rate, k -> new HashSet<>());
-        members.add(film);
-        log.info("Лайк поставлен");
+        rating.computeIfAbsent(rate, k -> new HashSet<>()).add(film);
+        log.info("Лайк поставлен, фильм ID {}, рейтинг {}", filmId, film.rate);
         return Optional.empty();
     }
 
@@ -80,39 +76,40 @@ public class InMemoryLikeService implements LikesService  {
                                                        @Positive(message = ID_ERROR)int userId) {
         String error = String.format("Пользователь ID %d отменяет лайк фильму ID %d", userId, filmId);
         log.info(error);
-        var film = films.get(filmId);
+        FilmContext film = films.get(filmId);
         if (film == null) {
             return Optional.of(new EntityNotFoundException(source, error, "Фильм не найден"));
         }
-        UserContext user;
-        if (users.get(userId) == null) {
+        UserContext user = users.get(userId);
+        if (user == null) {
             return Optional.of(new EntityNotFoundException(source, error, "Пользователь не найден"));
-        } else {
-            user = users.get(userId);
         }
         if (!user.whatLiked.contains(filmId)) {
             return Optional.of(new EntityNotFoundException(
                     source, error, "Пользователь не ставил лайк фильму"));
-        } else {
-            user.whatLiked.remove(filmId);
         }
+        user.whatLiked.remove(filmId);
         film.whoLiked.remove(userId);
         int rate = film.rate;
         HashSet<FilmContext> members;
         if (rate != 0) {
-            members = rating.get(rate);
+            members = rating.get(rate--);
             members.remove(film);
             film.rate--;
         } else {
             members = rating.get(0);
             members.remove(film);
         }
-        log.info("Лайк отменен");
+        rating.computeIfAbsent(rate, k -> new HashSet<>()).add(film);
+        if (members.isEmpty()) {
+            rating.remove(++rate);
+        }
+        log.info("Лайк отменен, фильм ID {}, рейтинг {}", filmId, film.rate);
         return Optional.empty();
     }
 
     /**
-     * Метод вызывается при создании фильма в фильмотеке. Регистрирует фильм в сервисе LikesService.
+     * Метод вызывается при создании фильма в фильмотеке. Регистрирует фильм в сервисе LikeService.
      *
      * @param filmId ID фильма
      * @param rate   рейтинг фильма
@@ -171,7 +168,7 @@ public class InMemoryLikeService implements LikesService  {
     }
 
     /**
-     * Метод вызывается при удалении фильма из фильмотеки. Отменяет регистрацию фильма в сервисе LikesService.
+     * Метод вызывается при удалении фильма из фильмотеки. Отменяет регистрацию фильма в сервисе LikeService.
      *
      * @param filmId ID фильма
      * @return пустое значение, если операция завершена успешно, иначе сообщение с ошибкой.
@@ -208,8 +205,9 @@ public class InMemoryLikeService implements LikesService  {
         String error = String.format("Получение рейтинга фильма ID %d", filmId);
         log.info(error);
         if (films.containsKey(filmId)) {
-            log.info("Ok");
-            return Optional.of(films.get(filmId).rate);
+            int result = films.get(filmId).rate;
+            log.info("Рейтинг = {}", result);
+            return Optional.of(result);
         } else {
             return Optional.empty();
         }
@@ -244,11 +242,12 @@ public class InMemoryLikeService implements LikesService  {
             if (key == null) break;
             members = rating.get(key);
         }
+        log.info(result.toString());
         return Optional.of(result);
     }
 
     /**
-     * Метод вызывается при создании пользователя в фильмотеке. Регистрирует пользователя в LikesService.
+     * Метод вызывается при создании пользователя в фильмотеке. Регистрирует пользователя в LikeService.
      *
      * @param userId ID пользователя
      * @return пустое значение, если операция завершена успешно, иначе сообщение об ошибке
@@ -258,7 +257,7 @@ public class InMemoryLikeService implements LikesService  {
         String error = String.format("Регистрация пользователя ID %d", userId);
         log.info(error);
         if (users.containsKey(userId)) {
-            return Optional.of("Пользователь уже зарегистрирован в LikesService");
+            return Optional.of("Пользователь уже зарегистрирован в LikeService");
         }
         users.put(userId, new UserContext(userId, new HashSet<>()));
         log.info("Ок");
@@ -266,7 +265,7 @@ public class InMemoryLikeService implements LikesService  {
     }
 
     /**
-     * Метод вызывается при удалении пользователя из фильмотеки. Отменяет регистрацию пользователя в LikesService.
+     * Метод вызывается при удалении пользователя из фильмотеки. Отменяет регистрацию пользователя в LikeService.
      *
      * @param userId ID пользователя
      * @return пустое значение, если операция завершена успешно, иначе сообщение об ошибке
@@ -276,7 +275,7 @@ public class InMemoryLikeService implements LikesService  {
         String error = String.format("Отмена регистрации пользователя ID %d", userId);
         log.info(error);
         if (!users.containsKey(userId)) {
-            return Optional.of("Пользователь не зарегистрирован в LikesService");
+            return Optional.of("Пользователь не зарегистрирован в LikeService");
         }
         var deletedUser = users.remove(userId);
         // ToDo: реализовать удаление лайков у фильмов и пересчет их рейтинга, если потребуется

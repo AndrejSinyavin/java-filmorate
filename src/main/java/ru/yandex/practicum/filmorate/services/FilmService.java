@@ -27,7 +27,7 @@ public class FilmService {
     /**
      * Подключение сервиса работы с "лайками".
      */
-    private final LikesService likes;
+    private final LikeService likes;
 
     /**
      * Метод позволяет пользователю лайкнуть фильм.
