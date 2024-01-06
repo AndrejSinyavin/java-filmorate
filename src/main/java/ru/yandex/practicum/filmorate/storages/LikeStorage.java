@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.services;
+package ru.yandex.practicum.filmorate.storages;
 
 import ru.yandex.practicum.filmorate.exceptions.AppException;
 
@@ -8,7 +8,7 @@ import java.util.Optional;
 /**
  * Интерфейс для служб, работающих с рейтингом фильмов.
  */
-public interface LikeService {
+public interface LikeStorage {
 
     /**
      * Пользователь ставит лайк фильму.
@@ -29,7 +29,7 @@ public interface LikeService {
     Optional<? extends AppException> unlikeFilm(int filmId, int userId);
 
     /**
-     * Метод вызывается при создании фильма в фильмотеке. Регистрирует фильм в сервисе LikeService.
+     * Метод вызывается при создании фильма в фильмотеке. Регистрирует фильм в сервисе LikeStorage.
      *
      * @param filmId ID фильма
      * @param rate   рейтинг фильма
@@ -38,7 +38,7 @@ public interface LikeService {
     Optional<? extends AppException> registerFilm(int filmId, int rate);
 
     /**
-     * Метод вызывается при удалении фильма из фильмотеки. Отменяет регистрацию фильма в сервисе LikeService.
+     * Метод вызывается при удалении фильма из фильмотеки. Отменяет регистрацию фильма в сервисе LikeStorage.
      *
      * @param filmId ID фильма
      * @return пустое значение, если операция завершена успешно, иначе сообщение с ошибкой.
@@ -71,7 +71,7 @@ public interface LikeService {
     Optional<List<Integer>> getPopularFilm(int topSize);
 
     /**
-     * Метод вызывается при создании пользователя в фильмотеке. Регистрирует пользователя в LikeService.
+     * Метод вызывается при создании пользователя в фильмотеке. Регистрирует пользователя в LikeStorage.
      *
      * @param userId ID пользователя
      * @return пустое значение, если операция завершена успешно, иначе сообщение об ошибке
@@ -79,7 +79,7 @@ public interface LikeService {
     Optional<String> registerUser(int userId);
 
     /**
-     * Метод вызывается при удалении пользователя из фильмотеки. Отменяет регистрацию пользователя в LikeService.
+     * Метод вызывается при удалении пользователя из фильмотеки. Отменяет регистрацию пользователя в LikeStorage.
      *
      * @param userId ID пользователя
      * @return пустое значение, если операция завершена успешно, иначе сообщение об ошибке

@@ -3,8 +3,8 @@ package ru.yandex.practicum.filmorate.storages;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.services.RegistrationService;
 import ru.yandex.practicum.filmorate.models.User;
+import ru.yandex.practicum.filmorate.services.RegistrationService;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;

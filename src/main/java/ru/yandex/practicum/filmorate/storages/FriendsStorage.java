@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.services;
+package ru.yandex.practicum.filmorate.storages;
 
 import java.util.Optional;
 import java.util.Set;
@@ -6,9 +6,9 @@ import java.util.Set;
 /**
  * Интерфейс для служб, работающих с различными комьюнити пользователей.
  */
-public interface FriendsService {
+public interface FriendsStorage {
     /**
-     * Метод регистрирует пользователя в FriendsService.
+     * Метод регистрирует пользователя в FriendsStorage.
      *
      * @param userId ID пользователя
      * @return пустое значение - если успешно, текст ошибки - если пользователь уже зарегистрирован в службе.
@@ -16,7 +16,7 @@ public interface FriendsService {
     Optional<String> registerUser(int userId);
 
     /**
-     * Метод отменяет регистрацию пользователя в FriendsService
+     * Метод отменяет регистрацию пользователя в FriendsStorage
      *
      * @param userId ID пользователя
      * @return пустое значение - если успешно, текст ошибки - если пользователь не найден в службе.

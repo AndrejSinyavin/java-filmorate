@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.services;
+package ru.yandex.practicum.filmorate.storages;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import java.util.*;
 @Slf4j
 @Valid
 @Component
-public class InMemoryLikeService implements LikeService {
+public class InMemoryLikeStorage implements LikeStorage {
     private static final String ID_ERROR = "ID может быть только положительным значением";
     private static final String RATE_ERROR = "Рейтинг фильма не может быть отрицательным значением";
     private final String source = this.getClass().getSimpleName();
@@ -109,7 +109,7 @@ public class InMemoryLikeService implements LikeService {
     }
 
     /**
-     * Метод вызывается при создании фильма в фильмотеке. Регистрирует фильм в сервисе LikeService.
+     * Метод вызывается при создании фильма в фильмотеке. Регистрирует фильм в сервисе LikeStorage.
      *
      * @param filmId ID фильма
      * @param rate   рейтинг фильма
@@ -168,7 +168,7 @@ public class InMemoryLikeService implements LikeService {
     }
 
     /**
-     * Метод вызывается при удалении фильма из фильмотеки. Отменяет регистрацию фильма в сервисе LikeService.
+     * Метод вызывается при удалении фильма из фильмотеки. Отменяет регистрацию фильма в сервисе LikeStorage.
      *
      * @param filmId ID фильма
      * @return пустое значение, если операция завершена успешно, иначе сообщение с ошибкой.
@@ -247,7 +247,7 @@ public class InMemoryLikeService implements LikeService {
     }
 
     /**
-     * Метод вызывается при создании пользователя в фильмотеке. Регистрирует пользователя в LikeService.
+     * Метод вызывается при создании пользователя в фильмотеке. Регистрирует пользователя в LikeStorage.
      *
      * @param userId ID пользователя
      * @return пустое значение, если операция завершена успешно, иначе сообщение об ошибке
@@ -257,7 +257,7 @@ public class InMemoryLikeService implements LikeService {
         String error = String.format("Регистрация пользователя ID %d", userId);
         log.info(error);
         if (users.containsKey(userId)) {
-            return Optional.of("Пользователь уже зарегистрирован в LikeService");
+            return Optional.of("Пользователь уже зарегистрирован в LikeStorage");
         }
         users.put(userId, new UserContext(userId, new HashSet<>()));
         log.info("Ок");
@@ -265,7 +265,7 @@ public class InMemoryLikeService implements LikeService {
     }
 
     /**
-     * Метод вызывается при удалении пользователя из фильмотеки. Отменяет регистрацию пользователя в LikeService.
+     * Метод вызывается при удалении пользователя из фильмотеки. Отменяет регистрацию пользователя в LikeStorage.
      *
      * @param userId ID пользователя
      * @return пустое значение, если операция завершена успешно, иначе сообщение об ошибке
@@ -275,7 +275,7 @@ public class InMemoryLikeService implements LikeService {
         String error = String.format("Отмена регистрации пользователя ID %d", userId);
         log.info(error);
         if (!users.containsKey(userId)) {
-            return Optional.of("Пользователь не зарегистрирован в LikeService");
+            return Optional.of("Пользователь не зарегистрирован в LikeStorage");
         }
         var deletedUser = users.remove(userId);
         // ToDo: реализовать удаление лайков у фильмов и пересчет их рейтинга, если потребуется

@@ -4,12 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.models.Film;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 /**
  * Сервис регистрации фильмов в фильмотеке.
  */
 @Slf4j
+@Valid
 @Component
 public class FilmRegistrationService implements RegistrationService<Film> {
     /**
@@ -21,7 +23,7 @@ public class FilmRegistrationService implements RegistrationService<Film> {
      * Метод регистрации фильма в фильмотеке
      */
     @Override
-    public int register(@NotNull(message = "Пользователь не должен быть null") Film film) {
+    public int register(@NotNull(message = "Фильм не должен быть null") Film film) {
         film.setId(++filmId);
         log.info("Фильм зарегистрирован, ID = {}", filmId);
         return filmId;

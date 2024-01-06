@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.EntityAlreadyExistsException;
 import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.InternalServiceException;
+import ru.yandex.practicum.filmorate.storages.FriendsStorage;
+import ru.yandex.practicum.filmorate.storages.LikeStorage;
 import ru.yandex.practicum.filmorate.storages.UserStorage;
 import ru.yandex.practicum.filmorate.models.User;
 
@@ -27,11 +29,11 @@ public class UserService {
     /**
      * Подключение сервиса работы с друзьями.
      */
-    private final FriendsService friends;
+    private final FriendsStorage friends;
     /**
      * Подключение сервиса работы с лайками.
      */
-    private final LikeService likes;
+    private final LikeStorage likes;
 
     /**
      * Метод добавляет двух пользователей друг другу в друзья.
@@ -88,14 +90,13 @@ public class UserService {
      */
     public List<User> getCommonFriends(int userId, int friendId) {
         log.info("Получение списка общих друзей двух пользователей:");
+        String message = String.format("Пользователь ID %d и/или ID %d не найдены!", userId, friendId);
         var frendsIdSet = friends.getCommonFriends(userId, friendId).orElseThrow(() ->
-                new EntityNotFoundException(thisService, friends.getClass().getName(),
-                        String.format("Пользователь ID %d и/или ID %d не найдены!", userId, friendId)));
+                new EntityNotFoundException(thisService, friends.getClass().getName(), message));
         return frendsIdSet.stream()
                 .map(users::getUser)
                 .map(user -> user.orElseThrow(() ->
-                        new EntityNotFoundException(thisService, users.getClass().getName(),
-                        String.format("Пользователь ID %d и/или ID %d не найдены!", userId, friendId))))
+                        new EntityNotFoundException(thisService, users.getClass().getName(), message)))
                 .collect(Collectors.toList());
     }
 

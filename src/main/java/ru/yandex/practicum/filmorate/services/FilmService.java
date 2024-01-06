@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.InternalServiceException;
 import ru.yandex.practicum.filmorate.storages.FilmStorage;
 import ru.yandex.practicum.filmorate.models.Film;
+import ru.yandex.practicum.filmorate.storages.LikeStorage;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -27,7 +28,7 @@ public class FilmService {
     /**
      * Подключение сервиса работы с "лайками".
      */
-    private final LikeService likes;
+    private final LikeStorage likes;
 
     /**
      * Метод позволяет пользователю лайкнуть фильм.

@@ -3,17 +3,22 @@ package ru.yandex.practicum.filmorate.storages;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.services.RegistrationService;
 import ru.yandex.practicum.filmorate.models.Film;
+import ru.yandex.practicum.filmorate.services.RegistrationService;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Хранилище и бизнес-логика работы с фильмотекой в памяти.
  */
 @Slf4j
+@Valid
 @Component
 @RequiredArgsConstructor
 public class InMemoryFilmStorage implements FilmStorage {

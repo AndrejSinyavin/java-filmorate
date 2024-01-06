@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.services;
+package ru.yandex.practicum.filmorate.storages;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -13,7 +13,7 @@ import java.util.*;
 @Slf4j
 @Component
 @Valid
-public class InMemoryFriendsService implements FriendsService {
+public class InMemoryFriendsStorage implements FriendsStorage {
     private static final String ID_ERROR = "ID может быть только положительным значением";
     /**
      * Список друзей каждого пользователя.
@@ -21,7 +21,7 @@ public class InMemoryFriendsService implements FriendsService {
     private final Map<Integer, HashSet<Integer>> friends = new HashMap<>();
 
     /**
-     * Метод регистрирует ID пользователя в FriendsService.
+     * Метод регистрирует ID пользователя в FriendsStorage.
      *
      * @param id ID пользователя
      * @return пустое значение - если успешно, текст ошибки - если пользователь уже зарегистрирован.
@@ -39,10 +39,10 @@ public class InMemoryFriendsService implements FriendsService {
     }
 
     /**
-     * Метод удаляет ID пользователя из FriendsService, его список друзей и ссылки на него у друзей.
+     * Метод удаляет ID пользователя из FriendsStorage, его список друзей и ссылки на него у друзей.
      *
      * @param userId ID удаляемого пользователя
-     * @return пустое значение - если успешно, текст ошибки - если пользователь не найден в FriendsService
+     * @return пустое значение - если успешно, текст ошибки - если пользователь не найден в FriendsStorage
      */
     @Override
     public Optional<String> unregisterUser(@Positive(message = ID_ERROR) int userId) {
@@ -61,7 +61,7 @@ public class InMemoryFriendsService implements FriendsService {
      *
      * @param firstUserId  ID пользователя
      * @param secondUserId ID добавляемого в друзья пользователя
-     * @return пустое значение - если успешно, текст ошибки - если какой-либо пользователь не найден в FriendsService
+     * @return пустое значение - если успешно, текст ошибки - если какой-либо пользователь не найден в FriendsStorage
      */
     @Override
     public Optional<String> addFriend(@Positive(message = ID_ERROR) int firstUserId,
