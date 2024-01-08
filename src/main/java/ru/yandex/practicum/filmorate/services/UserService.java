@@ -89,8 +89,7 @@ public class UserService {
     public List<User> getCommonFriends(int userId, int friendId) {
         log.info("Получение списка общих друзей двух пользователей:");
         String message = String.format("Пользователь ID %d и/или ID %d не найдены!", userId, friendId);
-        var frendsIdSet = friends.getCommonFriends(userId, friendId).orElseThrow(() ->
-                new EntityNotFoundException(thisService, friends.getClass().getName(), message));
+        var frendsIdSet = friends.getCommonFriends(userId, friendId);
         return frendsIdSet.stream()
                 .map(users::getUser)
                 .map(user -> user.orElseThrow(() ->

@@ -118,22 +118,21 @@ public class InMemoryFriendsStorage implements FriendsStorage {
      *
      * @param firstUserId  ID первого пользователя
      * @param secondUserId ID второго пользователя
-     * @return список ID общих друзей (может быть пустым), или пустое значение - если кто-то из пользователей не найден
+     * @return список ID общих друзей (может быть пустым)
      */
     @Override
-    public Optional<Set<Integer>> getCommonFriends(@Positive(message = ID_ERROR) int firstUserId,
-                                                   @Positive(message = ID_ERROR) int secondUserId) {
+    public Set<Integer> getCommonFriends(@Positive(message = ID_ERROR) int firstUserId,
+                                         @Positive(message = ID_ERROR) int secondUserId) {
+        Set<Integer> commonFriendsId = new HashSet<>(friends.get(firstUserId));
         if (friends.containsKey(firstUserId) && friends.containsKey(secondUserId)) {
-            Set<Integer> commonFriendsId = new HashSet<>(friends.get(firstUserId));
             commonFriendsId.retainAll(friends.get(secondUserId));
             commonFriendsId.remove(firstUserId);
             commonFriendsId.remove(secondUserId);
             log.info("Получен список общих друзей");
-            return Optional.of(commonFriendsId);
         } else {
             log.warn("Пользователь ID: {} и/или {} не найдены в {}!",
                     firstUserId, secondUserId, this.getClass().getName());
-            return Optional.empty();
         }
+        return commonFriendsId;
     }
 }

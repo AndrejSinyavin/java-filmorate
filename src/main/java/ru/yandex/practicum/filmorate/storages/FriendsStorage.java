@@ -56,5 +56,5 @@ public interface FriendsStorage {
      * @param secondUserId ID второго пользователя
      * @return список ID общих друзей (может быть пустым), или пустое значение - если ошибка
      */
-    Optional<Set<Integer>> getCommonFriends(int firstUserId, int secondUserId);
+    Set<Integer> getCommonFriends(int firstUserId, int secondUserId);
 }

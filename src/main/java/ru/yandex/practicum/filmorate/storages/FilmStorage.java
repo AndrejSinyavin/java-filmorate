@@ -39,7 +39,7 @@ public interface FilmStorage {
      *
      * @return список фильмов, может быть пустым
      */
-    Optional<List<Film>> getFilms();
+    List<Film> getFilms();
 
     /**
      * Метод возвращает запись о фильме по его ID.

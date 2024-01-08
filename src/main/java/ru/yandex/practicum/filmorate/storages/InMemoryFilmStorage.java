@@ -97,10 +97,10 @@ public class InMemoryFilmStorage implements FilmStorage {
      * @return список фильмов, может быть пустым
      */
     @Override
-    public Optional<List<Film>> getFilms() {
+    public List<Film> getFilms() {
         var result = List.copyOf(films.values());
         log.info("Получен список всех записей о фильмах из хранилища, размер: {}", result.size());
-        return Optional.of(result);
+        return result;
     }
 
     /**

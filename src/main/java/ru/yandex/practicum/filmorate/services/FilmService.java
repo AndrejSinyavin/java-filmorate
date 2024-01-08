@@ -141,8 +141,7 @@ public class FilmService {
      */
     public List<Film> getFilms() {
         log.info("Получение списка всех фильмов сервиса:");
-        return films.getFilms().orElseThrow(() -> new InternalServiceException(
-                thisService, films.getClass().getName(), "Ошибка сервиса, не удалось получить список всех фильмов"));
+        return films.getFilms();
     }
 
     /**
