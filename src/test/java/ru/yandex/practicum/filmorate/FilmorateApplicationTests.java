@@ -168,20 +168,20 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    @DisplayName("Дата релиза не задана, допустимо")
+    @DisplayName("Дата релиза не задана, недопустимо")
     void releaseNullTest() {
         film.setReleaseDate(null);
         filmViolations = validator.validate(film);
-        assertTrue(filmViolations.isEmpty());
+        assertFalse(filmViolations.isEmpty());
         infoMode = FILM;
     }
 
     @Test
-    @DisplayName("Дата релиза пустая, допустимо")
+    @DisplayName("Дата релиза пустая, недопустимо")
     void releaseEmptyTest() {
         film.setReleaseDate(null);
         filmViolations = validator.validate(film);
-        assertTrue(filmViolations.isEmpty());
+        assertFalse(filmViolations.isEmpty());
         infoMode = FILM;
     }
 

@@ -220,13 +220,13 @@ public class InMemoryLikeStorage implements LikeStorage {
      * @return список ID фильмов топа в порядке убывания количества лайков
      */
     @Override
-    public Optional<List<Integer>> getPopularFilm(
+    public List<Integer> getPopularFilm(
             @PositiveOrZero(message = "Размер топа лучших фильмов не может быть отрицательным") int topSize) {
         String error = "Получение топа рейтинга";
         log.info(error);
         LinkedList<Integer> result = new LinkedList<>();
         if (rating.isEmpty()) {
-            return Optional.of(result);
+            return result;
         }
         var key = rating.firstKey();
         HashSet<FilmContext> members = rating.get(key);
@@ -243,7 +243,7 @@ public class InMemoryLikeStorage implements LikeStorage {
             members = rating.get(key);
         }
         log.info(result.toString());
-        return Optional.of(result);
+        return result;
     }
 
     /**

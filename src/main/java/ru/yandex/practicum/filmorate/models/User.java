@@ -23,6 +23,7 @@ public class User {
     @NotBlank(message = "email не может быть пустым")
     private String email;
 
+    @NotNull
     @PastOrPresent(message = "Дата рождения не может быть в будущем")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthday;

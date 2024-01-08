@@ -39,7 +39,7 @@ public interface UserStorage {
      *
      * @return список пользователей, может быть пустым
      */
-    Optional<List<User>> getAllUsers();
+    List<User> getAllUsers();
 
     /**
      * Метод возвращает запись о пользователе по его ID

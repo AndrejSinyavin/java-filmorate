@@ -25,6 +25,7 @@ public class Film {
             message = "Описание фильма не должно быть больше " + MAX_DESCRIPTION_LENGTH + " символов")
     private String description;
 
+    @NotNull
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Release
     private LocalDate releaseDate;

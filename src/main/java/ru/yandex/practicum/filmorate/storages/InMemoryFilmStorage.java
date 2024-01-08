@@ -18,9 +18,9 @@ import java.util.Optional;
  * Хранилище и бизнес-логика работы с фильмотекой в памяти.
  */
 @Slf4j
-@Valid
 @Component
 @RequiredArgsConstructor
+@Valid
 public class InMemoryFilmStorage implements FilmStorage {
     private static final String ID_ERROR = "ID может быть только положительным значением";
     private static final String ENTITY_ERROR = "Фильм не существует";

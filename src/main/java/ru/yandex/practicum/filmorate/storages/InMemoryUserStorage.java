@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.models.User;
 import ru.yandex.practicum.filmorate.services.RegistrationService;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.util.*;
@@ -16,6 +17,7 @@ import java.util.*;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Valid
 public class InMemoryUserStorage implements UserStorage {
     private static final String ID_ERROR = "ID может быть только положительным значением";
     private static final String ENTITY_ERROR = "Пользователь не существует";
@@ -110,9 +112,9 @@ public class InMemoryUserStorage implements UserStorage {
      * @return список пользователей, может быть пустым
      */
     @Override
-    public Optional<List<User>> getAllUsers() {
+    public List<User> getAllUsers() {
         log.info("Возвращен список всех пользователей из хранилища");
-        return Optional.of(List.copyOf(users.values()));
+        return List.copyOf(users.values());
     }
 
     /**

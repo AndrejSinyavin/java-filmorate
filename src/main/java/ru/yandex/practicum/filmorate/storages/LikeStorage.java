@@ -68,7 +68,7 @@ public interface LikeStorage {
      * @param topSize размер топа
      * @return список ID фильмов топа в порядке убывания количества лайков
      */
-    Optional<List<Integer>> getPopularFilm(int topSize);
+    List<Integer> getPopularFilm(int topSize);
 
     /**
      * Метод вызывается при создании пользователя в фильмотеке. Регистрирует пользователя в LikeStorage.

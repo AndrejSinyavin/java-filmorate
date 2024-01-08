@@ -71,9 +71,7 @@ public class UserService {
                 "Ошибка при получении списка друзей пользователя: друг ID %d не найден на сервисе!", id);
         users.getUser(id).orElseThrow(() -> new EntityNotFoundException(thisService, users.getClass().getName(),
                 String.format("Пользователь ID %d не найден на сервисе!", id)));
-        return friends.getFriends(id).orElseThrow(() -> new EntityNotFoundException(
-                thisService, friends.getClass().getName(),
-                        "Ошибка при получении списка ID друзей пользователя"))
+        return friends.getFriends(id)
                 .stream()
                 .map(users::getUser)
                 .map(user -> user.orElseThrow(() -> new EntityNotFoundException(
@@ -140,9 +138,7 @@ public class UserService {
         log.info("Удаление записи о пользователе ID {} :", userId);
         users.deleteUser(userId).orElseThrow(() -> new EntityNotFoundException(thisService, users.getClass().getName(),
                 String.format("Удалить запись не удалось, пользователь с ID %d не найден!", userId)));
-        friends.getFriends(userId).orElseThrow(() -> new InternalServiceException(
-                thisService, friends.getClass().getName(),
-                        "Ошибка сервиса, не удалось получить список друзей пользователя"))
+        friends.getFriends(userId)
                 .forEach(friendId -> friends.deleteFriend(friendId, userId).ifPresent(message -> {
                     throw new InternalServiceException(thisService, friends.getClass().getName(), message);
                 }));
@@ -161,9 +157,7 @@ public class UserService {
      */
     public List<User> getAllUsers() {
         log.info("Получение списка всех записей о пользователях:");
-        return users.getAllUsers().orElseThrow(() -> new InternalServiceException(
-                thisService, users.getClass().getName(),
-                "Ошибка сервиса, не удалось получить список всех пользователей"));
+        return users.getAllUsers();
     }
 
     /**

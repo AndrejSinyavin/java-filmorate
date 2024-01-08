@@ -75,9 +75,7 @@ public class FilmService {
      */
     public List<Film> getTopFilms(int topSize) {
         log.info("Получение списка наиболее популярных фильмов по количеству лайков, топ {}:", topSize);
-        List<Integer> topFilmsId = likes.getPopularFilm(topSize).orElseThrow(
-                () -> new InternalServiceException(thisService, likes.getClass().getName(),
-                        "Ошибка сервиса, не удалось создать список популярных фильмов"));
+        List<Integer> topFilmsId = likes.getPopularFilm(topSize);
         List<Film> topFilms = new LinkedList<>();
         topFilmsId.forEach(id -> topFilms.add(films.getFilm(id).orElseThrow(
                 () -> new InternalServiceException(thisService, films.getClass().getName(),

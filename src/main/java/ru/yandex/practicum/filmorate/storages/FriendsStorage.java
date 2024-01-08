@@ -47,7 +47,7 @@ public interface FriendsStorage {
      * @param userId ID выбранного пользователя
      * @return список ID друзей (может быть пустым)
      */
-    Optional<Set<Integer>> getFriends(int userId);
+    Set<Integer> getFriends(int userId);
 
     /**
      * Метод возвращает список общих друзей двух пользователей.

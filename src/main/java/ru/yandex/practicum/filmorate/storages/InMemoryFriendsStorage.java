@@ -108,9 +108,9 @@ public class InMemoryFriendsStorage implements FriendsStorage {
      * @return список ID друзей (может быть пустым)
      */
     @Override
-    public Optional<Set<Integer>> getFriends(@Positive(message = ID_ERROR) int userId) {
+    public Set<Integer> getFriends(@Positive(message = ID_ERROR) int userId) {
         log.info("Получен список друзей пользователя ID {}", userId);
-        return Optional.of(friends.get(userId));
+        return friends.get(userId);
     }
 
     /**
