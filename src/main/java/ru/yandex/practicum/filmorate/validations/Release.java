@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.validations;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -7,11 +7,17 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Пользовательская аннотация для валидации года релиза фильма.
+ */
 @Constraint(validatedBy = ReleaseValidator.class)
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Release {
-    String message() default "Год релиза не может быть ранее 28 декабря 1895";
+    String text = "Год релиза не может быть ранее 28 декабря 1895," +
+            " либо дата релиза не соответствует паттерну даты";
+
+    String message() default text;
 
     Class<?>[] groups() default {};
 
