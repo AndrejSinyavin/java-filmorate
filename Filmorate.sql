@@ -1,16 +1,16 @@
 CREATE TABLE "films" (
-  "film_id" integer PRIMARY KEY,
+  "film_id" serial PRIMARY KEY,
   "name" varchar(255) NOT NULL,
   "description" varchar(200) NOT NULL,
   "release_date" date NOT NULL,
-  "duration" integer,
+  "duration" integer NOT NULL,
   "mpa_rating" integer
 );
 
 CREATE TABLE "users" (
-  "user_id" integer PRIMARY KEY,
+  "user_id" serial PRIMARY KEY,
   "login" varchar(255) UNIQUE NOT NULL,
-  "name" varchar(255),
+  "name" varchar(255) NOT NULL,
   "email" varchar(255) UNIQUE NOT NULL,
   "birthday" date NOT NULL
 );
@@ -22,12 +22,12 @@ CREATE TABLE "film_genres" (
 );
 
 CREATE TABLE "genres" (
-  "genre_id" integer PRIMARY KEY,
+  "genre_id" serial PRIMARY KEY,
   "name" varchar(50) UNIQUE NOT NULL
 );
 
 CREATE TABLE "mpa_ratings" (
-  "mpa_rating_id" integer PRIMARY KEY,
+  "mpa_rating_id" serial PRIMARY KEY,
   "name" varchar(50) UNIQUE NOT NULL
 );
 
@@ -40,9 +40,7 @@ CREATE TABLE "film_ratings" (
 CREATE TABLE "friendship_statuses" (
   "user_id" integer,
   "friend_id" integer,
-  "request_confirmed" boolean,
-  "request_blocked" boolean,
-  "request_cancel_by_friend" boolean,
+  "request_confirmed" boolean NOT NULL DEFAULT false,
   PRIMARY KEY ("user_id", "friend_id")
 );
 

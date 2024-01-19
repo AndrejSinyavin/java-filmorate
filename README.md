@@ -1,6 +1,6 @@
 # java-filmorate
 
 Filmorate
-![FilmorateDB.png](FilmorateDB.png)
+![FilmorateDB.png](Filmorate.png)
 
 ER диаграмма проекта Filmorate
