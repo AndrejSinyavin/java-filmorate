@@ -1,63 +1,61 @@
-CREATE TABLE "film" (
+CREATE TABLE "films" (
   "film_id" integer PRIMARY KEY,
-  "name" varchar NOT NULL,
-  "description" varchar(200),
-  "release_date" date,
+  "name" varchar(255) NOT NULL,
+  "description" varchar(200) NOT NULL,
+  "release_date" date NOT NULL,
   "duration" integer,
   "mpa_rating" integer
 );
 
-CREATE TABLE "user" (
+CREATE TABLE "users" (
   "user_id" integer PRIMARY KEY,
-  "login" varchar UNIQUE NOT NULL,
-  "name" varchar,
-  "email" varchar UNIQUE NOT NULL,
-  "birthday" date
+  "login" varchar(255) UNIQUE NOT NULL,
+  "name" varchar(255),
+  "email" varchar(255) UNIQUE NOT NULL,
+  "birthday" date NOT NULL
 );
 
-CREATE TABLE "film_genre" (
-  "film_genre_id" integer PRIMARY KEY,
+CREATE TABLE "film_genres" (
   "film_id" integer,
-  "genre_id" integer
+  "genre_id" integer,
+  PRIMARY KEY ("film_id", "genre_id")
 );
 
-CREATE TABLE "genre" (
+CREATE TABLE "genres" (
   "genre_id" integer PRIMARY KEY,
-  "name" varchar UNIQUE
+  "name" varchar(50) UNIQUE NOT NULL
 );
 
-CREATE TABLE "mpa_rating" (
+CREATE TABLE "mpa_ratings" (
   "mpa_rating_id" integer PRIMARY KEY,
-  "name" varchar UNIQUE
+  "name" varchar(50) UNIQUE NOT NULL
 );
 
-CREATE TABLE "film_rating" (
-  "film_rating_id" integer PRIMARY KEY,
+CREATE TABLE "film_ratings" (
   "film_id" integer,
-  "user_id" integer
+  "user_id" integer,
+  PRIMARY KEY ("film_id", "user_id")
 );
 
-CREATE TABLE "friendship_status" (
-  "request_id" integer PRIMARY KEY,
+CREATE TABLE "friendship_statuses" (
   "user_id" integer,
   "friend_id" integer,
   "request_confirmed" boolean,
   "request_blocked" boolean,
-  "friendship_deleted" integer
+  "request_cancel_by_friend" boolean,
+  PRIMARY KEY ("user_id", "friend_id")
 );
 
-ALTER TABLE "film" ADD FOREIGN KEY ("mpa_rating") REFERENCES "mpa_rating" ("mpa_rating_id");
+ALTER TABLE "films" ADD FOREIGN KEY ("mpa_rating") REFERENCES "mpa_ratings" ("mpa_rating_id");
 
-ALTER TABLE "film_genre" ADD FOREIGN KEY ("film_id") REFERENCES "film" ("film_id");
+ALTER TABLE "film_genres" ADD FOREIGN KEY ("film_id") REFERENCES "films" ("film_id");
 
-ALTER TABLE "film_genre" ADD FOREIGN KEY ("genre_id") REFERENCES "genre" ("genre_id");
+ALTER TABLE "film_genres" ADD FOREIGN KEY ("genre_id") REFERENCES "genres" ("genre_id");
 
-ALTER TABLE "film_rating" ADD FOREIGN KEY ("film_id") REFERENCES "film" ("film_id");
+ALTER TABLE "film_ratings" ADD FOREIGN KEY ("film_id") REFERENCES "films" ("film_id");
 
-ALTER TABLE "film_rating" ADD FOREIGN KEY ("user_id") REFERENCES "user" ("user_id");
+ALTER TABLE "film_ratings" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id");
 
-ALTER TABLE "friendship_status" ADD FOREIGN KEY ("user_id") REFERENCES "user" ("user_id");
+ALTER TABLE "friendship_statuses" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id");
 
-ALTER TABLE "friendship_status" ADD FOREIGN KEY ("friend_id") REFERENCES "user" ("user_id");
-
-ALTER TABLE "friendship_status" ADD FOREIGN KEY ("friendship_deleted") REFERENCES "user" ("user_id");
+ALTER TABLE "friendship_statuses" ADD FOREIGN KEY ("friend_id") REFERENCES "users" ("user_id");
