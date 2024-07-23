@@ -2,8 +2,8 @@ package ru.yandex.practicum.filmorate;
 
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
-import ru.yandex.practicum.filmorate.models.Film;
-import ru.yandex.practicum.filmorate.models.User;
+import ru.yandex.practicum.filmorate.entity.Film;
+import ru.yandex.practicum.filmorate.entity.User;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -16,8 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static ru.yandex.practicum.filmorate.FilmorateApplicationTests.Mode.FILM;
 import static ru.yandex.practicum.filmorate.FilmorateApplicationTests.Mode.USER;
-import static ru.yandex.practicum.filmorate.misc.ApplicationSettings.MAX_DESCRIPTION_LENGTH;
-import static ru.yandex.practicum.filmorate.misc.ApplicationSettings.VALID_RELEASE_DATE;
+import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.MAX_DESCRIPTION_LENGTH;
+import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.VALID_RELEASE_DATE;
 
 @Log4j2
 class FilmorateApplicationTests {
