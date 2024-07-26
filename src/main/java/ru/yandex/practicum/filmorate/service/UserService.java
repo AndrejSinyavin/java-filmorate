@@ -73,15 +73,17 @@ public class UserService implements BaseUserService {
     public List<User> getFriends(int id) {
         log.info("Получение списка друзей пользователя:");
         String error = String.format(
-                "Ошибка при получении списка друзей пользователя: друг ID %d не найден на сервисе!", id);
+                "Ошибка при получении списка друзей пользователя: пользователь ID %d не найден на сервисе!", id);
         users.getUser(id).orElseThrow(() -> new EntityNotFoundException(thisService, users.getClass().getName(),
                 String.format("Пользователь ID %d не найден на сервисе!", id)));
         List<User> list = new ArrayList<>();
         for (Integer i : friends.getFriends(id)) {
             Optional<User> user = users.getUser(i);
-            User orElseThrow = user.orElseThrow(() -> new EntityNotFoundException(
-                    thisService, friends.getClass().getName(), error));
-            list.add(orElseThrow);
+            if (user.isEmpty()) {
+                throw new EntityNotFoundException(thisService, friends.getClass().getName(), error);
+            } else {
+                list.add(user.get());
+            }
         }
         return list;
     }

@@ -13,8 +13,6 @@ import ru.yandex.practicum.filmorate.service.BaseFilmService;
 
 import java.util.List;
 
-import static ru.yandex.practicum.filmorate.validation.ValidateExtender.validateFilm;
-
 /**
  * Контроллер обработки REST-запросов для работы с фильмотекой.
  */
@@ -40,11 +38,6 @@ public class FilmController {
     @ResponseStatus(HttpStatus.CREATED)
     public Film createFilm(@Valid @RequestBody Film film) {
         log.info("Запрос ==> POST {}", film);
-        validateFilm(film).ifPresent(errorMessage -> {
-            throw new EntityValidateException(
-                    "Сервис дополнительной валидации", "Валидация запроса в контроллере " +
-                    this.getClass().getCanonicalName(), errorMessage);
-        });
         films.createfilm(film);
         log.info("Ответ <== 201 Created. Фильм успешно добавлен в фильмотеку: {}", film);
         return film;
@@ -59,11 +52,6 @@ public class FilmController {
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) {
         log.info("Запрос ==> PUT {}", film);
-        validateFilm(film).ifPresent(errorMessage -> {
-            throw new EntityValidateException(
-                    "Сервис дополнительной валидации", "Валидация запроса в контроллере " +
-                    this.getClass().getCanonicalName(), errorMessage);
-        });
         films.updateFilm(film);
         log.info("Ответ <== 200 Ok. Фильм успешно обновлен в фильмотеке: {}", film);
         return film;

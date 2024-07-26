@@ -3,8 +3,8 @@ package ru.yandex.practicum.filmorate.entity;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.format.annotation.DateTimeFormat;
-import ru.yandex.practicum.filmorate.validation.Release;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,7 +30,7 @@ public class Film {
 
     @NotNull(message = "Поле даты не должно быть null")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    @Release
+    @PastOrPresent(p)
     private LocalDate releaseDate;
 
     @Positive(message = "Продолжительность фильма может быть только положительным значением")
@@ -39,7 +39,5 @@ public class Film {
     @DecimalMin(value = "0", message = "Рейтинг фильма не может быть отрицательным значением")
     private int rate;
 
-    @DecimalMin(value = "0", message = "Рейтинг MPA не может быть отрицательным значением")
-    private int mpa;
-    private List<Integer> genres;
+    private Mpa mpa;
 }

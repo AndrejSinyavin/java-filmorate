@@ -16,11 +16,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.entity.User;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistsException;
-import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
 
 import javax.sql.DataSource;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +36,10 @@ public class JdbcUserRepository implements UserRepository {
     private final NamedParameterJdbcOperations jdbc;
     private final DataSource source;
     private final String thisService = this.getClass().getName();
-    private static final String ENTITY_NULL_ERROR = "Ошибка! сущность User = null";
-    private static final String ID_ERROR = "Ошибка! ID пользователя может быть только положительным значением";
+    private final String entityNullError = "Ошибка! сущность User = null";
+    private final String idError = "Ошибка! ID пользователя может быть только положительным значением";
+    private final String dbError = "Сбой в работе СУБД";
+    private final String userExist = "Пользователь с указанным логином и/или email уже имеется в базе данных";
 
     /**
      * Метод создает в таблице пользователей БД нового пользователя с уникальными ID, login и email.
@@ -48,19 +48,24 @@ public class JdbcUserRepository implements UserRepository {
      * @return эта же запись с уникальным новым ID из БД
      */
     @Override
-    public Optional<User> createUser(@NotNull(message = ENTITY_NULL_ERROR) User user) {
+    public Optional<User> createUser(@NotNull(message = entityNullError) User user) {
         log.info("Создание записи о пользователе в БД:");
-        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(source)
-                .withTableName("USERS")
-                .usingGeneratedKeyColumns("USER_ID_PK");
-        Map<String, Object> parameters = Map.of("USER_LOGIN", user.getLogin(),"USER_NAME", user.getName(),
-                "USER_EMAIL", user.getEmail(), "USER_BIRTHDAY", user.getBirthday());
+        SimpleJdbcInsert simpleJdbc = new SimpleJdbcInsert(source);
+        Map<String, Object> parameters = Map.of(
+                "USER_LOGIN", user.getLogin(),
+                "USER_NAME", user.getName(),
+                "USER_EMAIL", user.getEmail(),
+                "USER_BIRTHDAY", user.getBirthday());
+        simpleJdbc.withTableName("USERS").usingGeneratedKeyColumns("USER_ID_PK");
         try {
-        user.setId((Integer) simpleJdbcInsert.executeAndReturnKey(parameters));
-        return Optional.of(user);
+            user.setId((Integer) simpleJdbc.executeAndReturnKey(parameters));
+            return Optional.of(user);
         } catch (DuplicateKeyException e) {
-            throw new EntityAlreadyExistsException(thisService, simpleJdbcInsert.getClass().getName(),
-                    "Пользователь с указанным логином и/или email уже имеется в базе данных");
+            log.warn(userExist, e);
+            throw new EntityAlreadyExistsException(thisService, e.getClass().getName(), userExist);
+        } catch (DataAccessException e) {
+            log.error(dbError, e);
+            throw new InternalServiceException(thisService, e.getClass().getName(), dbError);
         }
     }
 
@@ -71,7 +76,7 @@ public class JdbcUserRepository implements UserRepository {
      * @return эта же запись, если обновление полей записи в БД выполнено успешно; иначе пустое значение
      */
     @Override
-    public Optional<User> updateUser(@NotNull(message = ENTITY_NULL_ERROR)User user) {
+    public Optional<User> updateUser(@NotNull(message = entityNullError)User user) {
         log.info("Обновление записи о пользователе в БД:");
         int id = user.getId();
         var parameters = new MapSqlParameterSource(Map.of(
@@ -82,25 +87,24 @@ public class JdbcUserRepository implements UserRepository {
                 "USER_BIRTHDAY", user.getBirthday()
         ));
         try {
-            var rowsUpdated = jdbc.update("update USERS " +
-                    "set USER_LOGIN = :USER_LOGIN, USER_NAME = :USER_NAME, USER_EMAIL = :USER_EMAIL, " +
-                    "USER_BIRTHDAY = :USER_BIRTHDAY " +
-                    "where USER_ID_PK = :USER_ID_PK",
+            var rowsUpdated = jdbc.update("""
+                    update USERS
+                    set USER_LOGIN = :USER_LOGIN, USER_NAME = :USER_NAME, USER_EMAIL = :USER_EMAIL,
+                    USER_BIRTHDAY = :USER_BIRTHDAY
+                    where USER_ID_PK = :USER_ID_PK""",
                     parameters, new GeneratedKeyHolder(), new String[]{"USER_ID_PK"});
             if (rowsUpdated == 0) {
-                log.error("Обновить запись невозможно, пользователь ID {} в БД не найден!", id);
+                log.warn("Обновить запись невозможно, пользователь ID {} в БД не найден!", id);
                 return Optional.empty();
             } else {
                 return Optional.of(user);
             }
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
         } catch (DuplicateKeyException e) {
-            throw new EntityAlreadyExistsException(thisService, jdbc.getClass().getName(),
-                    "Пользователь с таким логином и/или email уже зарегистрирован в базе данных");
+            log.warn(userExist, e);
+            throw new EntityAlreadyExistsException(thisService, e.getClass().getName(), userExist);
         } catch (DataAccessException e) {
-            throw new InternalServiceException(thisService, jdbc.getClass().getName(),
-                    "Сбой в работе СУБД");
+            log.error(dbError, e);
+            throw new InternalServiceException(thisService, e.getClass().getName(), dbError);
         }
     }
 
@@ -125,8 +129,8 @@ public class JdbcUserRepository implements UserRepository {
         } catch (EmptyResultDataAccessException e) {
             return new ArrayList<>();
         } catch (DataAccessException e) {
-            throw new InternalServiceException(thisService, jdbc.getClass().getName(),
-                    "Сбой в работе СУБД");
+            log.error(dbError, e);
+            throw new InternalServiceException(thisService, jdbc.getClass().getName(), dbError);
         }
     }
 
@@ -137,12 +141,12 @@ public class JdbcUserRepository implements UserRepository {
      * @return запись о пользователе; либо пустое значение, если не найден
      */
     @Override
-    public Optional<User> getUser(@Positive(message = ID_ERROR) int userId) {
-        log.info("Получение из БД записи о пользователе по его ID:");
-        String sqlQuery = "select * from USERS where USER_ID_PK = :USER_ID_PK";
-        var paramSource = new MapSqlParameterSource().addValue("USER_ID_PK", userId);
+    public Optional<User> getUser(@Positive(message = idError) int userId) {
+        log.info("Чтение из БД записи о пользователе");
+        String sqlQuery = "select * from USERS where USER_ID_PK = :userId";
+        var paramSource = new MapSqlParameterSource().addValue("userId", userId);
         try {
-            var result = jdbc.queryForObject(sqlQuery, paramSource, (rs, rowNum) ->
+            var user = jdbc.queryForObject(sqlQuery, paramSource, (rs, rowNum) ->
                     new User(
                             rs.getInt("USER_ID_PK"),
                             rs.getString("USER_NAME"),
@@ -150,12 +154,10 @@ public class JdbcUserRepository implements UserRepository {
                             rs.getString("USER_EMAIL"),
                             rs.getDate("USER_BIRTHDAY").toLocalDate()
                     ));
-            return Optional.ofNullable(result);
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
+            return Optional.ofNullable(user);
         } catch (DataAccessException e) {
-            throw new InternalServiceException(thisService, jdbc.getClass().getName(),
-                    "Сбой в работе СУБД");
+            log.error(dbError, e);
+            throw new InternalServiceException(thisService, jdbc.getClass().getName(), dbError);
         }
     }
 }

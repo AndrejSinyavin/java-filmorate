@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface BaseUserService {
     /**
-     * Метод создает запрос на дружбу, или подтверждает уже имеющийся запрос.
+     * Метод добавляет пользователя в друзья к другому пользователю.
      *
      * @param userId   ID пользователя
      * @param friendId ID добавляемого в друзья пользователя
@@ -14,10 +14,10 @@ public interface BaseUserService {
     void addFriend(int userId, int friendId);
 
     /**
-     * Метод удаляет пользователей из друзей друг друга.
+     * Метод удаляет пользователя из друзей другого пользователя.
      *
-     * @param userId   ID пользователя
-     * @param friendId ID друга пользователя
+     * @param userId   ID первого пользователя
+     * @param friendId ID второго пользователя
      */
     void deleteFriend(int userId, int friendId);
 
@@ -30,10 +30,10 @@ public interface BaseUserService {
     List<User> getFriends(int id);
 
     /**
-     * Метод возвращает список совместных друзей пользователя и его друга
+     * Метод возвращает список общих друзей двух пользователей
      *
-     * @param userId   ID пользователя
-     * @param friendId ID друга пользователя
+     * @param userId   ID одного пользователя
+     * @param friendId ID другого пользователя
      * @return список общих друзей
      */
     List<User> getCommonFriends(int userId, int friendId);

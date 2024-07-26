@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface FriendRepository {
 
     /**
-     * Метод добавляет двух пользователей в друзья друг другу.
+     * Метод добавляет пользователя в друзья к другому пользователю.
      *
      * @param firstUserId  ID первого пользователя
      * @param secondUserId ID второго пользователя
@@ -18,7 +18,7 @@ public interface FriendRepository {
     Optional<String> addFriend(int firstUserId, int secondUserId);
 
     /**
-     * Метод удаляет пользователей из друзей друг друга.
+     * Метод удаляет пользователя из друзей другого пользователя.
      *
      * @param firstUserId  ID первого пользователя
      * @param secondUserId ID второго пользователя
@@ -27,7 +27,7 @@ public interface FriendRepository {
     Optional<String> deleteFriend(int firstUserId, int secondUserId);
 
     /**
-     * Метод возвращает список подтвержденных друзей выбранного пользователя.
+     * Метод возвращает список друзей выбранного пользователя.
      *
      * @param userId ID выбранного пользователя
      * @return список ID друзей (может быть пустым)
@@ -35,7 +35,7 @@ public interface FriendRepository {
     List<Integer> getFriends(int userId);
 
     /**
-     * Метод возвращает список общих подтвержденных друзей двух пользователей.
+     * Метод возвращает список общих друзей двух пользователей.
      *
      * @param firstUserId  ID первого пользователя
      * @param secondUserId ID второго пользователя
