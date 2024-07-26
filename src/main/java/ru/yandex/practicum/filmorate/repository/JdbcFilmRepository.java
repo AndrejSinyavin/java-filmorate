@@ -52,20 +52,15 @@ public class JdbcFilmRepository implements FilmRepository {
                         "FILM_DURATION", film.getDuration(),
                         "FILM_MPA_RATING_FK", mpaId);
         simpleJdbc.withTableName("FILMS").usingGeneratedKeyColumns("FILM_ID_PK");
-        try {
-            int newID = (int) simpleJdbc.executeAndReturnKey(parameters);
-            if (newID <= 0) {
-                String error = "БД вернула для фильма некорректный ID " + newID;
-                log.error(error);
-                throw new InternalServiceException(thisService, this.getClass().getName(), error);
-            } else {
-                film.setId(newID);
-                film.setMpa(mpa);
-                return Optional.of(film);
-            }
-        } catch (DataAccessException e) {
-            log.error(dbError, e);
-            throw new InternalServiceException(thisService, e.getClass().getName(), dbError);
+        int newID = (int) simpleJdbc.executeAndReturnKey(parameters);
+        if (newID <= 0) {
+            String error = "БД вернула для фильма некорректный ID " + newID;
+            log.error(error);
+            throw new InternalServiceException(thisService, this.getClass().getName(), error);
+        } else {
+            film.setId(newID);
+            film.setMpa(mpa);
+            return Optional.of(film);
         }
     }
 
@@ -78,28 +73,26 @@ public class JdbcFilmRepository implements FilmRepository {
     @Override
     public Optional<Film> updateFilm(Film film) {
         log.info("Обновление записи о фильме в БД:");
-        String sqlQuery = """
-                          delete from FRIENDSHIP_STATUSES
-                          where FS_USER_ID = :firstUserId AND FS_FRIEND_ID = :secondUserId""";
+        int filmId = film.getId();
         int mpaId = film.getMpa().getId();
         var mpa = selectMpaFromDb(mpaId);
+        String sqlQuery = """
+                          update FILMS set
+                          FILM_NAME = :name, FILM_DESCRIPTION = :description, FILM_RELEASE_DATE = :releaseDate,
+                          FILM_DURATION = :duration, FILM_MPA_RATING_FK = :mpaId
+                          where FILM_ID_PK = :filmId""";
         var paramSource = new MapSqlParameterSource()
-                .addValue("FILM_NAME", film.getName())
-                .addValue("FILM_DESCRIPTION", film.getDescription())
-                .addValue("FILM_RELEASE_DATE", film.getReleaseDate())
-                .addValue("FILM_DURATION", film.getDuration())
-                .addValue("FILM_MPA_RATING_FK", mpaId);
-        try {
-            var updated = jdbc.update(sqlQuery, paramSource);
-            if (updated == 0) {
-                log.error(entityNullError);
-                return Optional.empty();
-            } else {
-                return Optional.of(film);
-            }
-        } catch (DataAccessException e) {
-            log.error(dbError, e);
-            throw new InternalServiceException(thisService, e.getClass().getName(), dbError);
+                .addValue("name", film.getName())
+                .addValue("description", film.getDescription())
+                .addValue("releaseDate", film.getReleaseDate())
+                .addValue("duration", film.getDuration())
+                .addValue("mpaId", mpaId);
+        var updated = jdbc.update(sqlQuery, paramSource);
+        if (updated == 0) {
+            log.warn("Запрос на обновление записи в БД не обновил ни одной записи!");
+            return Optional.empty();
+        } else {
+            return Optional.of(film);
         }
     }
 
@@ -155,10 +148,6 @@ public class JdbcFilmRepository implements FilmRepository {
             String warn = "Жанра с таким ID в БД не найдено";
             log.warn(warn, e);
             throw new EntityNotFoundException(thisService, e.getClass().getName(), warn);
-        } catch (DataAccessException e)  {
-            String error = "Ошибка при работе с БД";
-            log.error(error, e);
-            throw new InternalServiceException(thisService, e.getClass().getName(), error);
         }
     }
 
@@ -167,5 +156,9 @@ public class JdbcFilmRepository implements FilmRepository {
         String sqlQuery = "select count(FR_USER_ID_PK) from FILMS_RATINGS where FR_FILM_ID_PK = :filmId";
         var film = new MapSqlParameterSource().addValue("filmId", filmId);
         return jdbc.queryForObject(sqlQuery, film, Integer.class);
+    }
+
+    private void updateRateInDB(int filmId, int rate) {
+
     }
 }

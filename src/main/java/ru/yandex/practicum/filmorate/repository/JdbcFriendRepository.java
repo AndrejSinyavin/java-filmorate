@@ -53,10 +53,7 @@ public class JdbcFriendRepository implements FriendRepository {
         } catch (DuplicateKeyException e) {
             String warn = "Такая запись на добавление в друзья уже существует";
             log.warn(warn, e);
-            throw new EntityAlreadyExistsException(thisService, e.getClass().getName(),warn);
-        } catch (DataAccessException e) {
-            log.error(dbError, e);
-            throw new InternalServiceException(thisService, e.getClass().getName(), dbError);
+            throw new EntityAlreadyExistsException(thisService, e.getClass().getName(), warn);
         }
     }
 
@@ -77,15 +74,10 @@ public class JdbcFriendRepository implements FriendRepository {
         var paramSource = new MapSqlParameterSource()
                 .addValue("firstUserId", firstUserId)
                 .addValue("secondUserId", secondUserId);
-        try {
-            if (jdbc.update(sqlQuery, paramSource) != 0) {
-                return Optional.empty();
-            } else {
-                return Optional.of("Пользователь с указанным ID в БД не найден!");
-            }
-        } catch (DataAccessException e) {
-            log.error(dbError, e);
-            throw new InternalServiceException(thisService, e.getClass().getName(), dbError);
+        if (jdbc.update(sqlQuery, paramSource) != 0) {
+            return Optional.empty();
+        } else {
+            return Optional.of("Пользователь с указанным ID в БД не найден!");
         }
     }
 
@@ -103,12 +95,7 @@ public class JdbcFriendRepository implements FriendRepository {
                           where FS_USER_ID = :userId
                           order by FS_FRIEND_ID""";
         var paramSource = new MapSqlParameterSource().addValue("userId", userId);
-        try {
-            return jdbc.queryForList(sqlQuery, paramSource, Integer.class);
-        } catch (DataAccessException e) {
-            log.error(dbError, e);
-            throw new InternalServiceException(thisService, e.getClass().getName(), dbError);
-        }
+        return jdbc.queryForList(sqlQuery, paramSource, Integer.class);
     }
 
     /**
@@ -131,13 +118,7 @@ public class JdbcFriendRepository implements FriendRepository {
         var paramSource = new MapSqlParameterSource()
                 .addValue("firstUserId", firstUserId)
                 .addValue("secondUserId", secondUserId);
-        try {
-            return jdbc.queryForList(sqlQuery, paramSource, Integer.class);
-        } catch (DataAccessException e) {
-            log.error(dbError);
-            throw new InternalServiceException(thisService, e.getClass().getName(), dbError);
-        }
-
+        return jdbc.queryForList(sqlQuery, paramSource, Integer.class);
     }
 
     private Optional<String> validateUserIds(int firstUserId, int secondUserId) {
@@ -153,7 +134,7 @@ public class JdbcFriendRepository implements FriendRepository {
             if (result != 2) {
                 return Optional.of("Один или оба пользователя отсутствуют в БД!");
             } else return Optional.empty();
-        } catch (DataAccessException | NullPointerException e) {
+        } catch (NullPointerException e) {
             log.error(dbError, e);
             throw new InternalServiceException(thisService, e.getClass().getName(), dbError);
         }

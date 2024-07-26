@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.format.annotation.DateTimeFormat;
+import ru.yandex.practicum.filmorate.validate.Release;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,7 +31,7 @@ public class Film {
 
     @NotNull(message = "Поле даты не должно быть null")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    @PastOrPresent(p)
+    @Release
     private LocalDate releaseDate;
 
     @Positive(message = "Продолжительность фильма может быть только положительным значением")

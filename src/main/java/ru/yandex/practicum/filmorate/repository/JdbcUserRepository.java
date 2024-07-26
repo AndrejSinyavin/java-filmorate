@@ -63,9 +63,6 @@ public class JdbcUserRepository implements UserRepository {
         } catch (DuplicateKeyException e) {
             log.warn(userExist, e);
             throw new EntityAlreadyExistsException(thisService, e.getClass().getName(), userExist);
-        } catch (DataAccessException e) {
-            log.error(dbError, e);
-            throw new InternalServiceException(thisService, e.getClass().getName(), dbError);
         }
     }
 
@@ -102,9 +99,6 @@ public class JdbcUserRepository implements UserRepository {
         } catch (DuplicateKeyException e) {
             log.warn(userExist, e);
             throw new EntityAlreadyExistsException(thisService, e.getClass().getName(), userExist);
-        } catch (DataAccessException e) {
-            log.error(dbError, e);
-            throw new InternalServiceException(thisService, e.getClass().getName(), dbError);
         }
     }
 
@@ -117,21 +111,14 @@ public class JdbcUserRepository implements UserRepository {
     public List<User> getAllUsers() {
         log.info("Получение всех записей о пользователях из БД:");
         String sqlQuery = "select * from USERS order by USER_ID_PK";
-        try {
-            return jdbc.query(sqlQuery, (rs, rowNum) ->
-                    new User(
-                            rs.getInt("USER_ID_PK"),
-                            rs.getString("USER_NAME"),
-                            rs.getString("USER_LOGIN"),
-                            rs.getString("USER_EMAIL"),
-                            rs.getDate("USER_BIRTHDAY").toLocalDate()
-                    ));
-        } catch (EmptyResultDataAccessException e) {
-            return new ArrayList<>();
-        } catch (DataAccessException e) {
-            log.error(dbError, e);
-            throw new InternalServiceException(thisService, jdbc.getClass().getName(), dbError);
-        }
+        return jdbc.query(sqlQuery, (rs, rowNum) ->
+                new User(
+                        rs.getInt("USER_ID_PK"),
+                        rs.getString("USER_NAME"),
+                        rs.getString("USER_LOGIN"),
+                        rs.getString("USER_EMAIL"),
+                        rs.getDate("USER_BIRTHDAY").toLocalDate()
+                ));
     }
 
     /**
@@ -145,19 +132,14 @@ public class JdbcUserRepository implements UserRepository {
         log.info("Чтение из БД записи о пользователе");
         String sqlQuery = "select * from USERS where USER_ID_PK = :userId";
         var paramSource = new MapSqlParameterSource().addValue("userId", userId);
-        try {
-            var user = jdbc.queryForObject(sqlQuery, paramSource, (rs, rowNum) ->
-                    new User(
-                            rs.getInt("USER_ID_PK"),
-                            rs.getString("USER_NAME"),
-                            rs.getString("USER_LOGIN"),
-                            rs.getString("USER_EMAIL"),
-                            rs.getDate("USER_BIRTHDAY").toLocalDate()
-                    ));
-            return Optional.ofNullable(user);
-        } catch (DataAccessException e) {
-            log.error(dbError, e);
-            throw new InternalServiceException(thisService, jdbc.getClass().getName(), dbError);
-        }
+        var user = jdbc.queryForObject(sqlQuery, paramSource, (rs, rowNum) ->
+                new User(
+                        rs.getInt("USER_ID_PK"),
+                        rs.getString("USER_NAME"),
+                        rs.getString("USER_LOGIN"),
+                        rs.getString("USER_EMAIL"),
+                        rs.getDate("USER_BIRTHDAY").toLocalDate()
+                ));
+        return Optional.ofNullable(user);
     }
 }

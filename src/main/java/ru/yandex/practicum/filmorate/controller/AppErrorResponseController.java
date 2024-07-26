@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -74,7 +75,7 @@ public class AppErrorResponseController {
     public ErrorResponse handleAnnotationValidateErrorResponse(final MethodArgumentNotValidException e) {
         String message = "Некорректный запрос. Сформирован ответ '400 Bad Request'.";
         Map<String, String> errors = new LinkedHashMap<>();
-        errors.put("Валидация запроса в контроллере", "Обнаружены некорректные параметры");
+        errors.put("Валидация запроса в контроллере", "Обнаружены некорректные параметры в запросе");
         e.getBindingResult()
                 .getAllErrors()
                 .forEach(error -> {
@@ -96,6 +97,20 @@ public class AppErrorResponseController {
     public ErrorResponse handleInvalidMetodParameterErrorResponse(final ConstraintViolationException e) {
         String message = "Некорректный параметр или переменная пути в запросе.";
         log.warn("{} Сформирован ответ '404 Not Found.' {}\n{}", message, e.getLocalizedMessage(), e.getStackTrace());
+        return new ErrorResponse(message, e.getLocalizedMessage());
+    }
+
+    /**
+     * Обработчик исключений для ответов INTERNAL_SERVER_ERROR при ошибках в работе СУБД
+     * @param e перехваченное исключение
+     * @return стандартный API-ответ об ошибке ErrorResponse c указанием компонента, источника и вероятных причинах
+     */
+    @ExceptionHandler({DataAccessException.class})
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleInternalDatabaseFailureErrorResponse(final ConstraintViolationException e) {
+        String message = "Сбой в работе СУБД.";
+        log.warn("{} Сформирован ответ '500 Internal Server Error.' {}\n{}",
+                message, e.getLocalizedMessage(), e.getStackTrace());
         return new ErrorResponse(message, e.getLocalizedMessage());
     }
 
