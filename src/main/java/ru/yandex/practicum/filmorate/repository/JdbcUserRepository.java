@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -19,7 +18,6 @@ import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
 
 import javax.sql.DataSource;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,7 +36,6 @@ public class JdbcUserRepository implements UserRepository {
     private final String thisService = this.getClass().getName();
     private final String entityNullError = "Ошибка! сущность User = null";
     private final String idError = "Ошибка! ID пользователя может быть только положительным значением";
-    private final String dbError = "Сбой в работе СУБД";
     private final String userExist = "Пользователь с указанным логином и/или email уже имеется в базе данных";
 
     /**
@@ -132,7 +129,8 @@ public class JdbcUserRepository implements UserRepository {
         log.info("Чтение из БД записи о пользователе");
         String sqlQuery = "select * from USERS where USER_ID_PK = :userId";
         var paramSource = new MapSqlParameterSource().addValue("userId", userId);
-        var user = jdbc.queryForObject(sqlQuery, paramSource, (rs, rowNum) ->
+        try {
+            var user = jdbc.queryForObject(sqlQuery, paramSource, (rs, rowNum) ->
                 new User(
                         rs.getInt("USER_ID_PK"),
                         rs.getString("USER_NAME"),
@@ -140,6 +138,15 @@ public class JdbcUserRepository implements UserRepository {
                         rs.getString("USER_EMAIL"),
                         rs.getDate("USER_BIRTHDAY").toLocalDate()
                 ));
-        return Optional.ofNullable(user);
+            if (user == null) {
+                String error = "SQL-запрос вернул NULL, маппинг из БД в User произведен некорректно!";
+                log.error(error);
+                throw new InternalServiceException(thisService, this.getClass().getName(), error);
+            }
+            return Optional.of(user);
+        } catch (EmptyResultDataAccessException e) {
+            log.warn("Пользователь с ID {} не найден в БД!", userId);
+            return Optional.empty();
+        }
     }
 }

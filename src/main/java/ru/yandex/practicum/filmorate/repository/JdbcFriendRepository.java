@@ -5,7 +5,6 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -30,7 +29,6 @@ public class JdbcFriendRepository implements FriendRepository {
     private final JdbcTemplate jdbcTemplate;
     private final String thisService = this.getClass().getName();
     private final String idError = "Ошибка! ID пользователя может быть только положительным значением";
-    private final String dbError = "Сбой в работе СУБД";
 
     /**
      * Метод добавляет пользователя в друзья к другому пользователю.
@@ -129,14 +127,13 @@ public class JdbcFriendRepository implements FriendRepository {
         var paramSource = new MapSqlParameterSource()
                 .addValue("userOne", firstUserId)
                 .addValue("userTwo", secondUserId);
-        try {
-            int result = jdbc.queryForObject(sqlQuery, paramSource, Integer.class);
-            if (result != 2) {
-                return Optional.of("Один или оба пользователя отсутствуют в БД!");
-            } else return Optional.empty();
-        } catch (NullPointerException e) {
-            log.error(dbError, e);
-            throw new InternalServiceException(thisService, e.getClass().getName(), dbError);
-        }
+        Integer result = jdbc.queryForObject(sqlQuery, paramSource, Integer.class);
+        if (result == null) {
+            String error = "SQL-запрос вернул NULL, ошибка в структуре запроса!";
+            log.error(error);
+            throw new InternalServiceException(thisService, this.getClass().getName(), error);
+        } else if (result != 2) {
+            return Optional.of("Один или оба пользователя отсутствуют в БД!");
+        } else return Optional.empty();
     }
 }

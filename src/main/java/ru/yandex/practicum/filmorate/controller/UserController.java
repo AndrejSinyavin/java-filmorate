@@ -13,6 +13,8 @@ import ru.yandex.practicum.filmorate.service.BaseUserService;
 
 import java.util.List;
 
+import static ru.yandex.practicum.filmorate.validate.ValidateExtender.validateUser;
+
 /**
  * Контроллер обработки REST-запросов для работы с клиентами фильмотеки.
  */
@@ -38,6 +40,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public User createUser(@Valid @RequestBody User user) {
         log.info("Запрос ==> POST {}", user);
+        validateUser(user);
         users.createUser(user);
         log.info("Ответ <== 201 Created. Пользователь успешно добавлен в список пользователей сервиса: {}", user);
         return user;
@@ -52,6 +55,7 @@ public class UserController {
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
         log.info("Запрос ==> PUT {}", user);
+        validateUser(user);
         users.updateUser(user);
         log.info("Ответ <== 200 Ok. Пользователь успешно обновлен в списке пользователей сервиса: {}", user);
         return user;

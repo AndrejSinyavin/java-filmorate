@@ -5,13 +5,13 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.entity.Film;
+import ru.yandex.practicum.filmorate.entity.Genre;
 import ru.yandex.practicum.filmorate.entity.Mpa;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
@@ -31,7 +31,6 @@ public class JdbcFilmRepository implements FilmRepository {
     private final DataSource source;
     private final String thisService = this.getClass().getName();
     private final String entityNullError = "Ошибка! сущность Film = null";
-    private final String dbError = "Сбой в работе СУБД";
 
     /**
      * Метод создает запись о фильме в БД.
@@ -44,7 +43,8 @@ public class JdbcFilmRepository implements FilmRepository {
         log.info("Создание записи о фильме в БД:");
         SimpleJdbcInsert simpleJdbc = new SimpleJdbcInsert(source);
         int mpaId = film.getMpa().getId();
-        var mpa = selectMpaFromDb(mpaId);
+        var mpa = validateMpaIdAndGetMpaFromDb(mpaId);
+        var genres = validateFilmGenres(Film film);
         Map<String, Object> parameters =
                 Map.of("FILM_NAME", film.getName(),
                         "FILM_DESCRIPTION", film.getDescription(),
@@ -60,6 +60,7 @@ public class JdbcFilmRepository implements FilmRepository {
         } else {
             film.setId(newID);
             film.setMpa(mpa);
+            film.setGenre(genres);
             return Optional.of(film);
         }
     }
@@ -75,13 +76,14 @@ public class JdbcFilmRepository implements FilmRepository {
         log.info("Обновление записи о фильме в БД:");
         int filmId = film.getId();
         int mpaId = film.getMpa().getId();
-        var mpa = selectMpaFromDb(mpaId);
+        var mpa = validateMpaIdAndGetMpaFromDb(mpaId);
         String sqlQuery = """
-                          update FILMS set
-                          FILM_NAME = :name, FILM_DESCRIPTION = :description, FILM_RELEASE_DATE = :releaseDate,
-                          FILM_DURATION = :duration, FILM_MPA_RATING_FK = :mpaId
+                          update FILMS set 
+                          FILM_NAME = :name, FILM_DESCRIPTION = :description, FILM_RELEASE_DATE = :releaseDate, 
+                          FILM_DURATION = :duration, FILM_MPA_RATING_FK = :mpaId 
                           where FILM_ID_PK = :filmId""";
         var paramSource = new MapSqlParameterSource()
+                .addValue("filmId", filmId)
                 .addValue("name", film.getName())
                 .addValue("description", film.getDescription())
                 .addValue("releaseDate", film.getReleaseDate())
@@ -91,19 +93,36 @@ public class JdbcFilmRepository implements FilmRepository {
         if (updated == 0) {
             log.warn("Запрос на обновление записи в БД не обновил ни одной записи!");
             return Optional.empty();
+        } else if (updated > 1) {
+            String error = "Ошибка! БД обновила больше одного фильма с ID " + filmId;
+            log.error(error);
+            throw new InternalServiceException(thisService, this.getClass().getName(), error);
         } else {
+            film.setMpa(mpa);
             return Optional.of(film);
         }
     }
 
     /**
-     * Метод возвращает список всех записей о фильмах в фильмотеке.
+     * Метод возвращает список всех фильмов из БД.
      *
      * @return список фильмов, может быть пустым
      */
     @Override
     public List<Film> getFilms() {
-        return List.of();
+        log.info("Получение всех записей о фильмах из БД:");
+        String sqlQuery = "select * from FILMS order by FILM_ID_PK";
+        return jdbc.query(sqlQuery, (rs, rowNum) ->
+                new Film(
+                        rs.getInt("FILM_ID_PK"),
+                        rs.getString("FILM_NAME"),
+                        rs.getString("FILM_DESCRIPTION"),
+                        rs.getDate("FILM_RELEASE_DATE").toLocalDate(),
+                        rs.getInt("FILM_DURATION"),
+                        rs.getInt("RATE"),
+                        validateMpaIdAndGetMpaFromDb(rs.getInt("FILM_MPA_RATING_FK")),
+                        getFilmGenresFromDb(rs.getInt("FR_USER_ID_PK"))
+                ));
     }
 
     /**
@@ -115,32 +134,49 @@ public class JdbcFilmRepository implements FilmRepository {
     @Override
     public Optional<Film> getFilm(int filmId) {
         log.info("Чтение записи о фильме из БД:");
-        String sqlQuery = "select * from FILMS where FILM_ID_PK = :filmId";
-        var paramSource = new MapSqlParameterSource().addValue("filmId", filmId);
-        var film = jdbc.queryForObject(sqlQuery, paramSource, (rs, rowNum) ->
-                new Film(
-                        rs.getInt("FILM_ID_PK"),
-                        rs.getString("FILM_NAME"),
-                        rs.getString("FILM_DESCRIPTION"),
-                        rs.getDate("FILM_RELEASE_DATE").toLocalDate(),
-                        rs.getInt("FILM_DURATION"),
-                        selectRateFromDb(filmId),
-                        selectMpaFromDb(rs.getInt("FILM_MPA_RATING_FK"))
-                ));
-        return Optional.ofNullable(film);
+        String sqlQuery = """
+                          select FILM_ID_PK, FILM_NAME, FILM_RELEASE_DATE, FILM_DURATION, FILM_DESCRIPTION,
+                          (select count(FR_USER_ID_PK) from FILMS_RATINGS where FR_FILM_ID_PK = :filmId) as RATE
+                          from FILMS
+                          where FILM_ID_PK = :filmId""";
+        try {
+            var film = jdbc.queryForObject(sqlQuery, Map.of("filmId", filmId), (rs, rowNum) ->
+                    new Film(
+                            rs.getInt("FILM_ID_PK"),
+                            rs.getString("FILM_NAME"),
+                            rs.getString("FILM_DESCRIPTION"),
+                            rs.getDate("FILM_RELEASE_DATE").toLocalDate(),
+                            rs.getInt("FILM_DURATION"),
+                            rs.getInt("RATE"),
+                            validateMpaIdAndGetMpaFromDb(rs.getInt("FILM_MPA_RATING_FK")),
+                            getFilmGenresFromDb(rs.getInt("FR_USER_ID_PK"))
+                    ));
+            if (film == null) {
+                String error = "SQL-запрос вернул NULL, маппинг получения данных о пользователе выполнен некорректно!";
+                log.error(error);
+                throw new InternalServiceException(thisService, this.getClass().getName(), error);
+            }
+            return Optional.of(film);
+        } catch (EmptyResultDataAccessException e) {
+            log.warn("Фильм с ID {} не найден в БД!", filmId);
+            return Optional.empty();
+        }
     }
 
-    private Mpa selectMpaFromDb(int mpaId) {
-        log.info("Валидация и получение жанра по имеющимся данным в БД");
+    /**
+     * Сервисный метод выполняет валидацию ID жанра фильма по данным из БД и возвращает DTO ID-жанра, имя жанра
+     * @param mpaId ID жанра фильма
+     * @return DTO {@link Mpa}
+     */
+    private Mpa validateMpaIdAndGetMpaFromDb(int mpaId) {
+        log.info("Валидация ID жанра фильма и получение его названия из БД");
         String sqlQuery = "select MPA_RATING_NAME from MPA_RATINGS where MPA_RATING_ID_PK = :mpaId";
         try {
-            var ratingName = jdbc.queryForObject(sqlQuery,
-                    new MapSqlParameterSource().addValue("mpaId", mpaId),
-                    String.class);
+            var ratingName = jdbc.queryForObject(sqlQuery, Map.of("mpaId", mpaId), String.class);
             if (ratingName == null) {
-                log.warn("MPA рейтинг с ID {} не найден в БД", mpaId);
-                throw new EntityNotFoundException(thisService, this.getClass().getName(),
-                        "Указанный MPA рейтинг не найден в БД");
+                String error = "SQL-запрос вернул NULL, маппинг поиска жанра фильма выполнен некорректно!";
+                log.error(error);
+                throw new InternalServiceException(thisService, this.getClass().getName(), error);
             } else {
                 return new Mpa(mpaId, ratingName);
             }
@@ -151,14 +187,29 @@ public class JdbcFilmRepository implements FilmRepository {
         }
     }
 
-    private int selectRateFromDb (int filmId) {
+    /**
+     * Метод получения рейтинга фильма среди пользователей
+     * @param filmId ID фильма
+     * @return количество пользователей, проголосовавших за этот фильм
+     */
+    private int getFilmRateFromDb(int filmId) {
         log.info("Получение рейтинга фильма из БД");
         String sqlQuery = "select count(FR_USER_ID_PK) from FILMS_RATINGS where FR_FILM_ID_PK = :filmId";
-        var film = new MapSqlParameterSource().addValue("filmId", filmId);
-        return jdbc.queryForObject(sqlQuery, film, Integer.class);
+        var filmRating = jdbc.queryForObject(sqlQuery, Map.of("filmId", filmId), Integer.class);
+        if (filmRating == null || filmRating < 0) {
+            String error = "SQL-запрос вернул NULL или отрицательное значение, " +
+                           "маппинг поиска рейтинга фильма выполнен некорректно!";
+            log.error(error);
+            throw new InternalServiceException(thisService, this.getClass().getName(), error);
+        } else {
+            return filmRating;
+        }
     }
 
-    private void updateRateInDB(int filmId, int rate) {
-
+    private Genre validateFilmGenres(Film film) {
+        log.info("Валидация жанров фильма по содержимому в БД");
+        String sqlQuery = "select count(FR_USER_ID_PK) from FILMS_RATINGS where FR_FILM_ID_PK = :filmId";
+        var genres = jdbc.queryForObject(sqlQuery, Map.of("filmId", filmId), Genre.class);
+        return genres;
     }
 }

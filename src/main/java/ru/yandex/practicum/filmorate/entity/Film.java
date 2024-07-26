@@ -41,4 +41,5 @@ public class Film {
     private int rate;
 
     private Mpa mpa;
+    private Genre genre;
 }
