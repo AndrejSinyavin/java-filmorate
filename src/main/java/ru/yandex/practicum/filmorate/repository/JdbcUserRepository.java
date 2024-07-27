@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -15,9 +15,11 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.entity.User;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistsException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
 
 import javax.sql.DataSource;
+import java.sql.ResultSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -58,7 +60,7 @@ public class JdbcUserRepository implements UserRepository {
             if (generatedID <= 0) {
                 String error = "Ошибка! БД вернула для фильма некорректный ID " + generatedID;
                 log.error(error);
-                throw new InternalServiceException(thisService, this.getClass().getName(), error);
+                throw new InternalServiceException(thisService, jdbc.getClass().getName(), error);
             } else {
                 user.setId(generatedID);
                 return Optional.of(user);
@@ -76,7 +78,7 @@ public class JdbcUserRepository implements UserRepository {
      * @return эта же запись, если обновление полей записи в БД выполнено успешно; иначе пустое значение
      */
     @Override
-    public Optional<User> updateUser(@NotNull(message = entityNullError)User user) {
+    public Optional<User> updateUser(@NotNull(message = entityNullError) User user) {
         int id = user.getId();
         log.info("Обновление записи о пользователе ID {} в БД", id);
         var parameters = new MapSqlParameterSource(Map.of(
@@ -88,15 +90,18 @@ public class JdbcUserRepository implements UserRepository {
         ));
         try {
             var rowsUpdated = jdbc.update("""
-                    update USERS
-                    set USER_LOGIN = :login, USER_NAME = :name, USER_EMAIL = :email, USER_BIRTHDAY = :birthday
-                    where USER_ID_PK = :userId""",
+                            update USERS
+                            set USER_LOGIN = :login, USER_NAME = :name, USER_EMAIL = :email, USER_BIRTHDAY = :birthday
+                            where USER_ID_PK = :userId""",
                     parameters, new GeneratedKeyHolder(), new String[]{"USER_ID_PK"});
             if (rowsUpdated == 0) {
-                log.warn("Обновить запись невозможно, пользователь ID {} в БД не найден", id);
-                return Optional.empty();
-            } else {
+                String warn = "Обновить запись невозможно, пользователь ID " + id + "в БД не найден";
+                log.warn(warn);
+                throw new EntityNotFoundException(thisService, jdbc.getClass().getName(), warn);
+            } else if (rowsUpdated == 1) {
                 return Optional.of(user);
+            } else {
+                return Optional.empty();
             }
         } catch (DuplicateKeyException e) {
             log.warn(userExist, e);
@@ -113,7 +118,7 @@ public class JdbcUserRepository implements UserRepository {
     public List<User> getAllUsers() {
         log.info("Получение всех записей о пользователях из БД");
         String sqlQuery = "select * from USERS order by USER_ID_PK";
-        return jdbc.query(sqlQuery, new BeanPropertyRowMapper<>(User.class));
+        return jdbc.query(sqlQuery, user_mapper());
     }
 
     /**
@@ -128,7 +133,7 @@ public class JdbcUserRepository implements UserRepository {
         String sqlQuery = "select * from USERS where USER_ID_PK = :userId";
         var paramSource = new MapSqlParameterSource().addValue("userId", userId);
         try {
-            var user = jdbc.queryForObject(sqlQuery, paramSource, new BeanPropertyRowMapper<>(User.class));
+            var user = jdbc.queryForObject(sqlQuery, paramSource, user_mapper());
             if (user == null) {
                 String error = "Ошибка! SQL-запрос вернул NULL, маппинг из БД в User произведен некорректно";
                 log.error(error);
@@ -139,5 +144,14 @@ public class JdbcUserRepository implements UserRepository {
             log.warn("Пользователь ID {} не найден в БД", userId);
             return Optional.empty();
         }
+    }
+
+    private RowMapper<User> user_mapper() {
+        return (ResultSet rs, int rowNum) -> new User(
+                rs.getInt("USER_ID_PK"),
+                rs.getString("USER_LOGIN"),
+                rs.getString("USER_NAME"),
+                rs.getString("USER_EMAIL"),
+                rs.getDate("USER_BIRTHDAY").toLocalDate());
     }
 }

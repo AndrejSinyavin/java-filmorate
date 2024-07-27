@@ -27,7 +27,7 @@ public class GenreController {
     /**
      * Подключение сервиса работы с жанрами.
      */
-    private final BaseGenreService films;
+    private final BaseGenreService genreService;
 
     /**
      * Endpoint обрабатывает запрос на получение жанра по его ID.
@@ -38,7 +38,7 @@ public class GenreController {
     @GetMapping("/{id}")
     public Genre getGenreByID(@PathVariable @Positive(message = idError) final int id) {
         log.info("Запрос ==> GET получить жанр по его ID {}", id);
-        Genre genre = films.getGenre(id);
+        Genre genre = genreService.getGenre(id);
         log.info("Ответ <== 200 Ok. Жанр отправлен ID {} {}", id, genre);
         return genre;
     }
@@ -51,7 +51,7 @@ public class GenreController {
     @GetMapping()
     public List<Genre> getAllGenres() {
         log.info("Запрос ==> GET получить список всех жанров ");
-        var allGenres = films.getAllGenres();
+        var allGenres = genreService.getAllGenres();
         log.info("Ответ <== 200 Ok. Отправлен список жанров {}", allGenres);
         return allGenres;
     }

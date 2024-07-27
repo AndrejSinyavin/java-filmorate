@@ -25,7 +25,7 @@ public class FilmController {
     /**
      * Подключение сервиса работы с фильмами.
      */
-    private final BaseFilmService films;
+    private final BaseFilmService filmsService;
 
     /**
      * Endpoint обрабатывает запрос на создание в фильмотеке новой записи "Фильм".
@@ -37,7 +37,7 @@ public class FilmController {
     @ResponseStatus(HttpStatus.CREATED)
     public Film createFilm(@Valid @RequestBody Film film) {
         log.info("Запрос ==> POST {}", film);
-        films.createfilm(film);
+        filmsService.createfilm(film);
         log.info("Ответ <== 201 Created. Фильм успешно добавлен в фильмотеку {}", film);
         return film;
     }
@@ -51,7 +51,7 @@ public class FilmController {
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) {
         log.info("Запрос ==> PUT {}", film);
-        films.updateFilm(film);
+        filmsService.updateFilm(film);
         log.info("Ответ <== 200 Ok. Фильм успешно обновлен в фильмотеке: {}", film);
         return film;
     }
@@ -62,9 +62,9 @@ public class FilmController {
      * @return список всех фильмов фильмотеки, может быть пустым
      */
     @GetMapping
-    public List<Film> getFilms() {
+    public List<Film> getFilmsService() {
         log.info("Запрос ==> GET получить список всех фильмов");
-        List<Film> filmList = films.getFilms();
+        List<Film> filmList = filmsService.getFilms();
         log.info("Ответ <== 200 Ok. Отправлен список всех фильмов сервиса {}", filmList);
         return filmList;
     }
@@ -78,7 +78,7 @@ public class FilmController {
     @GetMapping("/{id}")
     public Film getFilm(@PathVariable @Positive(message = idError) int id) {
         log.info("Запрос ==> GET получить фильм по ID {}", id);
-        Film film = films.getFilm(id);
+        Film film = filmsService.getFilm(id);
         log.info("Ответ <== 200 Ok. Отправлен фильм ID {}", film);
         return film;
     }
@@ -94,7 +94,7 @@ public class FilmController {
             @PathVariable @Positive(message = idError) int id,
             @PathVariable @Positive(message = idError) int userId) {
         log.info("Запрос ==> PUT поставить лайк фильму ID {} от пользователя {}", id, userId);
-        films.addLike(id, userId);
+        filmsService.addLike(id, userId);
         log.info("Ответ <== 200 Ok. Лайк поставлен");
     }
 
@@ -109,7 +109,7 @@ public class FilmController {
             @PathVariable @Positive(message = idError) int id,
             @PathVariable @Positive(message = idError) int userId) {
         log.info("Запрос ==> DELETE отменить лайк фильму ID {} от пользователя {}", id, userId);
-        films.deleteLike(id, userId);
+        filmsService.deleteLike(id, userId);
         log.info("Ответ <== 200 Ok. Лайк отменен");
     }
 
@@ -125,7 +125,7 @@ public class FilmController {
             @Positive(message = "Размер топа фильмов должен быть положительным значением")
             Integer topSize) {
         log.info("Запрос ==> GET получить топ-{} лучших фильмов", topSize);
-        var topFilms = films.getTopFilms(topSize);
+        var topFilms = filmsService.getTopFilms(topSize);
         log.info("Ответ <== 200 Ok. Топ-{} фильмотеки отправлен {}", topSize, topFilms.size());
         return topFilms;
     }

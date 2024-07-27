@@ -105,7 +105,7 @@ public class UserService implements BaseUserService {
     @Override
     public User updateUser(User user) {
         log.info("Обновление аккаунта о пользователе {}", user);
-        return users.updateUser(user).orElseThrow(() -> new EntityNotFoundException(
+        return users.updateUser(user).orElseThrow(() -> new InternalServiceException(
                 thisService, users.getClass().getName(), "Ошибка при обновлении аккаунта пользователя сервиса!"));
     }
 

@@ -21,12 +21,6 @@ public interface UtilRepository {
     Genre getGenreById(int id);
 
     /**
-     * Метод возвращает из репозитория список из ID жанра и его имени для всех жанров
-     * @return список из ID жанра и его имени для всех жанров
-     */
-    List<Genre> getAllGenres();
-
-    /**
      * Метод возвращает MPA-рейтинг по его ID из репозитория
      * @param id MPA-рейтинг
      * @return  {@link Mpa}

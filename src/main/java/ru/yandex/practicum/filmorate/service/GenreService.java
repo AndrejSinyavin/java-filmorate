@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.entity.Genre;
+import ru.yandex.practicum.filmorate.repository.UtilRepository;
 
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class GenreService implements BaseGenreService {
     /**
      * Подключение сервиса работы со служебным сервисом.
      */
-    private final BaseUtilityService service;
+    private final UtilRepository util;
 
 
     /**
@@ -32,7 +33,7 @@ public class GenreService implements BaseGenreService {
     @Override
     public Genre getGenre(int id) {
         log.info("Получение названия жанра и его ID ");
-        return service.getGenre(id);
+        return null;//util.getGenre(id);
     }
 
     /**
@@ -43,6 +44,6 @@ public class GenreService implements BaseGenreService {
     @Override
     public List<Genre> getAllGenres() {
         log.info("Получение списка всех имеющихся жанров фильмов");
-        return service.getGenresFromDb();
+        return null; //util.getGenresFromDb();
     }
 }

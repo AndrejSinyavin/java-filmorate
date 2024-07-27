@@ -37,8 +37,8 @@ public class JdbcFilmRepository implements FilmRepository {
         log.info("Создание записи о фильме в БД");
         SimpleJdbcInsert simpleJdbc = new SimpleJdbcInsert(source);
         int mpaId = film.getMpa().getId();
-        var mpa = util.validateMpaIdAndGetMpaFromDb(mpaId);
-        var genres = util.validateGenreIdAndGetGenreNames(film);
+//        var mpa = util.validateMpaIdAndGetMpaFromDb(mpaId);
+//        var genres = util.validateGenreIdAndGetGenreNames(film);
         Map<String, Object> parameters = Map.of(
                         "FILM_NAME", film.getName(),
                         "FILM_DESCRIPTION", film.getDescription(),
@@ -53,8 +53,8 @@ public class JdbcFilmRepository implements FilmRepository {
             throw new InternalServiceException(thisService, simpleJdbc.getClass().getName(), error);
         } else {
             film.setId(generatedID);
-            film.setMpa(mpa);
-            film.setGenres(genres);
+//            film.setMpa(mpa);
+//            film.setGenres(genres);
             return Optional.of(film);
         }
     }
@@ -70,8 +70,8 @@ public class JdbcFilmRepository implements FilmRepository {
         log.info("Обновление записи о фильме в БД");
         int filmId = film.getId();
         int mpaId = film.getMpa().getId();
-        var mpa = util.validateMpaIdAndGetMpaFromDb(mpaId);
-        var genres = util.validateGenreIdAndGetGenreNames(film);
+//        var mpa = util.validateMpaIdAndGetMpaFromDb(mpaId);
+//        var genres = util.validateGenreIdAndGetGenreNames(film);
         String sqlQuery = """
                           update FILMS set
                           FILM_NAME = :name, FILM_DESCRIPTION = :description, FILM_RELEASE_DATE = :releaseDate,
@@ -93,8 +93,8 @@ public class JdbcFilmRepository implements FilmRepository {
             log.error(error);
             throw new InternalServiceException(thisService, jdbc.getClass().getName(), error);
         } else {
-            film.setMpa(mpa);
-            film.setGenres(genres);
+//            film.setMpa(mpa);
+//            film.setGenres(genres);
             return Optional.of(film);
         }
     }
@@ -113,17 +113,18 @@ public class JdbcFilmRepository implements FilmRepository {
                                       where FR_FILM_ID_PK = FILM_ID_PK) as RATE
                           from FILMS
                           order by FILM_ID_PK""";
-        return jdbc.query(sqlQuery, (rs, rowNum) ->
-                new Film(
-                        rs.getInt("FILM_ID_PK"),
-                        rs.getString("FILM_NAME"),
-                        rs.getString("FILM_DESCRIPTION"),
-                        rs.getDate("FILM_RELEASE_DATE").toLocalDate(),
-                        rs.getInt("FILM_DURATION"),
-                        rs.getInt("RATE"),
-                        util.validateMpaIdAndGetMpaFromDb(rs.getInt("FILM_MPA_RATING_FK")),
-                        util.getFilmGenresFromDb(rs.getInt("FILM_ID_PK"))
-                ));
+       return null;
+//        jdbc.query(sqlQuery, (rs, rowNum) ->
+//                new Film(
+//                        rs.getInt("FILM_ID_PK"),
+//                        rs.getString("FILM_NAME"),
+//                        rs.getString("FILM_DESCRIPTION"),
+//                        rs.getDate("FILM_RELEASE_DATE").toLocalDate(),
+//                        rs.getInt("FILM_DURATION"),
+//                        rs.getInt("RATE"),
+//                        util.validateMpaIdAndGetMpaFromDb(rs.getInt("FILM_MPA_RATING_FK")),
+//                        util.getFilmGenresFromDb(rs.getInt("FILM_ID_PK"))
+//                ));
     }
 
     /**
@@ -142,23 +143,24 @@ public class JdbcFilmRepository implements FilmRepository {
                           from FILMS
                           where FILM_ID_PK = :filmId""";
         try {
-            var film = jdbc.queryForObject(sqlQuery, Map.of("filmId", filmId), (rs, rowNum) ->
-                    new Film(
-                            rs.getInt("FILM_ID_PK"),
-                            rs.getString("FILM_NAME"),
-                            rs.getString("FILM_DESCRIPTION"),
-                            rs.getDate("FILM_RELEASE_DATE").toLocalDate(),
-                            rs.getInt("FILM_DURATION"),
-                            rs.getInt("RATE"),
-                            util.validateMpaIdAndGetMpaFromDb(rs.getInt("FILM_MPA_RATING_FK")),
-                            util.getFilmGenresFromDb(rs.getInt("FILM_ID_PK"))
-                    ));
-            if (film == null) {
-                String error =
-                        "Ошибка! SQL-запрос вернул NULL, маппинг получения данных о пользователе выполнен некорректно!";
-                log.error(error);
-                throw new InternalServiceException(thisService, jdbc.getClass().getName(), error);
-            }
+//            var film = jdbc.queryForObject(sqlQuery, Map.of("filmId", filmId), (rs, rowNum) ->
+//                    new Film(
+//                            rs.getInt("FILM_ID_PK"),
+//                            rs.getString("FILM_NAME"),
+//                            rs.getString("FILM_DESCRIPTION"),
+//                            rs.getDate("FILM_RELEASE_DATE").toLocalDate(),
+//                            rs.getInt("FILM_DURATION"),
+//                            rs.getInt("RATE"),
+//                            util.validateMpaIdAndGetMpaFromDb(rs.getInt("FILM_MPA_RATING_FK")),
+//                            util.getFilmGenresFromDb(rs.getInt("FILM_ID_PK"))
+//                    ));
+//            if (film == null) {
+//                String error =
+//                        "Ошибка! SQL-запрос вернул NULL, маппинг получения данных о пользователе выполнен некорректно!";
+//                log.error(error);
+//                throw new InternalServiceException(thisService, jdbc.getClass().getName(), error);
+//            }
+            Film film = null;
             return Optional.of(film);
         } catch (EmptyResultDataAccessException e) {
             log.warn("Фильм с ID {} не найден в БД", filmId);

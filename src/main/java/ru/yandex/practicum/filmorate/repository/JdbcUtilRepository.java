@@ -26,7 +26,8 @@ public class JdbcUtilRepository implements UtilRepository {
     String errorSql = "Ошибка! SQL-запрос вернул NULL, маппинг поиска жанра фильма выполнен некорректно";
 
     /**
-     * Сервисный метод получает из БД список всех имеющихся жанров для фильмов
+     * Метод получает из БД список всех имеющихся жанров для фильмов
+     *
      * @return список всех имеющихся жанров {@link Genre}
      */
     @Override
@@ -38,6 +39,7 @@ public class JdbcUtilRepository implements UtilRepository {
 
     /**
      * Метод получает из БД жанр по известному ID жанра
+     *
      * @param genreId ID искомого жанра
      * @return {@link Genre}
      */
@@ -83,7 +85,6 @@ public class JdbcUtilRepository implements UtilRepository {
      * @param firstUserId  первый пользователь
      * @param secondUserId второй пользователь (или еще раз первый)
      */
-    @Override
     public void validateUserIds(int firstUserId, int secondUserId) {
         log.info("Проверка, что в БД есть записи о пользователях ID {} и ID {}", firstUserId, secondUserId);
         String sqlQuery = """
@@ -109,7 +110,6 @@ public class JdbcUtilRepository implements UtilRepository {
      * @param firstFilmId  первый фильм
      * @param secondFilmId второй фильм (или еще раз первый)
      */
-    @Override
     public void validateFilmIds(int firstFilmId, int secondFilmId) {
         log.info("Проверка, что в БД есть записи о фильмах ID {} и ID {}", firstFilmId, secondFilmId);
         String sqlQuery = """
@@ -131,16 +131,16 @@ public class JdbcUtilRepository implements UtilRepository {
 
     /**
      * Сервисный метод выполняет валидацию MPA-рейтинга по данным из БД и возвращает корректный Mpa-рейтинг
+     *
      * @param mpaId ID MPA-рейтинга
      * @return корректный MPA-рейтинг
      */
-    @Override
     public Mpa validateMpaIdAndGetMpaFromDb(int mpaId) {
         log.info("Валидация ID MPA-рейтинга и получение его названия из БД");
         String sqlQuery = """
-                            select MPA_RATING_NAME
-                            from MPA_RATINGS
-                            where MPA_RATING_ID_PK = :mpaId""";
+                select MPA_RATING_NAME
+                from MPA_RATINGS
+                where MPA_RATING_ID_PK = :mpaId""";
         try {
             var ratingName = jdbc.queryForObject(sqlQuery, Map.of("mpaId", mpaId), String.class);
             if (ratingName == null) {
@@ -159,13 +159,13 @@ public class JdbcUtilRepository implements UtilRepository {
     /**
      * Сервисный метод выполняет валидацию жанров фильма по содержимому в БД
      * и возвращает корректный список жанров с ID жанра и именем
+     *
      * @param film фильм с проверяемым списком жанров
      * @return корректный список жанров
      */
-    @Override
     public Set<Genre> validateGenreIdAndGetGenreNames(Film film) {
         log.info("Валидация жанров фильма по содержимому в БД");
-        var dbGenres = genreRepository.getGenresFromDb();
+        var dbGenres = getAllGenresFromDb();
         int maxId = dbGenres.size();
         var filmGenres = film.getGenres();
         if (filmGenres == null) {
@@ -186,18 +186,18 @@ public class JdbcUtilRepository implements UtilRepository {
 
     /**
      * Сервисный метод получает из БД полный список жанров с именами для фильма с индексом ID
+     *
      * @param filmId ID целевого фильма
      * @return корректный список жанров для этого фильма
      */
-    @Override
     public TreeSet<Genre> getFilmGenresFromDb(int filmId) {
         log.info("Получение списка жанров фильма ID {} из БД", filmId);
         var dbGenres = getAllGenresFromDb();
         String sqlQuery = """
-                            select distinct FG_GENRE_ID
-                            from FILMS_GENRES
-                            where FG_FILM_ID = :filmId
-                            order by FG_GENRE_ID""";
+                select distinct FG_GENRE_ID
+                from FILMS_GENRES
+                where FG_FILM_ID = :filmId
+                order by FG_GENRE_ID""";
         var listFilmsGenreIds = jdbc.queryForList(sqlQuery, Map.of("filmId", filmId), Integer.class);
         var genres = new TreeSet<>(Genre::compareTo);
         for (var genreId : listFilmsGenreIds) {

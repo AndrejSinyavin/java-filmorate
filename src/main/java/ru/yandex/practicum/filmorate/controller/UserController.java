@@ -27,7 +27,7 @@ public class UserController {
     /**
      * Подключение сервиса работы с пользователями.
      */
-    private final BaseUserService users;
+    private final BaseUserService userService;
 
     /**
      * Endpoint обрабатывает запрос на создание нового пользователя фильмотеки.
@@ -40,7 +40,7 @@ public class UserController {
     public User createUser(@Valid @RequestBody User user) {
         log.info("Запрос ==> POST {}", user);
         validateUser(user);
-        users.createUser(user);
+        userService.createUser(user);
         log.info("Ответ <== 201 Created. Пользователь успешно добавлен в список пользователей сервиса: {}", user);
         return user;
     }
@@ -55,7 +55,7 @@ public class UserController {
     public User updateUser(@Valid @RequestBody User user) {
         log.info("Запрос ==> PUT {}", user);
         validateUser(user);
-        users.updateUser(user);
+        userService.updateUser(user);
         log.info("Ответ <== 200 Ok. Пользователь успешно обновлен в списке пользователей сервиса: {}", user);
         return user;
     }
@@ -66,9 +66,9 @@ public class UserController {
      * @return список всех пользователей, может быть пустым
      */
     @GetMapping
-    public List<User> getUsers() {
+    public List<User> getUserService() {
         log.info("Запрос ==> GET получить список всех пользователей");
-        var result = users.getAllUsers();
+        var result = userService.getAllUsers();
         log.info("Ответ <== 200 Ok. Список всех пользователей сервиса");
         return result;
     }
@@ -81,7 +81,7 @@ public class UserController {
     @GetMapping("/{id}")
     public User getUser(@PathVariable @Positive(message = idError) int id) {
         log.info("Запрос ==> GET получить пользователя");
-        var result = users.getUser(id);
+        var result = userService.getUser(id);
         log.info("Ответ <== 200 Ok. Пользователь сервиса: {}", result);
         return result;
     }
@@ -97,7 +97,7 @@ public class UserController {
             @PathVariable @Positive(message = idError) int id,
             @PathVariable @Positive(message = idError) int friendId) {
         log.info("Запрос ==> PUT добавить в друзья");
-        users.addFriend(id, friendId);
+        userService.addFriend(id, friendId);
         log.info("Ответ <== 200 Ok. Создан запрос от пользователя ID {} на добавление в друзья пользователя ID {}  ",
                 id, friendId);
     }
@@ -113,7 +113,7 @@ public class UserController {
             @PathVariable @Positive(message = idError) int id,
             @PathVariable @Positive(message = idError) int friendId) {
         log.info("Запрос ==> DELETE удалить из друзей");
-        users.deleteFriend(id, friendId);
+        userService.deleteFriend(id, friendId);
         log.info("Ответ <== 200 Ok. Создан запрос на удаление пользователя ID {} из списка друзей ID {}",
                 friendId, id);
     }
@@ -127,7 +127,7 @@ public class UserController {
     @GetMapping("/{id}/friends")
     public List<User> getFriends(@PathVariable @Positive(message = idError) int id) {
         log.info("Запрос ==> GET получить список друзей пользователя");
-        var result = users.getFriends(id);
+        var result = userService.getFriends(id);
         log.info("Ответ <== 200 Ok. Список всех друзей пользователя сервиса ID {}", id);
         return result;
     }
@@ -144,7 +144,7 @@ public class UserController {
             @PathVariable @Positive(message = idError) int id,
             @PathVariable @Positive(message = idError) int otherId) {
         log.info("Запрос ==> GET получить список совместных друзей двух пользователей");
-        var result = users.getCommonFriends(id, otherId);
+        var result = userService.getCommonFriends(id, otherId);
         log.info("Ответ <==  200 Ok. Список общих друзей пользователей сервиса ID {} и ID {}", id, otherId);
         return result;
     }

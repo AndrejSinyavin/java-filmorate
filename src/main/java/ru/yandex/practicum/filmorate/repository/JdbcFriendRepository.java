@@ -24,7 +24,7 @@ import java.util.Optional;
 @Repository
 @RequiredArgsConstructor
 public class JdbcFriendRepository implements FriendRepository {
-    private final BaseUtilityService checkDb;
+    private final UtilRepository utils;
     private final NamedParameterJdbcOperations jdbc;
     private final JdbcTemplate jdbcTemplate;
     private final String thisService = this.getClass().getName();
@@ -41,7 +41,7 @@ public class JdbcFriendRepository implements FriendRepository {
     @Override
     public Optional<String> addFriend(@Positive(message = idError) int firstUserId,
                                       @Positive(message = idError) int secondUserId) {
-        checkDb.validateUserIds(firstUserId, secondUserId);
+//        utils.validateUserIds(firstUserId, secondUserId);
         log.info("Создание записи в БД о добавлении пользователя в друзья к другому пользователю");
         SimpleJdbcInsertOperations simpleJdbc = new SimpleJdbcInsert(jdbcTemplate);
         try {

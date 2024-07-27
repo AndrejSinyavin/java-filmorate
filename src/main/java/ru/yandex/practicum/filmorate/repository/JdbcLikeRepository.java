@@ -22,7 +22,6 @@ import java.util.Map;
 @Repository
 @RequiredArgsConstructor
 public class JdbcLikeRepository implements LikeRepository {
-    private final BaseUtilityService checkDb;
     private final NamedParameterJdbcOperations jdbc;
     private final DataSource source;
     private final String thisService = this.getClass().getName();
@@ -38,8 +37,8 @@ public class JdbcLikeRepository implements LikeRepository {
     public void likeFilm(@Positive(message = idError) int filmId,
                          @Positive(message = idError) int userId) {
         log.info("Пользователь ID {} ставит лайк фильму ID {}", userId, filmId);
-        checkDb.validateUserIds(userId, userId);
-        checkDb.validateFilmIds(filmId, filmId);
+        //validateUserIds(userId, userId);
+        //util.validateFilmIds(filmId, filmId);
         SimpleJdbcInsert simpleJdbc = new SimpleJdbcInsert(source);
         Map<String, Object> parameters = Map.of(
                 "FR_FILM_ID_PK", filmId,
@@ -66,8 +65,8 @@ public class JdbcLikeRepository implements LikeRepository {
     public void undoLikeFilm(@Positive(message = idError) int filmId,
                              @Positive(message = idError) int userId) {
         log.info("Пользователь ID {} отменяет лайк фильму ID {}", userId, filmId);
-        checkDb.validateUserIds(userId, userId);
-        checkDb.validateFilmIds(filmId, filmId);
+//        util.validateUserIds(userId, userId);
+//        util.validateFilmIds(filmId, filmId);
         Map<String, Object> parameters = Map.of(
                 "FR_FILM_ID_PK", filmId,
                 "FR_USER_ID_PK", userId);
@@ -117,16 +116,17 @@ public class JdbcLikeRepository implements LikeRepository {
                           from FILMS
                           order by RATE
                           limit :topSize""";
-        return jdbc.query(sqlQuery, Map.of("topSize", topSize), (rs, rowNum) ->
-                new Film(
-                        rs.getInt("FILM_ID_PK"),
-                        rs.getString("FILM_NAME"),
-                        rs.getString("FILM_DESCRIPTION"),
-                        rs.getDate("FILM_RELEASE_DATE").toLocalDate(),
-                        rs.getInt("FILM_DURATION"),
-                        rs.getInt("RATE"),
-                        checkDb.validateMpaIdAndGetMpaFromDb(rs.getInt("FILM_MPA_RATING_FK")),
-                        checkDb.getFilmGenresFromDb(rs.getInt("FILM_ID_PK"))
-                ));
+        return null;
+//        return jdbc.query(sqlQuery, Map.of("topSize", topSize), (rs, rowNum) ->
+//                new Film(
+//                        rs.getInt("FILM_ID_PK"),
+//                        rs.getString("FILM_NAME"),
+//                        rs.getString("FILM_DESCRIPTION"),
+//                        rs.getDate("FILM_RELEASE_DATE").toLocalDate(),
+//                        rs.getInt("FILM_DURATION"),
+//                        rs.getInt("RATE"),
+//                        util.validateMpaIdAndGetMpaFromDb(rs.getInt("FILM_MPA_RATING_FK")),
+//                        util.getFilmGenresFromDb(rs.getInt("FILM_ID_PK"))
+//                ));
     }
 }
