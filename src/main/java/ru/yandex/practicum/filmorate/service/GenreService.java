@@ -22,6 +22,7 @@ public class GenreService implements BaseGenreService {
      */
     private final BaseUtilityService service;
 
+
     /**
      * Метод возвращает ID жанра и его имя
      *

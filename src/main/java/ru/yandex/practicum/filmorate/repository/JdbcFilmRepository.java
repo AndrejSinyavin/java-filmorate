@@ -11,7 +11,6 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
-import ru.yandex.practicum.filmorate.service.BaseUtilityService;
 
 import javax.sql.DataSource;
 import java.util.*;
@@ -21,7 +20,7 @@ import java.util.*;
 @Repository
 @RequiredArgsConstructor
 public class JdbcFilmRepository implements FilmRepository {
-    private final BaseUtilityService checkDb;
+    private final UtilRepository util;
     private final NamedParameterJdbcOperations jdbc;
     private final DataSource source;
     private final String thisService = this.getClass().getName();
@@ -38,8 +37,8 @@ public class JdbcFilmRepository implements FilmRepository {
         log.info("Создание записи о фильме в БД");
         SimpleJdbcInsert simpleJdbc = new SimpleJdbcInsert(source);
         int mpaId = film.getMpa().getId();
-        var mpa = checkDb.validateMpaIdAndGetMpaFromDb(mpaId);
-        var genres = checkDb.validateGenreIdAndGetGenreNames(film);
+        var mpa = util.validateMpaIdAndGetMpaFromDb(mpaId);
+        var genres = util.validateGenreIdAndGetGenreNames(film);
         Map<String, Object> parameters = Map.of(
                         "FILM_NAME", film.getName(),
                         "FILM_DESCRIPTION", film.getDescription(),
@@ -71,8 +70,8 @@ public class JdbcFilmRepository implements FilmRepository {
         log.info("Обновление записи о фильме в БД");
         int filmId = film.getId();
         int mpaId = film.getMpa().getId();
-        var mpa = checkDb.validateMpaIdAndGetMpaFromDb(mpaId);
-        var genres = checkDb.validateGenreIdAndGetGenreNames(film);
+        var mpa = util.validateMpaIdAndGetMpaFromDb(mpaId);
+        var genres = util.validateGenreIdAndGetGenreNames(film);
         String sqlQuery = """
                           update FILMS set
                           FILM_NAME = :name, FILM_DESCRIPTION = :description, FILM_RELEASE_DATE = :releaseDate,
@@ -122,8 +121,8 @@ public class JdbcFilmRepository implements FilmRepository {
                         rs.getDate("FILM_RELEASE_DATE").toLocalDate(),
                         rs.getInt("FILM_DURATION"),
                         rs.getInt("RATE"),
-                        checkDb.validateMpaIdAndGetMpaFromDb(rs.getInt("FILM_MPA_RATING_FK")),
-                        checkDb.getFilmGenresFromDb(rs.getInt("FILM_ID_PK"))
+                        util.validateMpaIdAndGetMpaFromDb(rs.getInt("FILM_MPA_RATING_FK")),
+                        util.getFilmGenresFromDb(rs.getInt("FILM_ID_PK"))
                 ));
     }
 
@@ -151,8 +150,8 @@ public class JdbcFilmRepository implements FilmRepository {
                             rs.getDate("FILM_RELEASE_DATE").toLocalDate(),
                             rs.getInt("FILM_DURATION"),
                             rs.getInt("RATE"),
-                            checkDb.validateMpaIdAndGetMpaFromDb(rs.getInt("FILM_MPA_RATING_FK")),
-                            checkDb.getFilmGenresFromDb(rs.getInt("FILM_ID_PK"))
+                            util.validateMpaIdAndGetMpaFromDb(rs.getInt("FILM_MPA_RATING_FK")),
+                            util.getFilmGenresFromDb(rs.getInt("FILM_ID_PK"))
                     ));
             if (film == null) {
                 String error =
@@ -166,4 +165,5 @@ public class JdbcFilmRepository implements FilmRepository {
             return Optional.empty();
         }
     }
+
 }

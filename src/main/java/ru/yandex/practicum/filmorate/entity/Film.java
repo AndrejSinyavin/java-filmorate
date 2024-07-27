@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.entity;
 
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 import ru.yandex.practicum.filmorate.validate.Release;
@@ -14,8 +13,7 @@ import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.
 /**
  * Класс описывает поля записи "фильм" в фильмотеке
  */
-@Data
-@AllArgsConstructor
+@Data()
 public class Film {
     @DecimalMin(value = "0", message = "ID записи не может быть отрицательным значением")
     private int id;

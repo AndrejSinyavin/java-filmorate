@@ -2,14 +2,12 @@ package ru.yandex.practicum.filmorate.entity;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
  * Жанр фильма
  */
 @Data
-@AllArgsConstructor
 public class Genre {
     @Positive(message = "ID жанра не может быть отрицательным значением")
     private int id;

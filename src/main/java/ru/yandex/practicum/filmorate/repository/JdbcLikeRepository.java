@@ -12,7 +12,6 @@ import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
-import ru.yandex.practicum.filmorate.service.BaseUtilityService;
 
 import javax.sql.DataSource;
 import java.util.List;

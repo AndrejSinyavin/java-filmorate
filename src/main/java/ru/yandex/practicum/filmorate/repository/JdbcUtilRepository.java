@@ -1,12 +1,13 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.repository;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.entity.Genre;
 import ru.yandex.practicum.filmorate.entity.Mpa;
@@ -15,21 +16,72 @@ import ru.yandex.practicum.filmorate.exception.InternalServiceException;
 
 import java.util.*;
 
-@Log4j2
-@Component
+@Slf4j
 @Valid
+@Repository
 @RequiredArgsConstructor
-public class DateBaseUtilityService implements BaseUtilityService {
-    private final NamedParameterJdbcTemplate jdbc;
+public class JdbcUtilRepository implements UtilRepository {
+    private final NamedParameterJdbcOperations jdbc;
     private final String thisService = this.getClass().getName();
-    private final String errorSqlRequest =
-            "Ошибка! SQL-запрос вернул NULL, возможно есть ошибка в структуре БД или запроса";
+    String errorSql = "Ошибка! SQL-запрос вернул NULL, маппинг поиска жанра фильма выполнен некорректно";
 
     /**
-     * Сервисный метод проверяет, что пользователи существуют в БД.
+     * Сервисный метод получает из БД список всех имеющихся жанров для фильмов
+     * @return список всех имеющихся жанров {@link Genre}
+     */
+    @Override
+    public List<Genre> getAllGenresFromDb() {
+        log.info("Получение списка всех имеющихся жанров в БД");
+        String sqlQuery = "select * from GENRES order by GENRE_ID_PK";
+        return jdbc.query(sqlQuery, new BeanPropertyRowMapper<>(Genre.class));
+    }
+
+    /**
+     * Метод получает из БД жанр по известному ID жанра
+     * @param genreId ID искомого жанра
+     * @return {@link Genre}
+     */
+    @Override
+    public Genre getGenreById(int genreId) {
+        log.info("Получение названия жанра и его ID из БД");
+        String sqlQuery = "select * from GENRES where GENRE_ID_PK = :genreId";
+        var genre = jdbc.queryForObject(sqlQuery, Map.of("genreId", genreId), Genre.class);
+        if (genre == null) {
+            log.error(errorSql);
+            throw new InternalServiceException(thisService, jdbc.getClass().getName(), errorSql);
+        }
+        return genre;
+    }
+
+    /**
+     * Метод получает из БД MPA-рейтинг по известному ID рейтинга
+     *
+     * @param id ID искомого MPA-рейтинга
+     * @return {@link Mpa}
+     */
+    @Override
+    public Mpa getMpaById(int id) {
+        // Todo
+        return null;
+    }
+
+    /**
+     * Метод получает из БД все MPA-рейтинги
+     *
+     * @return список всех имеющихся рейтингов {@link Mpa}
+     */
+    @Override
+    public List<Mpa> getAllMpa() {
+        // Todo
+        return List.of();
+    }
+
+
+    /**
+     * Метод проверяет, что пользователи существуют в БД. Метод также можно использовать и для одного пользователя.
      *
      * @param firstUserId  первый пользователь
-     * @param secondUserId второй пользователь
+     * @param secondUserId второй пользователь (или еще раз первый)
      */
     @Override
     public void validateUserIds(int firstUserId, int secondUserId) {
@@ -43,8 +95,8 @@ public class DateBaseUtilityService implements BaseUtilityService {
                 .addValue("userTwo", secondUserId);
         Integer foundUsers = jdbc.queryForObject(sqlQuery, paramSource, Integer.class);
         if (foundUsers == null) {
-            log.error(errorSqlRequest);
-            throw new InternalServiceException(thisService, this.getClass().getName(), errorSqlRequest);
+            log.error(errorSql);
+            throw new InternalServiceException(thisService, this.getClass().getName(), errorSql);
         } else if (foundUsers != 2) {
             throw new EntityNotFoundException(thisService, jdbc.getClass().getName(),
                     "Один или оба пользователя отсутствуют в БД");
@@ -52,10 +104,10 @@ public class DateBaseUtilityService implements BaseUtilityService {
     }
 
     /**
-     * Сервисный метод проверяет, что фильмы существуют в БД.
+     * Метод проверяет, что фильмы существуют в БД. Метод также можно использовать и для одного пользователя.
      *
      * @param firstFilmId  первый фильм
-     * @param secondFilmId второй фильм
+     * @param secondFilmId второй фильм (или еще раз первый)
      */
     @Override
     public void validateFilmIds(int firstFilmId, int secondFilmId) {
@@ -69,8 +121,8 @@ public class DateBaseUtilityService implements BaseUtilityService {
                 .addValue("filmTwo", secondFilmId);
         Integer foundUsers = jdbc.queryForObject(sqlQuery, paramSource, Integer.class);
         if (foundUsers == null) {
-            log.error(errorSqlRequest);
-            throw new InternalServiceException(thisService, this.getClass().getName(), errorSqlRequest);
+            log.error(errorSql);
+            throw new InternalServiceException(thisService, this.getClass().getName(), errorSql);
         } else if (foundUsers != 2) {
             throw new EntityNotFoundException(thisService, jdbc.getClass().getName(),
                     "Один или оба фильма отсутствуют в БД");
@@ -92,8 +144,8 @@ public class DateBaseUtilityService implements BaseUtilityService {
         try {
             var ratingName = jdbc.queryForObject(sqlQuery, Map.of("mpaId", mpaId), String.class);
             if (ratingName == null) {
-                log.error(errorSqlRequest);
-                throw new InternalServiceException(thisService, jdbc.getClass().getName(), errorSqlRequest);
+                log.error(errorSql);
+                throw new InternalServiceException(thisService, jdbc.getClass().getName(), errorSql);
             } else {
                 return new Mpa(mpaId, ratingName);
             }
@@ -113,7 +165,7 @@ public class DateBaseUtilityService implements BaseUtilityService {
     @Override
     public Set<Genre> validateGenreIdAndGetGenreNames(Film film) {
         log.info("Валидация жанров фильма по содержимому в БД");
-        var dbGenres = getGenresFromDb();
+        var dbGenres = genreRepository.getGenresFromDb();
         int maxId = dbGenres.size();
         var filmGenres = film.getGenres();
         if (filmGenres == null) {
@@ -122,8 +174,8 @@ public class DateBaseUtilityService implements BaseUtilityService {
             for (var genre : filmGenres) {
                 int id = genre.getId();
                 if (id > maxId) {
-                    log.warn(errorSqlRequest);
-                    throw new EntityNotFoundException(thisService, "метод 'validateFilmGenres'", errorSqlRequest);
+                    log.warn(errorSql);
+                    throw new EntityNotFoundException(thisService, "метод 'validateFilmGenres'", errorSql);
                 } else {
                     genre.setName(dbGenres.get(id - 1).getName());
                 }
@@ -140,7 +192,7 @@ public class DateBaseUtilityService implements BaseUtilityService {
     @Override
     public TreeSet<Genre> getFilmGenresFromDb(int filmId) {
         log.info("Получение списка жанров фильма ID {} из БД", filmId);
-        var dbGenres = getGenresFromDb();
+        var dbGenres = getAllGenresFromDb();
         String sqlQuery = """
                             select distinct FG_GENRE_ID
                             from FILMS_GENRES
@@ -152,38 +204,5 @@ public class DateBaseUtilityService implements BaseUtilityService {
             genres.add(new Genre(genreId, dbGenres.get(genreId - 1).getName()));
         }
         return genres;
-    }
-
-    /**
-     * Сервисный метод получает из БД список всех имеющихся жанров для фильмов
-     * @return список всех имеющихся жанров
-     */
-    @Override
-    public List<Genre> getGenresFromDb() {
-        log.info("Получение списка всех имеющихся жанров в ДБ");
-        String sqlQuery = "select * from GENRES order by GENRE_ID_PK";
-        return jdbc.query(sqlQuery, (rs, rowNum) ->
-                new Genre(
-                        rs.getInt("GENRE_ID_PK"),
-                        rs.getString("GENRE_NAME")
-                ));
-    }
-
-    /**
-     * Метод возвращает ID жанра и его имя из БД
-     * @param genreId ID искомого жанра
-     * @return ID и имя жанра
-     */
-    @Override
-    public Genre getGenre(int genreId) {
-        log.info("Получение названия жанра и его ID из БД");
-        String sqlQuery = "select * from GENRES where GENRE_ID_PK = :genreId";
-        var genre = jdbc.queryForObject(sqlQuery, Map.of("genreId", genreId), Genre.class);
-        if (genre == null) {
-            String error = "Ошибка! SQL-запрос вернул NULL, маппинг поиска жанра фильма выполнен некорректно";
-            log.error(error);
-            throw new InternalServiceException(thisService, jdbc.getClass().getName(), error);
-        }
-        return genre;
     }
 }

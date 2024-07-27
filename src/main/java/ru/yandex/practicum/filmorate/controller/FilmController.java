@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.service.BaseFilmService;
@@ -15,7 +16,7 @@ import java.util.List;
  * Контроллер обработки REST-запросов для работы с фильмотекой.
  */
 @Slf4j
-@Valid
+@Validated
 @RestController
 @RequestMapping("/films")
 @RequiredArgsConstructor

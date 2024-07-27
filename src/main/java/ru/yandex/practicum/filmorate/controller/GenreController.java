@@ -1,9 +1,9 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,7 +17,7 @@ import java.util.List;
  * Контроллер обработки REST-запросов для работы с жанрами фильмотеки.
  */
 @Slf4j
-@Valid
+@Validated
 @RestController
 @RequestMapping("/genres")
 @RequiredArgsConstructor
@@ -27,7 +27,7 @@ public class GenreController {
     /**
      * Подключение сервиса работы с жанрами.
      */
-    private final BaseGenreService genres;
+    private final BaseGenreService films;
 
     /**
      * Endpoint обрабатывает запрос на получение жанра по его ID.
@@ -38,7 +38,7 @@ public class GenreController {
     @GetMapping("/{id}")
     public Genre getGenreByID(@PathVariable @Positive(message = idError) final int id) {
         log.info("Запрос ==> GET получить жанр по его ID {}", id);
-        Genre genre = genres.getGenre(id);
+        Genre genre = films.getGenre(id);
         log.info("Ответ <== 200 Ok. Жанр отправлен ID {} {}", id, genre);
         return genre;
     }
@@ -51,7 +51,7 @@ public class GenreController {
     @GetMapping()
     public List<Genre> getAllGenres() {
         log.info("Запрос ==> GET получить список всех жанров ");
-        var allGenres = genres.getAllGenres();
+        var allGenres = films.getAllGenres();
         log.info("Ответ <== 200 Ok. Отправлен список жанров {}", allGenres);
         return allGenres;
     }
