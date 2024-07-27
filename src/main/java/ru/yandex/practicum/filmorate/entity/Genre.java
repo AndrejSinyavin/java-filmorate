@@ -1,10 +1,9 @@
 package ru.yandex.practicum.filmorate.entity;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import java.util.Set;
 
 /**
  * Жанр фильма
@@ -12,6 +11,13 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 public class Genre {
-    @NotNull(message = "ID MPA-рейтинга не может быть NULL")
-    Set<String> genres;
+    @Positive(message = "ID жанра не может быть отрицательным значением")
+    private int id;
+
+    @NotBlank(message = "Название жанра не может быть пустым")
+    private String name;
+
+    public int compareTo(Genre o2) {
+        return this.id - o2.id;
+    }
 }

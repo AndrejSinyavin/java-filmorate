@@ -1,9 +1,8 @@
 package ru.yandex.practicum.filmorate.repository;
 
-import ru.yandex.practicum.filmorate.exception.AppException;
+import ru.yandex.practicum.filmorate.entity.Film;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Интерфейс для служб, работающих с рейтингом фильмов.
@@ -15,36 +14,16 @@ public interface LikeRepository {
      *
      * @param filmId фильм
      * @param userId пользователь
-     * @return сформированное исключение, если лайк не поставлен; пустое значение, если операция выполнена успешно
      */
-    Optional<? extends AppException> likeFilm(int filmId, int userId);
+    void likeFilm(int filmId, int userId);
 
     /**
      * Пользователь отменяет лайк фильму.
      *
      * @param filmId фильм
      * @param userId пользователь
-     * @return сформированное исключение, если лайк не поставлен; пустое значение, если операция выполнена успешно
      */
-    Optional<? extends AppException> unlikeFilm(int filmId, int userId);
-
-    /**
-     * Метод вызывается при создании фильма в фильмотеке. Регистрирует фильм в сервисе LikeRepository.
-     *
-     * @param filmId ID фильма
-     * @param rate   рейтинг фильма
-     * @return рейтинг фильма, или пустое значение - если ошибка
-     */
-    Optional<? extends AppException> registerFilm(int filmId, int rate);
-
-    /**
-     * Метод вызывается при обновлении фильма в фильмотеке.
-     *
-     * @param filmId ID фильма
-     * @param rate   рейтинг фильма
-     * @return пустое значение, если регистрация выполнена; иначе - сформированное исключение с ошибкой
-     */
-    Optional<? extends AppException> updateFilm(int filmId, int rate);
+    void undoLikeFilm(int filmId, int userId);
 
     /**
      * Метод возвращает рейтинг фильма
@@ -52,7 +31,7 @@ public interface LikeRepository {
      * @param filmId ID фильма
      * @return пустое значение, если операция завершена успешно, иначе сформированное исключение
      */
-    Optional<Integer> getFilmRate(int filmId);
+    int getFilmRate(int filmId);
 
     /**
      * Метод возвращает топ рейтинга фильмов по количеству лайков
@@ -60,14 +39,6 @@ public interface LikeRepository {
      * @param topSize размер топа
      * @return список ID фильмов топа в порядке убывания количества лайков
      */
-    List<Integer> getPopularFilm(int topSize);
-
-    /**
-     * Метод вызывается при создании пользователя в фильмотеке. Регистрирует пользователя в LikeRepository.
-     *
-     * @param userId ID пользователя
-     * @return пустое значение, если операция завершена успешно, иначе сообщение об ошибке
-     */
-    Optional<String> registerUser(int userId);
+    List<Film> getPopularFilm(int topSize);
 
 }

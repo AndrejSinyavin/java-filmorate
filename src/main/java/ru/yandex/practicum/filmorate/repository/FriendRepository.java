@@ -1,5 +1,7 @@
 package ru.yandex.practicum.filmorate.repository;
 
+import ru.yandex.practicum.filmorate.entity.User;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -30,16 +32,16 @@ public interface FriendRepository {
      * Метод возвращает список друзей выбранного пользователя.
      *
      * @param userId ID выбранного пользователя
-     * @return список ID друзей (может быть пустым)
+     * @return список друзей (может быть пустым)
      */
-    List<Integer> getFriends(int userId);
+    List<User> getFriends(int userId);
 
     /**
      * Метод возвращает список общих друзей двух пользователей.
      *
      * @param firstUserId  ID первого пользователя
      * @param secondUserId ID второго пользователя
-     * @return список ID общих друзей (может быть пустым)
+     * @return список общих друзей (может быть пустым)
      */
-    List<Integer> getCommonFriends(int firstUserId, int secondUserId);
+    List<User> getCommonFriends(int firstUserId, int secondUserId);
 }

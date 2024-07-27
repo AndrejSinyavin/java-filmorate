@@ -14,7 +14,6 @@ import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.
  * Сервисный класс с дополнительными методами валидации данных.
  */
 @Slf4j
-@Validated
 public final class ValidateExtender {
     private static final String ENTITY_ERROR = "Пользователь не должен быть null";
 

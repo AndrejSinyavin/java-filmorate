@@ -59,4 +59,11 @@ public interface BaseFilmService {
      * @return найденная запись о фильме
      */
     Film getFilm(int id);
+
+    /**
+     * Метод возвращает топ лучших фильмов, которые понравились пользователям.
+     * @param topSize Размер 'топа'
+     * @return список анкет фильмов в порядке убывания количества 'лайков'
+     */
+    List<Film> getTopFilms(Integer topSize);
 }

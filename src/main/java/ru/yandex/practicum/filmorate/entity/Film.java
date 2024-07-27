@@ -3,12 +3,11 @@ package ru.yandex.practicum.filmorate.entity;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.hibernate.validator.constraints.Range;
 import org.springframework.format.annotation.DateTimeFormat;
 import ru.yandex.practicum.filmorate.validate.Release;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Set;
 
 import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.MAX_DESCRIPTION_LENGTH;
 
@@ -41,5 +40,5 @@ public class Film {
     private int rate;
 
     private Mpa mpa;
-    private Genre genre;
+    private Set<Genre> genres;
 }

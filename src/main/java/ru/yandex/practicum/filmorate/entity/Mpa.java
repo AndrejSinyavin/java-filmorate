@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.entity;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,10 +12,8 @@ import lombok.Data;
 @AllArgsConstructor
 public class Mpa {
     @Positive(message = "ID MPA-рейтинга не может быть отрицательным значением")
-    @NotNull(message = "ID MPA-рейтинга не может быть NULL")
     private int id;
 
-    @NotNull(message = "ID MPA-рейтинга не может быть NULL")
-    @NotBlank(message = "Название фильма не может быть пустым")
+    @NotBlank(message = "Название MPA-рейтинга не может быть пустым")
     private String name;
 }

@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -26,10 +25,9 @@ import java.util.Optional;
  * Репозиторий реализует логику работы с БД через интерфейс {@link UserRepository}
  */
 @Slf4j
-@Repository
-@Qualifier
-@RequiredArgsConstructor
 @Valid
+@Repository
+@RequiredArgsConstructor
 public class JdbcUserRepository implements UserRepository {
     private final NamedParameterJdbcOperations jdbc;
     private final DataSource source;
@@ -41,12 +39,12 @@ public class JdbcUserRepository implements UserRepository {
     /**
      * Метод создает в таблице пользователей БД нового пользователя с уникальными ID, login и email.
      *
-     * @param user запись о пользователе, которую нужно создать
+     * @param user пользователь, которого нужно записать в БД
      * @return эта же запись с уникальным новым ID из БД
      */
     @Override
     public Optional<User> createUser(@NotNull(message = entityNullError) User user) {
-        log.info("Создание записи о пользователе в БД:");
+        log.info("Создание записи о пользователе в БД");
         SimpleJdbcInsert simpleJdbc = new SimpleJdbcInsert(source);
         Map<String, Object> parameters = Map.of(
                 "USER_LOGIN", user.getLogin(),
@@ -55,8 +53,15 @@ public class JdbcUserRepository implements UserRepository {
                 "USER_BIRTHDAY", user.getBirthday());
         simpleJdbc.withTableName("USERS").usingGeneratedKeyColumns("USER_ID_PK");
         try {
-            user.setId((Integer) simpleJdbc.executeAndReturnKey(parameters));
-            return Optional.of(user);
+            int generatedID = simpleJdbc.executeAndReturnKey(parameters).intValue();
+            if (generatedID <= 0) {
+                String error = "Ошибка! БД вернула для фильма некорректный ID " + generatedID;
+                log.error(error);
+                throw new InternalServiceException(thisService, this.getClass().getName(), error);
+            } else {
+                user.setId(generatedID);
+                return Optional.of(user);
+            }
         } catch (DuplicateKeyException e) {
             log.warn(userExist, e);
             throw new EntityAlreadyExistsException(thisService, e.getClass().getName(), userExist);
@@ -71,24 +76,23 @@ public class JdbcUserRepository implements UserRepository {
      */
     @Override
     public Optional<User> updateUser(@NotNull(message = entityNullError)User user) {
-        log.info("Обновление записи о пользователе в БД:");
         int id = user.getId();
+        log.info("Обновление записи о пользователе ID {} в БД", id);
         var parameters = new MapSqlParameterSource(Map.of(
-                "USER_ID_PK", id,
-                "USER_NAME", user.getName(),
-                "USER_LOGIN", user.getLogin(),
-                "USER_EMAIL", user.getEmail(),
-                "USER_BIRTHDAY", user.getBirthday()
+                "userId", id,
+                "name", user.getName(),
+                "login", user.getLogin(),
+                "email", user.getEmail(),
+                "birthday", user.getBirthday()
         ));
         try {
             var rowsUpdated = jdbc.update("""
                     update USERS
-                    set USER_LOGIN = :USER_LOGIN, USER_NAME = :USER_NAME, USER_EMAIL = :USER_EMAIL,
-                    USER_BIRTHDAY = :USER_BIRTHDAY
-                    where USER_ID_PK = :USER_ID_PK""",
+                    set USER_LOGIN = :login, USER_NAME = :name, USER_EMAIL = :email, USER_BIRTHDAY = :birthday
+                    where USER_ID_PK = :userId""",
                     parameters, new GeneratedKeyHolder(), new String[]{"USER_ID_PK"});
             if (rowsUpdated == 0) {
-                log.warn("Обновить запись невозможно, пользователь ID {} в БД не найден!", id);
+                log.warn("Обновить запись невозможно, пользователь ID {} в БД не найден", id);
                 return Optional.empty();
             } else {
                 return Optional.of(user);
@@ -106,7 +110,7 @@ public class JdbcUserRepository implements UserRepository {
      */
     @Override
     public List<User> getAllUsers() {
-        log.info("Получение всех записей о пользователях из БД:");
+        log.info("Получение всех записей о пользователях из БД");
         String sqlQuery = "select * from USERS order by USER_ID_PK";
         return jdbc.query(sqlQuery, (rs, rowNum) ->
                 new User(
@@ -126,7 +130,7 @@ public class JdbcUserRepository implements UserRepository {
      */
     @Override
     public Optional<User> getUser(@Positive(message = idError) int userId) {
-        log.info("Чтение из БД записи о пользователе");
+        log.info("Чтение из БД записи о пользователе ID {}", userId);
         String sqlQuery = "select * from USERS where USER_ID_PK = :userId";
         var paramSource = new MapSqlParameterSource().addValue("userId", userId);
         try {
@@ -139,13 +143,13 @@ public class JdbcUserRepository implements UserRepository {
                         rs.getDate("USER_BIRTHDAY").toLocalDate()
                 ));
             if (user == null) {
-                String error = "SQL-запрос вернул NULL, маппинг из БД в User произведен некорректно!";
+                String error = "Ошибка! SQL-запрос вернул NULL, маппинг из БД в User произведен некорректно";
                 log.error(error);
                 throw new InternalServiceException(thisService, this.getClass().getName(), error);
             }
             return Optional.of(user);
         } catch (EmptyResultDataAccessException e) {
-            log.warn("Пользователь с ID {} не найден в БД!", userId);
+            log.warn("Пользователь ID {} не найден в БД", userId);
             return Optional.empty();
         }
     }

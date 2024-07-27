@@ -5,9 +5,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.EntityValidateException;
 import ru.yandex.practicum.filmorate.entity.User;
 import ru.yandex.practicum.filmorate.service.BaseUserService;
 
@@ -16,17 +14,17 @@ import java.util.List;
 import static ru.yandex.practicum.filmorate.validate.ValidateExtender.validateUser;
 
 /**
- * Контроллер обработки REST-запросов для работы с клиентами фильмотеки.
+ * Контроллер обработки REST-запросов для работы с пользователями фильмотеки.
  */
 @Slf4j
-@Validated
+@Valid
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
 public class UserController {
-    private static final String ID_ERROR = "ID может быть только положительным значением";
+    private final String idError = "Ошибка! ID может быть только положительным значением";
     /**
-     * Подключение сервиса работы с пользователями UserService.
+     * Подключение сервиса работы с пользователями.
      */
     private final BaseUserService users;
 
@@ -80,7 +78,7 @@ public class UserController {
      * @return пользователь
      */
     @GetMapping("/{id}")
-    public User getUser(@PathVariable @Positive(message = ID_ERROR) int id) {
+    public User getUser(@PathVariable @Positive(message = idError) int id) {
         log.info("Запрос ==> GET получить пользователя");
         var result = users.getUser(id);
         log.info("Ответ <== 200 Ok. Пользователь сервиса: {}", result);
@@ -95,8 +93,8 @@ public class UserController {
      */
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(
-            @PathVariable @Positive(message = ID_ERROR) int id,
-            @PathVariable @Positive(message = ID_ERROR) int friendId) {
+            @PathVariable @Positive(message = idError) int id,
+            @PathVariable @Positive(message = idError) int friendId) {
         log.info("Запрос ==> PUT добавить в друзья");
         users.addFriend(id, friendId);
         log.info("Ответ <== 200 Ok. Создан запрос от пользователя ID {} на добавление в друзья пользователя ID {}  ",
@@ -111,8 +109,8 @@ public class UserController {
      */
     @DeleteMapping("/{id}/friends/{friendId}")
     public void deleteFriend(
-            @PathVariable @Positive(message = ID_ERROR) int id,
-            @PathVariable @Positive(message = ID_ERROR) int friendId) {
+            @PathVariable @Positive(message = idError) int id,
+            @PathVariable @Positive(message = idError) int friendId) {
         log.info("Запрос ==> DELETE удалить из друзей");
         users.deleteFriend(id, friendId);
         log.info("Ответ <== 200 Ok. Создан запрос на удаление пользователя ID {} из списка друзей ID {}",
@@ -126,7 +124,7 @@ public class UserController {
      * @return список всех его друзей
      */
     @GetMapping("/{id}/friends")
-    public List<User> getFriends(@PathVariable @Positive(message = ID_ERROR) int id) {
+    public List<User> getFriends(@PathVariable @Positive(message = idError) int id) {
         log.info("Запрос ==> GET получить список друзей пользователя");
         var result = users.getFriends(id);
         log.info("Ответ <== 200 Ok. Список всех друзей пользователя сервиса ID {}", id);
@@ -142,8 +140,8 @@ public class UserController {
      */
     @GetMapping("/{id}/friends/common/{otherId}")
     public List<User> getCommonFriends(
-            @PathVariable @Positive(message = ID_ERROR) int id,
-            @PathVariable @Positive(message = ID_ERROR) int otherId) {
+            @PathVariable @Positive(message = idError) int id,
+            @PathVariable @Positive(message = idError) int otherId) {
         log.info("Запрос ==> GET получить список совместных друзей двух пользователей");
         var result = users.getCommonFriends(id, otherId);
         log.info("Ответ <==  200 Ok. Список общих друзей пользователей сервиса ID {} и ID {}", id, otherId);

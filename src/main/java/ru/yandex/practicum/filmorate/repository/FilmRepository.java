@@ -16,7 +16,7 @@ public interface FilmRepository {
      * @param film запись о фильме, которую нужно создать в фильмотеке
      * @return этот же фильм с новым ID, или пустое значение, если фильм создать не удалось
      */
-    Optional<Film> createfilm(Film film);
+    Optional<Film> createFilm(Film film);
 
     /**
      * Метод обновляет существующую запись о фильме в фильмотеке.
