@@ -41,7 +41,6 @@ public class JdbcFriendRepository implements FriendRepository {
     @Override
     public Optional<String> addFriend(@Positive(message = idError) int firstUserId,
                                       @Positive(message = idError) int secondUserId) {
-//        utils.validateUserIds(firstUserId, secondUserId);
         log.info("Создание записи в БД о добавлении пользователя в друзья к другому пользователю");
         SimpleJdbcInsertOperations simpleJdbc = new SimpleJdbcInsert(jdbcTemplate);
         try {

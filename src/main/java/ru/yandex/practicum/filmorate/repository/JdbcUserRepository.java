@@ -118,7 +118,7 @@ public class JdbcUserRepository implements UserRepository {
     public List<User> getAllUsers() {
         log.info("Получение всех записей о пользователях из БД");
         String sqlQuery = "select * from USERS order by USER_ID_PK";
-        return jdbc.query(sqlQuery, user_mapper());
+        return jdbc.query(sqlQuery, userMapper());
     }
 
     /**
@@ -133,7 +133,7 @@ public class JdbcUserRepository implements UserRepository {
         String sqlQuery = "select * from USERS where USER_ID_PK = :userId";
         var paramSource = new MapSqlParameterSource().addValue("userId", userId);
         try {
-            var user = jdbc.queryForObject(sqlQuery, paramSource, user_mapper());
+            var user = jdbc.queryForObject(sqlQuery, paramSource, userMapper());
             if (user == null) {
                 String error = "Ошибка! SQL-запрос вернул NULL, маппинг из БД в User произведен некорректно";
                 log.error(error);
@@ -146,7 +146,7 @@ public class JdbcUserRepository implements UserRepository {
         }
     }
 
-    private RowMapper<User> user_mapper() {
+    private RowMapper<User> userMapper() {
         return (ResultSet rs, int rowNum) -> new User(
                 rs.getInt("USER_ID_PK"),
                 rs.getString("USER_LOGIN"),

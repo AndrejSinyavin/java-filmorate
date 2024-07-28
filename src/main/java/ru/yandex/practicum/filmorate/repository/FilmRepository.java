@@ -41,4 +41,11 @@ public interface FilmRepository {
      */
     Optional<Film> getFilm(int filmId);
 
+    /**
+     * Метод возвращает топ рейтинга фильмов по количеству лайков
+     *
+     * @param topSize размер топа
+     * @return список ID фильмов топа в порядке убывания количества лайков
+     */
+    List<Film> getPopularFilm(int topSize);
 }

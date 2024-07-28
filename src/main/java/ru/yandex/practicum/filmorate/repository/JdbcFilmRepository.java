@@ -29,7 +29,6 @@ import java.util.*;
 public class JdbcFilmRepository implements FilmRepository {
     private final NamedParameterJdbcOperations jdbc;
     private final DataSource source;
-    private final SimpleJdbcInsert simpleJdbc = new SimpleJdbcInsert(source);
     private final String thisService = this.getClass().getName();
     private final String entityNullError = "Ошибка! сущность Film = null";
 
@@ -42,6 +41,7 @@ public class JdbcFilmRepository implements FilmRepository {
     @Override
     public Optional<Film> createFilm(@NotNull(message = entityNullError) Film film) {
         log.info("Создание записи о фильме в БД");
+        SimpleJdbcInsert simpleJdbc = new SimpleJdbcInsert(source);
         var mpaId = validateAndUpdateFilm(film);
         Map<String, Object> parameters = Map.of(
                         "FILM_NAME", film.getName(),
@@ -52,13 +52,11 @@ public class JdbcFilmRepository implements FilmRepository {
         var generatedID = simpleJdbc.withTableName("FILMS")
                 .usingGeneratedKeyColumns("FILM_ID_PK")
                 .executeAndReturnKey(parameters).intValue();
-        if (generatedID <= 1) {
-            String error = String.format("Ошибка! БД вернула для фильма некорректный ID = %d", generatedID);
-            log.error(error);
-            throw new InternalServiceException(thisService, simpleJdbc.getClass().getName(), error);
+        if (generatedID <= 0) {
+            log.error("Ошибка! БД вернула для фильма некорректный ID = {}", generatedID);
+            return Optional.empty();
         } else {
-            String info = String.format("Запись о фильме ID = %d успешно создана в БД", generatedID);
-            log.info(info);
+            log.info("Запись о фильме ID = {} успешно создана в БД", generatedID);
             film.setId(generatedID);
             return Optional.of(film);
         }
@@ -104,9 +102,6 @@ public class JdbcFilmRepository implements FilmRepository {
     public Optional<Film> updateFilm(Film film) {
         log.info("Обновление записи о фильме в БД");
         int filmId = film.getId();
-        if (isNotPresentRecordInDb(filmId)) {
-            String warn = "";
-        }
         var mpaId = validateAndUpdateFilm(film);
         String sqlQuery = """
                           update FILMS set
@@ -121,19 +116,19 @@ public class JdbcFilmRepository implements FilmRepository {
                 .addValue("duration", film.getDuration())
                 .addValue("mpaId", mpaId);
         var dbUpdatedRows = jdbc.update(sqlQuery, paramSource);
-        if (dbUpdatedRows == 0) {
-            log.warn("Запись в БД с ID {} отсутствует !", filmId);
-            return Optional.empty();
-        } else if (dbUpdatedRows > 1) {
+        if (dbUpdatedRows > 1) {
             String error = "Критическая ошибка! БД обновила больше одного фильма";
             log.error(error);
             throw new InternalServiceException(thisService, jdbc.getClass().getName(), error);
+        } else if (dbUpdatedRows == 0) {
+            log.warn("Запись не найдена в БД");
+            return Optional.empty();
         } else {
-//            film.setMpa(mpa);
-//            film.setGenres(genres);
+            log.info("Запись о фильме ID = {} успешно обновлена в БД", filmId);
             return Optional.of(film);
         }
     }
+
 
     /**
      * Метод возвращает список всех фильмов из БД.
@@ -144,22 +139,12 @@ public class JdbcFilmRepository implements FilmRepository {
     public List<Film> getFilms() {
         log.info("Создание списка всех фильмов из БД");
         String sqlQuery = """
-                   select FILM_ID_PK, FILM_NAME, FILM_DESCRIPTION, FILM_RELEASE_DATE, FILM_DURATION, FILM_MPA_RATING_FK,
+                   select *,
                    (SELECT MPA_RATING_NAME FROM MPA_RATINGS WHERE MPA_RATING_ID_PK = FILM_MPA_RATING_FK) AS MPA_NAME,
                    (select count(FR_FILM_ID_PK) from FILMS_RATINGS where FR_FILM_ID_PK = FILM_ID_PK) as RATE
                    from FILMS
                    order by FILM_ID_PK""";
-        return jdbc.query(sqlQuery, (rs, rowNum) ->
-                new Film(
-                        rs.getInt("FILM_ID_PK"),
-                        rs.getString("FILM_NAME"),
-                        rs.getString("FILM_DESCRIPTION"),
-                        rs.getDate("FILM_RELEASE_DATE").toLocalDate(),
-                        rs.getInt("FILM_DURATION"),
-                        rs.getInt("RATE"),
-                        new Mpa(rs.getInt("FILM_MPA_RATING_FK"), rs.getString("MPA_NAME")),
-                        getFilmGenresFromDb(rs.getInt("FILM_ID_PK"))
-                ));
+        return jdbc.query(sqlQuery, filmMapper());
     }
 
     /**
@@ -172,35 +157,49 @@ public class JdbcFilmRepository implements FilmRepository {
     public Optional<Film> getFilm(int filmId) {
         log.info("Чтение записи о фильме из БД");
         String sqlQuery = """
-                          select *, (select count(FR_USER_ID_PK)
-                                      from FILMS_RATINGS
-                                      where FR_FILM_ID_PK = :filmId) as RATE
-                          from FILMS
-                          where FILM_ID_PK = :filmId""";
+                select *,
+                    (select count(FR_USER_ID_PK)
+                    from FILMS_RATINGS
+                    where FR_FILM_ID_PK = :filmId) as RATE,
+                    (SELECT MPA_RATING_NAME FROM MPA_RATINGS WHERE MPA_RATING_ID_PK = FILM_MPA_RATING_FK) AS MPA_NAME
+                    from FILMS
+                    where FILM_ID_PK = :filmId""";
         try {
-//            var film = jdbc.queryForObject(sqlQuery, Map.of("filmId", filmId), (rs, rowNum) ->
-//                    new Film(
-//                            rs.getInt("FILM_ID_PK"),
-//                            rs.getString("FILM_NAME"),
-//                            rs.getString("FILM_DESCRIPTION"),
-//                            rs.getDate("FILM_RELEASE_DATE").toLocalDate(),
-//                            rs.getInt("FILM_DURATION"),
-//                            rs.getInt("RATE"),
-//                            util.validateMpaIdAndGetMpaFromDb(rs.getInt("FILM_MPA_RATING_FK")),
-//                            util.getFilmGenresFromDb(rs.getInt("FILM_ID_PK"))
-//                    ));
-//            if (film == null) {
-//                String error =
-//                        "Ошибка! SQL-запрос вернул NULL, маппинг получения данных о пользователе выполнен некорректно!";
-//                log.error(error);
-//                throw new InternalServiceException(thisService, jdbc.getClass().getName(), error);
-//            }
-            Film film = null;
+            var film = jdbc.queryForObject(sqlQuery, Map.of("filmId", filmId), filmMapper());
+            if (film == null) {
+                String error =
+                        "Ошибка! SQL-запрос вернул NULL, маппинг получения данных о пользователе выполнен некорректно!";
+                log.error(error);
+                throw new InternalServiceException(thisService, jdbc.getClass().getName(), error);
+            }
             return Optional.of(film);
         } catch (EmptyResultDataAccessException e) {
             log.warn("Фильм с ID {} не найден в БД", filmId);
             return Optional.empty();
         }
+    }
+
+    /**
+     * Метод возвращает топ рейтинга фильмов по количеству лайков
+     *
+     * @param topSize размер топа
+     * @return список ID фильмов топа в порядке убывания количества лайков
+     */
+    @Override
+    public List<Film> getPopularFilm(int topSize) {
+        log.info("Получение топа рейтинга фильмов из БД, размер топа: {}", topSize);
+        String sqlQuery = """
+                  select *,
+                  (select count(FR_USER_ID_PK)
+                          from FILMS_RATINGS
+                          where FR_FILM_ID_PK = FILM_ID_PK) as RATE,
+                  (SELECT MPA_RATING_NAME
+                          FROM MPA_RATINGS
+                          WHERE MPA_RATING_ID_PK = FILM_MPA_RATING_FK) AS MPA_NAME
+                  from FILMS
+                  order by RATE desc
+                  limit :topSize""";
+        return jdbc.query(sqlQuery, Map.of("topSize", topSize), filmMapper());
     }
 
     private TreeSet<Genre> getFilmGenresFromDb(int filmId) {
@@ -259,6 +258,18 @@ public class JdbcFilmRepository implements FilmRepository {
         return (ResultSet rs, int rowNum) -> new Genre(
                 rs.getInt("ID"),
                 rs.getString("NAME"));
+    }
+
+    private RowMapper<Film> filmMapper() {
+        return (ResultSet rs, int rowNum) -> new Film(
+                rs.getInt("FILM_ID_PK"),
+                rs.getString("FILM_NAME"),
+                rs.getString("FILM_DESCRIPTION"),
+                rs.getDate("FILM_RELEASE_DATE").toLocalDate(),
+                rs.getInt("FILM_DURATION"),
+                rs.getInt("RATE"),
+                new Mpa(rs.getInt("FILM_MPA_RATING_FK"), rs.getString("MPA_NAME")),
+                getFilmGenresFromDb(rs.getInt("FILM_ID_PK")));
     }
 
     @AllArgsConstructor

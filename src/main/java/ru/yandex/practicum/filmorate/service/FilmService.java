@@ -4,9 +4,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
-import ru.yandex.practicum.filmorate.entity.Genre;
-import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
 import ru.yandex.practicum.filmorate.repository.FilmRepository;
@@ -54,7 +51,7 @@ public class FilmService implements BaseFilmService {
     @Override
     public void deleteLike(int filmId, int userId) {
         log.info("Удаление лайка фильму на сервисе:");
-        likes.undoLikeFilm(filmId, userId);
+        likes.unLikeFilm(filmId, userId);
     }
 
     /**
@@ -66,7 +63,7 @@ public class FilmService implements BaseFilmService {
     @Override
     public List<Film> getTopFilms(int topSize) {
         log.info("Получение списка наиболее популярных фильмов по количеству лайков, топ {}:", topSize);
-        return likes.getPopularFilm(topSize);
+        return films.getPopularFilm(topSize);
     }
 
     /**
@@ -92,7 +89,7 @@ public class FilmService implements BaseFilmService {
     @Override
     public Film updateFilm(Film film) {
         log.info("Обновление записи о фильме на сервисе: {}", film);
-        return films.createFilm(film).orElseThrow(
+        return films.updateFilm(film).orElseThrow(
                 () -> new EntityNotFoundException(thisService, films.getClass().getName(),
                         "Обновить запись о фильме не удалось, запись не найдена на сервисе."));
     }
@@ -120,17 +117,5 @@ public class FilmService implements BaseFilmService {
         return films.getFilm(id).orElseThrow(() -> new EntityNotFoundException(
                 thisService, films.getClass().getName(),
                 String.format("Получить запись о фильме не удалось, фильм с ID %d не найден!", id)));
-    }
-
-    /**
-     * Метод возвращает топ лучших фильмов, которые понравились пользователям.
-     *
-     * @param topSize Размер 'топа'
-     * @return список анкет фильмов в порядке убывания количества 'лайков'
-     */
-    @Override
-    public List<Film> getTopFilms(Integer topSize) {
-        //Todo
-        return List.of();
     }
 }

@@ -4,17 +4,17 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsertOperations;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
 
 import javax.sql.DataSource;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -23,7 +23,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class JdbcLikeRepository implements LikeRepository {
     private final NamedParameterJdbcOperations jdbc;
-    private final DataSource source;
+    private final DataSource jdbcTemplate;
     private final String thisService = this.getClass().getName();
     private final String idError = "Ошибка! ID пользователя может быть только положительным значением";
 
@@ -37,20 +37,20 @@ public class JdbcLikeRepository implements LikeRepository {
     public void likeFilm(@Positive(message = idError) int filmId,
                          @Positive(message = idError) int userId) {
         log.info("Пользователь ID {} ставит лайк фильму ID {}", userId, filmId);
-        //validateUserIds(userId, userId);
-        //util.validateFilmIds(filmId, filmId);
-        SimpleJdbcInsert simpleJdbc = new SimpleJdbcInsert(source);
-        Map<String, Object> parameters = Map.of(
-                "FR_FILM_ID_PK", filmId,
-                "FR_USER_ID_PK", userId);
+        SimpleJdbcInsertOperations simpleJdbc = new SimpleJdbcInsert(jdbcTemplate);
+        //String sqlQuery = "INSERT into FILMS_RATINGS (FR_FILM_ID_PK, FR_USER_ID_PK) values(:filmId, :userId)";
         try {
-            simpleJdbc.withTableName("USERS")
-                    .usingGeneratedKeyColumns("FILMS_RATING_PK")
-                    .execute(parameters);
+            simpleJdbc.withTableName("FILMS_RATINGS")
+                    .execute(Map.of("FR_FILM_ID_PK", filmId,"FR_USER_ID_PK", userId));
+            log.info("Лайк добавлен в БД");
         } catch (DuplicateKeyException e) {
-            String likeAdded = "Пользователь уже добавил 'лайк' фильму";
-            log.warn(likeAdded, e);
-            throw new EntityAlreadyExistsException(thisService, e.getClass().getName(), likeAdded);
+            String info = "Лайк уже был добавлен в БД";
+            log.warn(info);
+            throw new EntityAlreadyExistsException(thisService, e.getClass().getName(), info);
+        } catch (DataAccessException e) {
+            String warn = String.format("Пользователя %d и/или фильма %d не найдено", userId, filmId);
+            log.warn(warn);
+            throw new EntityNotFoundException(thisService, e.getClass().getName(), warn);
         }
 
     }
@@ -62,24 +62,24 @@ public class JdbcLikeRepository implements LikeRepository {
      * @param userId пользователь
      */
     @Override
-    public void undoLikeFilm(@Positive(message = idError) int filmId,
-                             @Positive(message = idError) int userId) {
+    public void unLikeFilm(@Positive(message = idError) int filmId,
+                           @Positive(message = idError) int userId) {
         log.info("Пользователь ID {} отменяет лайк фильму ID {}", userId, filmId);
-//        util.validateUserIds(userId, userId);
-//        util.validateFilmIds(filmId, filmId);
         Map<String, Object> parameters = Map.of(
-                "FR_FILM_ID_PK", filmId,
-                "FR_USER_ID_PK", userId);
+                "filmId", filmId,
+                "userId", userId);
         String sqlQuery = "delete from FILMS_RATINGS where FR_FILM_ID_PK = :filmId and FR_USER_ID_PK = :userId";
-        if (jdbc.update(sqlQuery, parameters) != 0) {
-            String likeAdded = "Запись не найдена";
+        if (jdbc.update(sqlQuery, parameters) == 0) {
+            String likeAdded = "Запись о лайке не найдена в БД";
             log.warn(likeAdded);
             throw new EntityNotFoundException(thisService, jdbc.getClass().getName(), likeAdded);
+        } else {
+            log.info("Лайк удален из БД");
         }
     }
 
     /**
-     * Метод получения рейтинга фильма среди пользователей. Зарезервирован для будущего использования
+     * Метод получения рейтинга фильма среди пользователей.
      * @param filmId ID фильма
      * @return количество пользователей, проголосовавших за этот фильм
      */
@@ -96,37 +96,8 @@ public class JdbcLikeRepository implements LikeRepository {
             log.error(error);
             throw new InternalServiceException(thisService, jdbc.getClass().getName(), error);
         } else {
+            log.info("Фильм ID {} имеет {} лайк(а)", filmId, filmRating);
             return filmRating;
         }
-    }
-
-    /**
-     * Метод возвращает топ рейтинга фильмов по количеству лайков
-     *
-     * @param topSize размер топа
-     * @return список ID фильмов топа в порядке убывания количества лайков
-     */
-    @Override
-    public List<Film> getPopularFilm(int topSize) {
-        log.info("Получение топа рейтинга фильмов из БД, размер топа: {}", topSize);
-        String sqlQuery = """
-                          select *, (select count(FR_USER_ID_PK)
-                                      from FILMS_RATINGS
-                                      where FR_FILM_ID_PK = FILM_ID_PK) as RATE
-                          from FILMS
-                          order by RATE
-                          limit :topSize""";
-        return null;
-//        return jdbc.query(sqlQuery, Map.of("topSize", topSize), (rs, rowNum) ->
-//                new Film(
-//                        rs.getInt("FILM_ID_PK"),
-//                        rs.getString("FILM_NAME"),
-//                        rs.getString("FILM_DESCRIPTION"),
-//                        rs.getDate("FILM_RELEASE_DATE").toLocalDate(),
-//                        rs.getInt("FILM_DURATION"),
-//                        rs.getInt("RATE"),
-//                        util.validateMpaIdAndGetMpaFromDb(rs.getInt("FILM_MPA_RATING_FK")),
-//                        util.getFilmGenresFromDb(rs.getInt("FILM_ID_PK"))
-//                ));
     }
 }
