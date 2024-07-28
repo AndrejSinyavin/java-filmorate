@@ -39,8 +39,6 @@ public class Film {
     @DecimalMin(value = "0", message = "Рейтинг фильма не может быть отрицательным значением")
     private int rate;
 
-    @NotNull
     private Mpa mpa;
-    @NotNull
     private Set<Genre> genres;
 }

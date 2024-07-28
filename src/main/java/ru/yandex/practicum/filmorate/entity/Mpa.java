@@ -16,4 +16,8 @@ public class Mpa {
 
     @NotBlank(message = "Название MPA-рейтинга не может быть пустым")
     private String name;
+
+    public int compareTo(Mpa o2) {
+        return this.id - o2.id;
+    }
 }

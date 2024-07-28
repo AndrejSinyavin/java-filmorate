@@ -5,8 +5,8 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.entity.User;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistsException;
 
+import java.sql.ResultSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,7 +25,6 @@ import java.util.Optional;
 @Repository
 @RequiredArgsConstructor
 public class JdbcFriendRepository implements FriendRepository {
-    private final UtilRepository utils;
     private final NamedParameterJdbcOperations jdbc;
     private final JdbcTemplate jdbcTemplate;
     private final String thisService = this.getClass().getName();
@@ -95,7 +95,7 @@ public class JdbcFriendRepository implements FriendRepository {
                                     where FS_USER_ID = :userId
                                     order by FS_FRIEND_ID)""";
         var paramSource = new MapSqlParameterSource().addValue("userId", userId);
-        return jdbc.query(sqlQuery, paramSource, new BeanPropertyRowMapper<>(User.class));
+        return jdbc.query(sqlQuery, paramSource, userMapper());
     }
 
     /**
@@ -111,14 +111,26 @@ public class JdbcFriendRepository implements FriendRepository {
         log.info("Получение из БД списка общих друзей двух пользователей");
         String sqlQuery = """
                 select * from USERS
-                where USER_ID_PK in (
-                                    select distinct FS_USER_ID
+                where USER_ID_PK in (select FS_FRIEND_ID
                                     from FRIENDSHIP_STATUSES
-                                    where (FS_FRIEND_ID = :firstUserId or FS_FRIEND_ID = :secondUserId)
-                                    and (FS_USER_ID != :firstUserId and FS_USER_ID != :secondUserId))""";
+                                    where FS_USER_ID = :secondUserId
+                                    and FS_FRIEND_ID in (select FS_FRIEND_ID
+                                                         from FRIENDSHIP_STATUSES
+                                                         where FS_USER_ID = :firstUserId)
+                order by USER_ID_PK)""";
         var paramSource = new MapSqlParameterSource()
                 .addValue("firstUserId", firstUserId)
                 .addValue("secondUserId", secondUserId);
-        return jdbc.query(sqlQuery, paramSource, new BeanPropertyRowMapper<>(User.class));
+        return jdbc.query(sqlQuery, paramSource, userMapper());
     }
+
+    private RowMapper<User> userMapper() {
+        return (ResultSet rs, int rowNum) -> new User(
+                rs.getInt("USER_ID_PK"),
+                rs.getString("USER_LOGIN"),
+                rs.getString("USER_NAME"),
+                rs.getString("USER_EMAIL"),
+                rs.getDate("USER_BIRTHDAY").toLocalDate());
+    }
+
 }

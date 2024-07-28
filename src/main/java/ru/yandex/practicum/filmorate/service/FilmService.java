@@ -6,7 +6,9 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.entity.Genre;
+import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
+import ru.yandex.practicum.filmorate.exception.InternalServiceException;
 import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.repository.LikeRepository;
@@ -76,8 +78,9 @@ public class FilmService implements BaseFilmService {
     @Override
     public Film createfilm(Film film) {
         log.info("Создание записи о фильме: {}", film);
-        films.createFilm(film);
-        return film;
+        return films.createFilm(film).orElseThrow(
+                () -> new InternalServiceException(thisService, films.getClass().getName(),
+                        "Не удалось создать запись на сервисе."));
     }
 
     /**
@@ -89,9 +92,9 @@ public class FilmService implements BaseFilmService {
     @Override
     public Film updateFilm(Film film) {
         log.info("Обновление записи о фильме на сервисе: {}", film);
-        return films.updateFilm(film).orElseThrow(
+        return films.createFilm(film).orElseThrow(
                 () -> new EntityNotFoundException(thisService, films.getClass().getName(),
-                        "Запись о фильме не найдена в фильмотеке."));
+                        "Обновить запись о фильме не удалось, запись не найдена на сервисе."));
     }
 
     /**
