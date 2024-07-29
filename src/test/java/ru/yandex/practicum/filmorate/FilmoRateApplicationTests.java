@@ -126,4 +126,6 @@ class FilmoRateApplicationTests {
         assertThat(testFilm).hasFieldOrPropertyWithValue("id", 4);
         assertThat(testFilm).hasFieldOrPropertyWithValue("rate", 1);
     }
+
+
 }
