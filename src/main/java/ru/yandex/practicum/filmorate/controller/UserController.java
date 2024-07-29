@@ -89,33 +89,33 @@ public class UserController {
     /**
      * Endpoint обрабатывает запрос на добавление в друзья двух пользователей.
      *
-     * @param id       пользователь, создающий запрос
+     * @param userId       пользователь, создающий запрос
      * @param friendId пользователь, добавляемый в друзья
      */
-    @PutMapping("/{id}/friends/{friendId}")
+    @PutMapping("/{user-id}/friends/{friend-id}")
     public void addFriend(
-            @PathVariable @Positive(message = idError) int id,
-            @PathVariable @Positive(message = idError) int friendId) {
+            @PathVariable("user-id") @Positive(message = idError) int userId,
+            @PathVariable("friend-id") @Positive(message = idError) int friendId) {
         log.info("Запрос ==> PUT добавить в друзья");
-        userService.addFriend(id, friendId);
+        userService.addFriend(userId, friendId);
         log.info("Ответ <== 200 Ok. Создан запрос от пользователя ID {} на добавление в друзья пользователя ID {}  ",
-                id, friendId);
+                userId, friendId);
     }
 
     /**
      * Endpoint обрабатывает запрос на удаление пользователей из друзей друг у друга.
      *
-     * @param id       пользователь, создающий запрос
+     * @param userId       пользователь, создающий запрос
      * @param friendId пользователь, которого нужно удалить из списка друзей
      */
-    @DeleteMapping("/{id}/friends/{friendId}")
+    @DeleteMapping("/{user-id}/friends/{friend-id}")
     public void deleteFriend(
-            @PathVariable @Positive(message = idError) int id,
-            @PathVariable @Positive(message = idError) int friendId) {
+            @PathVariable("user-id") @Positive(message = idError) int userId,
+            @PathVariable("friend-id") @Positive(message = idError) int friendId) {
         log.info("Запрос ==> DELETE удалить из друзей");
-        userService.deleteFriend(id, friendId);
+        userService.deleteFriend(userId, friendId);
         log.info("Ответ <== 200 Ok. Создан запрос на удаление пользователя ID {} из списка друзей ID {}",
-                friendId, id);
+                friendId, userId);
     }
 
     /**
@@ -135,17 +135,17 @@ public class UserController {
     /**
      * Endpoint обрабатывает запрос на получение списка всех общих друзей двух пользователей.
      *
-     * @param id      первый пользователь
-     * @param otherId второй пользователь
+     * @param firstId      первый пользователь
+     * @param secondId второй пользователь
      * @return список всех общих друзей двух пользователей
      */
-    @GetMapping("/{id}/friends/common/{otherId}")
+    @GetMapping("/{first-user-id}/friends/common/{second-user-id}")
     public List<User> getCommonFriends(
-            @PathVariable @Positive(message = idError) int id,
-            @PathVariable @Positive(message = idError) int otherId) {
+            @PathVariable("first-user-id") @Positive(message = idError) int firstId,
+            @PathVariable("second-user-id") @Positive(message = idError) int secondId) {
         log.info("Запрос ==> GET получить список совместных друзей двух пользователей");
-        var result = userService.getCommonFriends(id, otherId);
-        log.info("Ответ <==  200 Ok. Список общих друзей пользователей сервиса ID {} и ID {}", id, otherId);
+        var result = userService.getCommonFriends(firstId, secondId);
+        log.info("Ответ <==  200 Ok. Список общих друзей пользователей сервиса ID {} и ID {}", firstId, secondId);
         return result;
     }
 

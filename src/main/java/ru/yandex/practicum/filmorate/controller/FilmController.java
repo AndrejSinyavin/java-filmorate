@@ -62,7 +62,7 @@ public class FilmController {
      * @return список всех фильмов фильмотеки, может быть пустым
      */
     @GetMapping
-    public List<Film> getFilmsService() {
+    public List<Film> getFilms() {
         log.info("Запрос ==> GET получить список всех фильмов");
         List<Film> filmList = filmsService.getFilms();
         log.info("Ответ <== 200 Ok. Отправлен список всех фильмов сервиса {}", filmList);
@@ -75,8 +75,8 @@ public class FilmController {
      * @param id ID фильма
      * @return фильм
      */
-    @GetMapping("/{id}")
-    public Film getFilm(@PathVariable @Positive(message = idError) int id) {
+    @GetMapping("/{film-id}")
+    public Film getFilm(@PathVariable("film-id") @Positive(message = idError) int id) {
         log.info("Запрос ==> GET получить фильм по ID {}", id);
         Film film = filmsService.getFilm(id);
         log.info("Ответ <== 200 Ok. Отправлен фильм ID {}", film);
@@ -86,30 +86,30 @@ public class FilmController {
     /**
      * Endpoint обрабатывает запрос на лайк фильма пользователем.
      *
-     * @param id     фильма
+     * @param filmId     фильма
      * @param userId пользователя
      */
-    @PutMapping("/{id}/like/{userId}")
+    @PutMapping("/{film-id}/like/{user-id}")
     public void addLike(
-            @PathVariable @Positive(message = idError) int id,
-            @PathVariable @Positive(message = idError) int userId) {
-        log.info("Запрос ==> PUT поставить лайк фильму ID {} от пользователя {}", id, userId);
-        filmsService.addLike(id, userId);
+            @PathVariable("film-id") @Positive(message = idError) int filmId,
+            @PathVariable("user-id") @Positive(message = idError) int userId) {
+        log.info("Запрос ==> PUT поставить лайк фильму ID {} от пользователя {}", filmId, userId);
+        filmsService.addLike(filmId, userId);
         log.info("Ответ <== 200 Ok. Лайк поставлен");
     }
 
     /**
      * Endpoint обрабатывает запрос на отмену лайка фильма пользователем.
      *
-     * @param id     фильма
+     * @param filmId     фильма
      * @param userId пользователя
      */
-    @DeleteMapping("/{id}/like/{userId}")
+    @DeleteMapping("/{film-id}/like/{user-id}")
     public void deleteLike(
-            @PathVariable @Positive(message = idError) int id,
-            @PathVariable @Positive(message = idError) int userId) {
-        log.info("Запрос ==> DELETE отменить лайк фильму ID {} от пользователя {}", id, userId);
-        filmsService.deleteLike(id, userId);
+            @PathVariable("film-id") @Positive(message = idError) int filmId,
+            @PathVariable("user-id") @Positive(message = idError) int userId) {
+        log.info("Запрос ==> DELETE отменить лайк фильму ID {} от пользователя {}", filmId, userId);
+        filmsService.deleteLike(filmId, userId);
         log.info("Ответ <== 200 Ok. Лайк отменен");
     }
 
