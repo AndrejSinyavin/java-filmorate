@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.repository;
 import ru.yandex.practicum.filmorate.entity.User;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Интерфейс для служб, работающих с различными комьюнити пользователей.
@@ -15,18 +14,16 @@ public interface FriendRepository {
      *
      * @param firstUserId  ID первого пользователя
      * @param secondUserId ID второго пользователя
-     * @return пустое значение если добавление успешно, иначе - текст ошибки
      */
-    Optional<String> addFriend(int firstUserId, int secondUserId);
+    void addFriend(int firstUserId, int secondUserId);
 
     /**
      * Метод удаляет пользователя из друзей другого пользователя.
      *
      * @param firstUserId  ID первого пользователя
      * @param secondUserId ID второго пользователя
-     * @return пустое значение если добавление успешно, иначе - текст ошибки
      */
-    Optional<String> deleteFriend(int firstUserId, int secondUserId);
+    void deleteFriend(int firstUserId, int secondUserId);
 
     /**
      * Метод возвращает список друзей выбранного пользователя.

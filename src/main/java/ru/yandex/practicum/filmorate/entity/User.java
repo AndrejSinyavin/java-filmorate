@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.entity;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
@@ -12,6 +13,7 @@ import java.time.LocalDate;
  */
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class User {
     @DecimalMin(value = "0", message = "ID записи не может быть отрицательным значением")
     private int id;

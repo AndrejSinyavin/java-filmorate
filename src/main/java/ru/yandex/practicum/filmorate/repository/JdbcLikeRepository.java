@@ -38,10 +38,9 @@ public class JdbcLikeRepository implements LikeRepository {
                          @Positive(message = idError) int userId) {
         log.info("Пользователь ID {} ставит лайк фильму ID {}", userId, filmId);
         SimpleJdbcInsertOperations simpleJdbc = new SimpleJdbcInsert(jdbcTemplate);
-        //String sqlQuery = "INSERT into FILMS_RATINGS (FR_FILM_ID_PK, FR_USER_ID_PK) values(:filmId, :userId)";
         try {
             simpleJdbc.withTableName("FILMS_RATINGS")
-                    .execute(Map.of("FR_FILM_ID_PK", filmId,"FR_USER_ID_PK", userId));
+                    .execute(Map.of("FR_FILM_ID_PK", filmId, "FR_USER_ID_PK", userId));
             log.info("Лайк добавлен в БД");
         } catch (DuplicateKeyException e) {
             String info = "Лайк уже был добавлен в БД";
@@ -80,15 +79,16 @@ public class JdbcLikeRepository implements LikeRepository {
 
     /**
      * Метод получения рейтинга фильма среди пользователей.
+     *
      * @param filmId ID фильма
      * @return количество пользователей, проголосовавших за этот фильм
      */
     public int getFilmRate(int filmId) {
         log.info("Получение рейтинга фильма из БД");
         String sqlQuery = """
-                            select count(FR_USER_ID_PK)
-                            from FILMS_RATINGS
-                            where FR_FILM_ID_PK = :filmId""";
+                select count(FR_USER_ID_PK)
+                from FILMS_RATINGS
+                where FR_FILM_ID_PK = :filmId""";
         var filmRating = jdbc.queryForObject(sqlQuery, Map.of("filmId", filmId), Integer.class);
         if (filmRating == null || filmRating < 0) {
             String error = "Ошибка! SQL-запрос вернул NULL или отрицательное значение, " +

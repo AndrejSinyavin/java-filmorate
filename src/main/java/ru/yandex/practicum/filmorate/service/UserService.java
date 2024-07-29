@@ -4,9 +4,9 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.entity.User;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
-import ru.yandex.practicum.filmorate.entity.User;
 import ru.yandex.practicum.filmorate.repository.FriendRepository;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
 
@@ -22,26 +22,24 @@ import java.util.List;
 public class UserService implements BaseUserService {
     private final String thisService = this.getClass().getName();
     /**
-     * Подключение сервиса работы с пользователями.
+     * Подключение репозитория для работы с пользователями.
      */
     private final UserRepository users;
     /**
-     * Подключение сервиса работы с друзьями.
+     * Подключение репозитория для работы с друзьями.
      */
     private final FriendRepository friends;
 
     /**
      * Метод создает запрос на дружбу, или подтверждает уже имеющийся запрос.
      *
-     * @param userId ID пользователя, создающего запрос
+     * @param userId   ID пользователя, создающего запрос
      * @param friendId ID пользователя, к которому добавляются
      */
     @Override
     public void addFriend(int userId, int friendId) {
         log.info("Запрос/подтверждение дружбы пользователей {} и {}", userId, friendId);
-        friends.addFriend(userId, friendId).ifPresent(error -> {
-            throw new EntityNotFoundException(thisService, friends.getClass().getName(), error);
-        });
+        friends.addFriend(userId, friendId);
     }
 
     /**
@@ -53,9 +51,7 @@ public class UserService implements BaseUserService {
     @Override
     public void deleteFriend(int userId, int friendId) {
         log.info("Удаление запроса/подтверждения дружбы пользователей {} и {}", userId, friendId);
-        friends.deleteFriend(userId, friendId).ifPresent(error -> {
-                    throw new EntityNotFoundException(thisService,friends.getClass().getName(), error);
-        });
+        friends.deleteFriend(userId, friendId);
     }
 
     /**

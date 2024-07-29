@@ -4,10 +4,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
 import ru.yandex.practicum.filmorate.repository.FilmRepository;
-import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.repository.LikeRepository;
 
 import java.util.List;
@@ -22,11 +22,11 @@ import java.util.List;
 public class FilmService implements BaseFilmService {
     private final String thisService = this.getClass().getName();
     /**
-     * Подключение сервиса работы с фильмами.
+     * Подключение репозитория для работы с фильмами.
      */
     private final FilmRepository films;
     /**
-     * Подключение сервиса работы с "лайками".
+     * Подключение репозитория для работы с "лайками".
      */
     private final LikeRepository likes;
 

@@ -17,10 +17,6 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class GenreService implements BaseGenreService {
-    private final String idError = "Ошибка! ID может быть только положительным значением";
-    /**
-     * Подключение сервиса работы со служебным сервисом.
-     */
     private final UtilRepository util;
 
 
@@ -33,7 +29,7 @@ public class GenreService implements BaseGenreService {
     @Override
     public Genre getGenre(int id) {
         log.info("Получение названия жанра и его ID ");
-        return null;//util.getGenre(id);
+        return util.getGenreById(id);
     }
 
     /**
@@ -44,6 +40,6 @@ public class GenreService implements BaseGenreService {
     @Override
     public List<Genre> getAllGenres() {
         log.info("Получение списка всех имеющихся жанров фильмов");
-        return null; //util.getGenresFromDb();
+        return util.getAllGenres();
     }
 }

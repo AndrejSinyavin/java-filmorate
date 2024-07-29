@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.validate;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.entity.User;
 
 import java.time.LocalDate;

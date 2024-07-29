@@ -101,7 +101,7 @@ public class FilmController {
     /**
      * Endpoint обрабатывает запрос на отмену лайка фильма пользователем.
      *
-     * @param id фильма
+     * @param id     фильма
      * @param userId пользователя
      */
     @DeleteMapping("/{id}/like/{userId}")
@@ -121,7 +121,7 @@ public class FilmController {
      */
     @GetMapping("/popular")
     public List<Film> getTopFilms(
-            @RequestParam(name = "topSize", defaultValue = "10")
+            @RequestParam(name = "count", defaultValue = "10")
             @Positive(message = "Размер топа фильмов должен быть положительным значением")
             Integer topSize) {
         log.info("Запрос ==> GET получить топ-{} лучших фильмов", topSize);

@@ -1,37 +1,38 @@
 package ru.yandex.practicum.filmorate;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.entity.User;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
 import java.time.LocalDate;
 import java.util.Set;
 
-import static javax.validation.Validation.buildDefaultValidatorFactory;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static ru.yandex.practicum.filmorate.FilmorateApplicationTests.Mode.FILM;
-import static ru.yandex.practicum.filmorate.FilmorateApplicationTests.Mode.USER;
+import static ru.yandex.practicum.filmorate.FilmorateApplicationTestsOld.Mode.FILM;
+import static ru.yandex.practicum.filmorate.FilmorateApplicationTestsOld.Mode.USER;
 import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.MAX_DESCRIPTION_LENGTH;
 import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.VALID_RELEASE_DATE;
 
 @Log4j2
-class FilmorateApplicationTests {
+class FilmorateApplicationTestsOld {
     private static Validator validator;
     private Set<ConstraintViolation<Film>> filmViolations;
     private Set<ConstraintViolation<User>> userViolations;
-    private Film film;
+    private Film film = new Film();
     private User user;
     private Mode infoMode;
 
     @BeforeAll
     public static void init() {
         log.atInfo();
-        ValidatorFactory factory = buildDefaultValidatorFactory();
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }
 
@@ -56,16 +57,20 @@ class FilmorateApplicationTests {
     public void viewViolationMessages() {
         switch (infoMode) {
             case FILM:
-                log.info("\nID фильма: {}\tДата релиза: {}\tПродолжительность : {} минут\n" +
-                                "Название: {}\t Описание: {}",
+                log.info("""
+
+                                ID фильма: {}\tДата релиза: {}\tПродолжительность : {} минут
+                                Название: {}\t Описание: {}""",
                         film.getId(), film.getReleaseDate(), film.getDuration(), film.getName(), film.getDescription());
                 for (ConstraintViolation<Film> violation : filmViolations) {
                     log.error(violation.getMessage());
                 }
                 break;
             case USER:
-                log.info("\nID пользователя: {}\tЛогин: {}\n" +
-                                "Имя пользователя: {}\t Дата рождения: {}\tEmail: {}",
+                log.info("""
+
+                                ID пользователя: {}\tЛогин: {}
+                                Имя пользователя: {}\t Дата рождения: {}\tEmail: {}""",
                         user.getId(), user.getLogin(), user.getName(), user.getBirthday(), user.getEmail());
                 for (ConstraintViolation<User> violation : userViolations) {
                     log.error(violation.getMessage());
@@ -132,11 +137,11 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    @DisplayName("Описание фильма пустое, допустимо")
+    @DisplayName("Описание фильма пустое, не допустимо")
     void descriptionEmptyTest() {
         film.setDescription("");
         filmViolations = validator.validate(film);
-        assertTrue(filmViolations.isEmpty());
+        assertFalse(filmViolations.isEmpty());
         infoMode = FILM;
     }
 

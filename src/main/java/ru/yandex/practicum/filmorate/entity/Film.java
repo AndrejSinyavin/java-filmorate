@@ -3,11 +3,12 @@ package ru.yandex.practicum.filmorate.entity;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import ru.yandex.practicum.filmorate.validate.Release;
 
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 
 import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.MAX_DESCRIPTION_LENGTH;
 
@@ -16,6 +17,7 @@ import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.
  */
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class Film {
     @DecimalMin(value = "0", message = "ID записи не может быть отрицательным значением")
     private int id;
@@ -40,5 +42,5 @@ public class Film {
     private int rate;
 
     private Mpa mpa;
-    private Set<Genre> genres;
+    private List<Genre> genres;
 }

@@ -9,8 +9,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.entity.ErrorResponse;
+import ru.yandex.practicum.filmorate.exception.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -32,7 +32,7 @@ public class AppErrorResponseController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequestResponse(final AppException e) {
         String message = "Некорректный запрос. Сформирован ответ '400 Bad Request'.";
-        log.warn("{} {} {} {} \n{}",message, e.getSource(), e.getError(), e.getMessage(), e.getStackTrace());
+        log.warn("{} {} {} {} \n{}", message, e.getSource(), e.getError(), e.getMessage(), e.getStackTrace());
         return new ErrorResponse(e.getError(), e.getMessage());
     }
 
@@ -89,6 +89,7 @@ public class AppErrorResponseController {
 
     /**
      * Обработчик исключений для ответов NOT_FOUND при обработке параметров и/или переменных пути в запросах
+     *
      * @param e перехваченное исключение
      * @return стандартный API-ответ об ошибке ErrorResponse c указанием компонента, источника и вероятных причинах
      */
@@ -102,6 +103,7 @@ public class AppErrorResponseController {
 
     /**
      * Обработчик исключений для ответов INTERNAL_SERVER_ERROR при ошибках в работе СУБД
+     *
      * @param e перехваченное исключение
      * @return стандартный API-ответ об ошибке ErrorResponse c указанием компонента, источника и вероятных причинах
      */
@@ -116,6 +118,7 @@ public class AppErrorResponseController {
 
     /**
      * Обработчик исключений - заглушка, для обработки прочих непредусмотренных исключений.
+     *
      * @param e перехваченное исключение
      * @return стандартный API-ответ об ошибке ErrorResponse c указанием компонента, источника и вероятных причинах
      */
