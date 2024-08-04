@@ -231,7 +231,7 @@ public class JdbcFilmRepository implements FilmRepository {
         var mpaId = 1;
         var mpaProperties = getMpaProperties();
         if (mpa == null) {
-            mpa = new Mpa(1, mpaProperties.getMpa().get(mpaId).getName());
+            mpa = new Mpa(mpaId, mpaProperties.getMpa().getFirst().getName());
         } else {
             mpaId = mpa.getId();
             if (mpaId > mpaProperties.maxMpaId) {
@@ -252,7 +252,7 @@ public class JdbcFilmRepository implements FilmRepository {
                     throw new EntityValidateException(thisService,
                             "Ошибка валидации параметров запроса", "ID жанра превышает число известных в БД");
                 }
-                newGenres.add(new Genre(id, genreProperties.genres.get(id).getName()));
+                newGenres.add(new Genre(id, genreProperties.genres.get(id-1).getName()));
             }
         }
         genres = List.copyOf(newGenres);
