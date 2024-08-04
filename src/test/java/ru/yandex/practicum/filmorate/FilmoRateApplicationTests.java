@@ -132,8 +132,6 @@ class FilmoRateApplicationTests {
     @Test
     @DisplayName("Создание пользователя")
     public void testCreateUser() {
-        genre = utils.getGenreById(1);
-        mpa = utils.getMpaById(1);
         User testUser = new User(
                 0,
                 "login",
