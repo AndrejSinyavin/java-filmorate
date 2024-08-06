@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Жанр фильма
+ * Режиссер фильма
  */
 @Data
 @AllArgsConstructor
