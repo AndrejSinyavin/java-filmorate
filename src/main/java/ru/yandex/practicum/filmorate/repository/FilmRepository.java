@@ -42,6 +42,14 @@ public interface FilmRepository {
     Optional<Film> getFilm(int filmId);
 
     /**
+     * Метод возвращает список фильмов соответсвующих списку их ID
+     *
+     * @param filmsIds список ID искомых фильмов
+     * @return записи о фильмах; либо пустой список, если записи не найдены в хранилище
+     */
+    List<Film> getFilmsByIds(List<Integer> filmsIds);
+
+    /**
      * Метод возвращает топ рейтинга фильмов по количеству лайков
      *
      * @param topSize размер топа

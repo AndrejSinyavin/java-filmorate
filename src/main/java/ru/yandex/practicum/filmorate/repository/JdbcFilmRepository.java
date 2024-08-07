@@ -20,7 +20,11 @@ import ru.yandex.practicum.filmorate.exception.InternalServiceException;
 
 import javax.sql.DataSource;
 import java.sql.ResultSet;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.TreeSet;
 
 @Slf4j
 @Valid
@@ -151,6 +155,34 @@ public class JdbcFilmRepository implements FilmRepository {
     }
 
     /**
+     * Метод возвращает список фильмов из БД с указанными ID.
+     *
+     * @return список фильмов, может быть пустым
+     */
+    @Override
+    public List<Film> getFilmsByIds(List<Integer> filmsIds) {
+        log.info("Создание списка фильмов из БД по списку их ID");
+
+        if (filmsIds.isEmpty())
+            return new ArrayList<>();
+
+        StringBuilder ids = new StringBuilder();
+        for (int i = 0; i < filmsIds.size() - 1; i++) {
+            ids.append(filmsIds.get(i)).append(", ");
+        }
+        ids.append(filmsIds.getLast());
+
+        String sqlQuery = """
+                select *,
+                (SELECT MPA_RATING_NAME FROM MPA_RATINGS WHERE MPA_RATING_ID_PK = FILM_MPA_RATING_FK) AS MPA_NAME,
+                (select count(FR_FILM_ID_PK) from FILMS_RATINGS where FR_FILM_ID_PK = FILM_ID_PK) as RATE
+                from FILMS
+                where FILM_ID_PK IN(""" + ids + ")" +
+                "order by FILM_ID_PK";
+        return jdbc.query(sqlQuery, filmMapper());
+    }
+
+    /**
      * Метод возвращает топ рейтинга фильмов по количеству лайков
      *
      * @param topSize размер топа
@@ -252,7 +284,7 @@ public class JdbcFilmRepository implements FilmRepository {
                     throw new EntityValidateException(thisService,
                             "Ошибка валидации параметров запроса", "ID жанра превышает число известных в БД");
                 }
-                newGenres.add(new Genre(id, genreProperties.genres.get(id-1).getName()));
+                newGenres.add(new Genre(id, genreProperties.genres.get(id - 1).getName()));
             }
         }
         genres = List.copyOf(newGenres);
