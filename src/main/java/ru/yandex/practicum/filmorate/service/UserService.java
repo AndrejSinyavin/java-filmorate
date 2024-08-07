@@ -4,13 +4,24 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.entity.Film;
+import ru.yandex.practicum.filmorate.entity.Like;
 import ru.yandex.practicum.filmorate.entity.User;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
+import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.FriendRepository;
+import ru.yandex.practicum.filmorate.repository.LikeRepository;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Сервис содержит логику работы с пользователями
@@ -29,6 +40,14 @@ public class UserService implements BaseUserService {
      * Подключение репозитория для работы с друзьями.
      */
     private final FriendRepository friends;
+    /**
+     * Подключение репозитория для работы с фильмами.
+     */
+    private final FilmRepository films;
+    /**
+     * Подключение репозитория для работы с фильмами.
+     */
+    private final LikeRepository likes;
 
     /**
      * Метод создает запрос на дружбу, или подтверждает уже имеющийся запрос.
@@ -129,4 +148,105 @@ public class UserService implements BaseUserService {
                 thisService, users.getClass().getName(),
                 String.format("Пользователь ID %d не найден на сервере", userId)));
     }
+
+    /**
+     * Метод возвращает список рекомендуемых фильмов пользователю по его ID
+     *
+     * @param userId ID пользователя
+     * @return список рекомендуемых фильмов
+     */
+    @Override
+    public List<Film> getRecommendations(int userId) {
+        log.info("Получение фильмов рекомендуемых пользователю ID {}", userId);
+
+        Map<Integer, List<Integer>> likesByUserId;
+        List<Like> likesList = likes.getLikes();
+
+        if (!likes.isUserHasLikes(userId)) {
+            return new ArrayList<>();
+        }
+
+        if (likesList.isEmpty()) {
+            throw new EntityNotFoundException(thisService, likes.getClass().getName(),
+                    "Таблица likes пуста");
+        }
+        likesByUserId = likesListToMap(likesList);
+
+        Map<Integer, Double> filmsMatchPercents = new HashMap<>();
+
+        filmsMatchPercents = getFilmsMatchPercents(userId, likesByUserId);
+
+        Set<Integer> filmsIdsOfMostSimilarUsers = new HashSet<>();
+
+        Optional<Double> optionalMaxMatchPercent = filmsMatchPercents.values().stream()
+                .max(Comparator.comparing(Double::doubleValue));
+
+        if (optionalMaxMatchPercent.isPresent()) {
+            Double maxPercent = optionalMaxMatchPercent.get();
+
+            if (maxPercent == 0.0)
+                return new ArrayList<>();
+
+            for (int otherUserId : filmsMatchPercents.keySet()) {
+                if (filmsMatchPercents.get(otherUserId) >= maxPercent) {
+                    for (int i = 0; i < likesByUserId.get(otherUserId).size(); i++) {
+                        if (!likesByUserId.get(userId).contains(likesByUserId.get(otherUserId).get(i))) {
+                            filmsIdsOfMostSimilarUsers.add(likesByUserId.get(otherUserId).get(i));
+                        }
+                    }
+                }
+            }
+        }
+
+        return films.getFilmsByIds(new ArrayList<>(filmsIdsOfMostSimilarUsers));
+    }
+
+    /**
+     * Метод преобразует список с объектами Like в HashMap вида:
+     * key: id пользователя, value: список понравившихся фильмов
+     *
+     * @param likesList список объектов Like
+     * @return HashMap с лайкнутыми фильмами, разделенных по ID пользовтелей
+     */
+    private Map<Integer, List<Integer>> likesListToMap(List<Like> likesList) {
+        Map<Integer, List<Integer>> likesByUserId = new HashMap<>();
+        for (Like like : likesList) {
+            if (likesByUserId.get(like.getUserId()) == null) {
+                List<Integer> films = new ArrayList<>();
+                likesByUserId.put(like.getUserId(), films);
+            }
+            likesByUserId.get(like.getUserId()).add(like.getFilmId());
+        }
+        return likesByUserId;
+    }
+
+    /**
+     * Метод возвращает HashMap с процентами совпадения
+     * проставленных лайков пользователя с id = userId
+     * с другими пользователями
+     *
+     * @param userId        id пользователя
+     * @param likesByUserId HashMap с лайкнутыми фильмами, разделенных по ID пользовтелей
+     * @return HashMap с долями совпадения
+     */
+    private Map<Integer, Double> getFilmsMatchPercents(Integer userId, Map<Integer, List<Integer>> likesByUserId) {
+        Map<Integer, Double> filmsMatchPercent = new HashMap<>();
+        for (int uid : likesByUserId.keySet()) {
+            filmsMatchPercent.put(uid, 0.0);
+        }
+        for (int otherUserId : likesByUserId.keySet()) {
+            if (otherUserId == userId)
+                continue;
+            for (int j = 0; j < likesByUserId.get(userId).size(); j++) {
+                if (likesByUserId.get(otherUserId).contains(likesByUserId.get(userId).get(j))) {
+                    filmsMatchPercent.put(otherUserId,
+                            (filmsMatchPercent.get(otherUserId) + 1.0 / likesByUserId.get(otherUserId).size()));
+                }
+            }
+        }
+
+        return filmsMatchPercent;
+    }
 }
+
+

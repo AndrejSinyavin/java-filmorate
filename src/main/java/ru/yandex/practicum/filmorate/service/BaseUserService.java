@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.entity.User;
 
 import java.util.List;
@@ -68,4 +69,12 @@ public interface BaseUserService {
      * @return искомый пользователь
      */
     User getUser(int userId);
+
+    /**
+     * Метод возвращает список рекомендованных поьзователю фильмов по его ID
+     *
+     * @param userId ID пользователя
+     * @return список рекомендаций
+     */
+    List<Film> getRecommendations(int userId);
 }
