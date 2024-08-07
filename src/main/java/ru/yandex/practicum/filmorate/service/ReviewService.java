@@ -14,7 +14,7 @@ import java.util.Collection;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ReviewService implements BaseReviewService{
+public class ReviewService implements BaseReviewService {
     private final ReviewRepository reviewRepository;
     private final ReviewLikeRepository reviewLikeRepository;
 

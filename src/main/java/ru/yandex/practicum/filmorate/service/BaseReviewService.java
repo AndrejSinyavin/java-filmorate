@@ -10,7 +10,7 @@ public interface BaseReviewService {
      * Получение коллекции отзывов, отсортированных по рейтингу
      *
      * @param filmId идентификатор фильма
-     * @param count количество отзывов (по умолчанию 10)
+     * @param count  количество отзывов (по умолчанию 10)
      * @return возвращает коллекцию объектов Review
      */
     Collection<Review> get(Integer filmId, Integer count);
@@ -50,7 +50,7 @@ public interface BaseReviewService {
      * Добавление лайка пользователя для отзыва
      *
      * @param reviewId идентификатор отзыва
-     * @param userId идентификатор пользователя
+     * @param userId   идентификатор пользователя
      */
     void addLike(Integer reviewId, Integer userId);
 
@@ -58,7 +58,7 @@ public interface BaseReviewService {
      * Добавление дизлайка пользователя для отзыва
      *
      * @param reviewId идентификатор отзыва
-     * @param userId идентификатор пользователя
+     * @param userId   идентификатор пользователя
      */
     void addDislike(Integer reviewId, Integer userId);
 
@@ -66,7 +66,7 @@ public interface BaseReviewService {
      * Удаление лайка пользователя для отзыва
      *
      * @param reviewId идентификатор отзыва
-     * @param userId идентификатор пользователя
+     * @param userId   идентификатор пользователя
      */
     void deleteLike(Integer reviewId, Integer userId);
 
@@ -74,7 +74,7 @@ public interface BaseReviewService {
      * Удаление дизлайка пользователя для отзыва
      *
      * @param reviewId идентификатор отзыва
-     * @param userId идентификатор пользователя
+     * @param userId   идентификатор пользователя
      */
     void deleteDislike(Integer reviewId, Integer userId);
 }

@@ -20,7 +20,7 @@ public class ReviewController {
      * Endpoint получения первых count отзывов по идентификатору фильма либо первых count всех отзывов
      *
      * @param filmId идентификатор фильма
-     * @param count количество отзывов (по умолчанию 10)
+     * @param count  количество отзывов (по умолчанию 10)
      * @return возвращает коллекцию объектов Review
      */
     @GetMapping
@@ -83,7 +83,7 @@ public class ReviewController {
      * Endpoint добавления лайка для отзыва
      *
      * @param reviewId идентификатор отзыва
-     * @param userId идентификатор пользователя
+     * @param userId   идентификатор пользователя
      */
     @PutMapping("/{id}/like/{user-id}")
     public void addLike(@PathVariable("id") int reviewId, @PathVariable("user-id") int userId) {
@@ -98,7 +98,7 @@ public class ReviewController {
      * Endpoint добавления дизлайка для отзыва
      *
      * @param reviewId идентификатор отзыва
-     * @param userId идентификатор пользователя
+     * @param userId   идентификатор пользователя
      */
     @PutMapping("/{id}/dislike/{user-id}")
     public void addDislike(@PathVariable("id") int reviewId, @PathVariable("user-id") int userId) {
@@ -113,7 +113,7 @@ public class ReviewController {
      * Endpoint удаления лайка отзыва
      *
      * @param reviewId идентификатор отзыва
-     * @param userId идентификатор пользователя
+     * @param userId   идентификатор пользователя
      */
     @DeleteMapping("/{id}/like/{user-id}")
     public void deleteLike(@PathVariable("id") int reviewId, @PathVariable("user-id") int userId) {
@@ -128,7 +128,7 @@ public class ReviewController {
      * Endpoint удаления дизлайка отзыва
      *
      * @param reviewId идентификатор отзыва
-     * @param userId идентификатор пользователя
+     * @param userId   идентификатор пользователя
      */
     @DeleteMapping("/{id}/dislike/{user-id}")
     public void deleteDislike(@PathVariable("id") int reviewId, @PathVariable("user-id") int userId) {
