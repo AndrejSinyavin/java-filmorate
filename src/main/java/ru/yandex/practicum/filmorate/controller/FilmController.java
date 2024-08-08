@@ -6,7 +6,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.service.BaseFilmService;
 
@@ -86,7 +95,7 @@ public class FilmController {
     /**
      * Endpoint обрабатывает запрос на лайк фильма пользователем.
      *
-     * @param filmId     фильма
+     * @param filmId фильма
      * @param userId пользователя
      */
     @PutMapping("/{film-id}/like/{user-id}")
@@ -101,7 +110,7 @@ public class FilmController {
     /**
      * Endpoint обрабатывает запрос на отмену лайка фильма пользователем.
      *
-     * @param filmId     фильма
+     * @param filmId фильма
      * @param userId пользователя
      */
     @DeleteMapping("/{film-id}/like/{user-id}")
@@ -128,5 +137,21 @@ public class FilmController {
         var topFilms = filmsService.getTopFilms(topSize);
         log.info("Ответ <== 200 Ok. Топ-{} фильмотеки отправлен {}", topSize, topFilms.size());
         return topFilms;
+    }
+
+    /**
+     * Endpoint обрабатывает запрос на получение списка общих фильмов
+     *
+     * @param userId   идентификатор пользователя, запрашивающего информацию
+     * @param friendId идентификатор пользователя, с которым необходимо сравнить список фильмов
+     * @return возвращает список фильмов, отсортированных по популярности.
+     */
+    @GetMapping("/common")
+    public List<Film> getCommonFilms(@RequestParam @Positive(message = idError) int userId,
+                                     @RequestParam @Positive(message = idError) int friendId) {
+        log.info("Запрос ==> GET получить общие фильмы пользователей с ID = {} и ID ={}", userId, friendId);
+        List<Film> commonFilms = filmsService.getCommonFilms(userId, friendId);
+        log.info("Ответ <== 200 Ok. Получены общие фильмы пользователей с ID = {} и ID ={}", userId, friendId);
+        return commonFilms;
     }
 }
