@@ -12,7 +12,6 @@ import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.repository.DirectorRepository;
 
 import java.util.List;
-import java.util.Map;
 
 @Log4j2
 @Valid
@@ -53,14 +52,14 @@ public class DirectorService implements BaseDirectorService{
     /**
      * Создает из БД новую запись о режиссере
      *
-     * @param director сущность режиссер
+     * @param name сущность режиссер
      * @return эта же сущность с установленным Id
      */
     @Override
-    public Director createDirector(@NotNull(message = entityNullError) Director director) {
-        return directorRepository.create(director).orElseThrow(() ->
+    public Director createDirector(@NotNull(message = entityNullError) String name) {
+        return directorRepository.create(name).orElseThrow(() ->
                 new EntityAlreadyExistsException(
-                        thisService, "Создание режиссера", director.getName() + " уже существует"
+                        thisService, "Создание режиссера", name + " уже существует"
                 ));
     }
 

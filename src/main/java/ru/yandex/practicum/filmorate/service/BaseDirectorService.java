@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import jakarta.validation.constraints.NotNull;
 import ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.DirectorSortParams;
 import ru.yandex.practicum.filmorate.entity.Director;
 import ru.yandex.practicum.filmorate.entity.Film;
@@ -26,10 +27,11 @@ public interface BaseDirectorService {
     /**
      * Создает новую запись о режиссере
      *
-     * @param director сущность режиссер
+     * @param name сущность режиссер
      * @return эта же сущность с установленным Id
      */
-    Director createDirector(Director director);
+    Director createDirector(String name);
+
 
     /**
      * Измеряет имеющегося режиссера

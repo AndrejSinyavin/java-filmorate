@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.repository;
 
+import jakarta.validation.constraints.NotNull;
 import ru.yandex.practicum.filmorate.entity.Director;
 import ru.yandex.practicum.filmorate.entity.Film;
 
@@ -28,10 +29,10 @@ public interface DirectorRepository {
     /**
      * Создает режиссера в репозитории
      *
-     * @param director режиссер, которого нужно создать
+     * @param name режиссер, которого нужно создать
      * @return он же с установленным ID, или пустое значение, если не получилось
      */
-    Optional<Director> create(Director director);
+    Optional<Director> create(String name);
 
     /**
      * Обновление существующего режиссера
@@ -44,7 +45,7 @@ public interface DirectorRepository {
     /**
      * Удаление режиссера
      *
-     * @param directorId Id режиссера
+     * @param id режиссера
      */
-    void delete(int directorId);
+    void delete(int id);
 }

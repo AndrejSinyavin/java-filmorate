@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
@@ -43,7 +42,8 @@ public class JdbcDirectorRepository implements DirectorRepository {
     public List<Director> findAll() {
         log.info("Создание списка всех режиссеров из БД");
         String sqlQuery = "SELECT * FROM DIRECTORS ORDER BY DIRECTOR_ID_PK";
-        return jdbc.query(sqlQuery, directorMapper());
+        var result = jdbc.query(sqlQuery, directorMapper());
+        return result;
     }
 
     /**
@@ -73,22 +73,22 @@ public class JdbcDirectorRepository implements DirectorRepository {
     /**
      * Создает режиссера в репозитории
      *
-     * @param director режиссер, которого нужно создать
+     * @param name режиссер, которого нужно создать
      * @return он же с установленным ID, или пустое значение, если не получилось
      */
     @Override
-    public Optional<Director> create(@NotNull(message = entityNullError) Director director) {
+    public Optional<Director> create(@NotNull(message = entityNullError) String name) {
         log.info("Создание записи о режиссере в БД");
         SimpleJdbcInsert simpleJdbc = new SimpleJdbcInsert(source);
         var generatedID = simpleJdbc.withTableName("DIRECTORS")
                 .usingGeneratedKeyColumns("DIRECTOR_ID_PK")
-                .executeAndReturnKey(Map.of("DIRECTOR_NAME", director.getName())).intValue();
+                .executeAndReturnKey(Map.of("DIRECTOR_NAME", name)).intValue();
         if (generatedID == 0) {
             log.warn("Режиссер уже есть в БД");
             return Optional.empty();
         } else {
             log.info("Запись о фильме ID = {} успешно создана в БД", generatedID);
-            return Optional.of(director);
+            return Optional.of(new Director(generatedID, name));
         }
     }
 

@@ -29,20 +29,19 @@ public class DirectorController {
      * Подключение сервиса работы с режиссерами.
      */
     private final DirectorService directorService;
-    private final FilmService filmService;
 
     /**
      * Endpoint обрабатывает запрос на создание режиссера.
      *
-     * @param director режиссер, получаемый из тела запроса
+     * @param name режиссер, получаемый из тела запроса
      * @return режиссер с уже зарегистрированным ID
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Director create(@Valid @RequestBody Director director) {
-        log.info("Запрос ==> POST {}", director);
-        directorService.createDirector(director);
-        log.info("Ответ <== 201 Created. Режиссер успешно добавлен {}", director);
+    public Director create(@Valid @RequestBody String name) {
+        log.info("Запрос ==> POST {}", name);
+        var director = directorService.createDirector(name);
+        log.info("Ответ <== 201 Created. Режиссер успешно добавлен {}", name);
         return director;
     }
 
@@ -56,7 +55,7 @@ public class DirectorController {
     @ResponseStatus(HttpStatus.OK)
     public Director update(@Valid @RequestBody() Director director) {
         log.info("Запрос ==> PUT {}", director);
-        directorService.createDirector(director);
+        director = directorService.updateDirector(director);
         log.info("Ответ <== 200 Ok. Режиссер успешно обновлен {}", director);
         return director;
     }
@@ -68,7 +67,7 @@ public class DirectorController {
      * @return режиссер
      */
     @GetMapping("/{id}")
-    public Director getById(@Positive(message = idError) @PathVariable int id) {
+    public Director getById(@PathVariable @Positive(message = idError) int id) {
         log.info("Запрос ==> GET получить директора по ID {}", id);
         Director director = directorService.getDirectorById(id);
         log.info("Ответ <== 200 Ok. Отправлен директор ID {}", director);
@@ -92,9 +91,9 @@ public class DirectorController {
      * Endpoint обрабатывает запрос на удаление режиссера.
      */
     @DeleteMapping("/{id}")
-    public void deleteById(@Positive(message = idError) @PathVariable int id) {
+    public void deleteById(@PathVariable @Positive(message = idError) int id) {
         log.info("Запрос ==> DELETE удалить режиссера ID {}", id);
         directorService.deleteDirector(id);
-        log.info("Ответ <== 200 Ok. Режиссеров {} удален", id);
+        log.info("Ответ <== 200 Ok. Режиссер {} удален", id);
     }
 }

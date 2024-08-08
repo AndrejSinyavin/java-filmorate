@@ -229,15 +229,15 @@ public class JdbcFilmRepository implements FilmRepository {
      *
      * @param film фильм, из которого берется список его режиссеров
      */
-    void updateFilmsDirectorsTable(@NotNull(message = entityNullError) Film film) {
+    private void updateFilmsDirectorsTable(@NotNull(message = entityNullError) Film film) {
+        int id = film.getId();
         String sqlQuery = """
                 delete from FILMS_DIRECTORS
-                where FD_DIRECTOR_ID = :filmId""";
-        jdbc.update(sqlQuery, new MapSqlParameterSource().addValue("filmId", film.getId()));
+                where FD_FILM_ID = :filmId""";
+        jdbc.update(sqlQuery, new MapSqlParameterSource().addValue("filmId", id));
         sqlQuery = """
                 insert into FILMS_DIRECTORS (FD_FILM_ID, FD_DIRECTOR_ID)
                 values (:filmId, :directorId)""";
-        int id = film.getId();
         for (var director : film.getDirector()) {
             jdbc.update(sqlQuery, new MapSqlParameterSource()
                     .addValue("filmId", id)
@@ -251,7 +251,7 @@ public class JdbcFilmRepository implements FilmRepository {
      * @param filmId ID фильма
      * @return список жанров
      */
-    public List<Genre> getFilmGenresFromDb(@Positive(message = idError) int filmId) {
+    private List<Genre> getFilmGenresFromDb(@Positive(message = idError) int filmId) {
         log.info("Получение списка жанров фильма ID {} из БД", filmId);
         String sqlQuery = """
                 select FG_GENRE_ID as ID, GENRE_NAME as NAME
@@ -268,7 +268,7 @@ public class JdbcFilmRepository implements FilmRepository {
      * @param filmId ID фильма
      * @return список режиссеров
      */
-    public List<Director> getFilmDirectorsFromDb(@Positive(message = idError) int filmId) {
+    private List<Director> getFilmDirectorsFromDb(@Positive(message = idError) int filmId) {
         log.info("Получение списка режиссеров фильма ID {} из БД", filmId);
         String sqlQuery = """
                 select FD_DIRECTOR_ID as ID, DIRECTOR_NAME as NAME
@@ -287,8 +287,8 @@ public class JdbcFilmRepository implements FilmRepository {
 
     private RowMapper<Director> directorMapper() {
         return (ResultSet rs, int rowNum) -> new Director(
-                rs.getInt("ID"),
-                rs.getString("NAME"));
+                rs.getInt("DIRECTOR_ID_PK"),
+                rs.getString("DIRECTOR_NAME"));
     }
 
     private RowMapper<Film> filmMapper() {

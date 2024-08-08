@@ -186,7 +186,7 @@ public class FilmService implements BaseFilmService {
         var directors = film.getDirector();
         var allDirectors = utils.getAllDirectors();
         var sortedDirectors = new TreeSet<>(Director::compareTo);
-        if (directors != null && !directors.isEmpty()) {
+        if (directors != null) {
             if (directors.stream().anyMatch(director -> director.getId() > allDirectors.size())) {
                 throw new EntityValidateException(thisService,
                         "Ошибка валидации параметров запроса", "ID директора превышает число известных в БД");
