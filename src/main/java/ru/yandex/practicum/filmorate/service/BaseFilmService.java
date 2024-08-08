@@ -53,6 +53,15 @@ public interface BaseFilmService {
     List<Film> getFilms();
 
     /**
+     * Возвращает список фильмов режиссера, отсортированный по заданному критерию.
+     *
+     * @param directorId режиссер
+     * @param criteria   критерий сортировки
+     * @return список фильмов этого режиссера, отсортированный по критерию
+     */
+    List<Film> getFilmsSortedByCriteria(int directorId, String criteria);
+
+    /**
      * Метод возвращает запись о конкретном фильме.
      *
      * @param id ID искомого фильма

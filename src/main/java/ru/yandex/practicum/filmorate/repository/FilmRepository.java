@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.repository;
 
 import ru.yandex.practicum.filmorate.entity.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.List;
 import java.util.Optional;
@@ -48,4 +49,12 @@ public interface FilmRepository {
      * @return список ID фильмов топа в порядке убывания количества лайков
      */
     List<Film> getPopularFilm(int topSize);
+
+    /**
+     * Получение списка фильмов с режиссерами по условиям
+     *
+     * @param conditions - условия поиска
+     * @return список найденных фильмов
+     */
+     List<Film> findFilmsForDirectorByConditions(int directorId, String conditions);
 }

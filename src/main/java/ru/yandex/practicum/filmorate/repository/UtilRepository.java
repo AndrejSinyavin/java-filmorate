@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.repository;
 
+import ru.yandex.practicum.filmorate.entity.Director;
 import ru.yandex.practicum.filmorate.entity.Genre;
 import ru.yandex.practicum.filmorate.entity.Mpa;
 
@@ -36,4 +37,6 @@ public interface UtilRepository {
      * @return список из {@link Mpa}
      */
     List<Mpa> getAllMpa();
+
+    List<Director> getAllDirectors();
 }
