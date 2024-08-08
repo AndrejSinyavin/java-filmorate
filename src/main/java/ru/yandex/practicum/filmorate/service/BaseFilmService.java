@@ -25,9 +25,11 @@ public interface BaseFilmService {
      * Метод получает топ лучших фильмов по лайкам пользователей.
      *
      * @param topSize размер топа
+     * @param genreId идентификатор жанра
+     * @param year год релиза фильма
      * @return топ лучших фильмов
      */
-    List<Film> getTopFilms(int topSize);
+    List<Film> getTopFilms(Integer topSize, Integer genreId, Integer year);
 
     /**
      * Метод создает запись о фильме на сервисе.
