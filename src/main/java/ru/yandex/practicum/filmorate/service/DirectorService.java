@@ -7,9 +7,12 @@ import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.entity.Director;
+import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistsException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.repository.DirectorRepository;
 
 import java.util.List;
+import java.util.Map;
 
 @Log4j2
 @Valid
@@ -28,7 +31,8 @@ public class DirectorService implements BaseDirectorService{
      */
     @Override
     public List<Director> getAllDirectors() {
-        return List.of();
+        log.info("Получение списка всех режиссеров сервиса");
+        return directorRepository.findAll();
     }
 
     /**
@@ -39,7 +43,11 @@ public class DirectorService implements BaseDirectorService{
      */
     @Override
     public Director getDirectorById(@Positive(message = idError) int directorId) {
-        return null;
+        log.info("Чтение записи о режиссере из БД");
+        return directorRepository.findById(directorId).orElseThrow(() -> new EntityNotFoundException(
+                thisService, directorRepository.getClass().getName(),
+                String.format("Получить запись не удалось, режиссер с ID %d не найден!", directorId))
+        );
     }
 
     /**
@@ -50,7 +58,10 @@ public class DirectorService implements BaseDirectorService{
      */
     @Override
     public Director createDirector(@NotNull(message = entityNullError) Director director) {
-        return null;
+        return directorRepository.create(director).orElseThrow(() ->
+                new EntityAlreadyExistsException(
+                        thisService, "Создание режиссера", director.getName() + " уже существует"
+                ));
     }
 
     /**
@@ -61,7 +72,10 @@ public class DirectorService implements BaseDirectorService{
      */
     @Override
     public Director updateDirector(@NotNull(message = entityNullError) Director director) {
-        return null;
+        return directorRepository.update(director).orElseThrow(() ->
+                new EntityNotFoundException(
+                        thisService, "Обновление режиссера", director.getName() + " не существует"
+                ));
     }
 
     /**
@@ -71,6 +85,6 @@ public class DirectorService implements BaseDirectorService{
      */
     @Override
     public void deleteDirector(@Positive(message = idError) int directorId) {
-
+        directorRepository.delete(directorId);
     }
 }

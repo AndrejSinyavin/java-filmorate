@@ -142,7 +142,7 @@ public class FilmController {
         log.info("Запрос ==> GET список фильмов режиссера ID {}, критерий сортировки {}", directorId, sortBy);
         FilmorateApplicationSettings.DirectorSortParams criteria;
         try {
-            criteria = FilmorateApplicationSettings.DirectorSortParams.valueOf(sortBy);
+            FilmorateApplicationSettings.DirectorSortParams.valueOf(sortBy);
         } catch (IllegalArgumentException e) {
             throw new EntityValidateException(
                     thisService,"Ошибка валидации параметров в запросе",

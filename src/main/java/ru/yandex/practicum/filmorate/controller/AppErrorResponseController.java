@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,7 +29,7 @@ public class AppErrorResponseController {
      * @param e перехваченное исключение
      * @return стандартный API-ответ об ошибке ErrorResponse c указанием компонента, источника и вероятных причинах
      */
-    @ExceptionHandler({EntityAlreadyExistsException.class, EntityValidateException.class})
+    @ExceptionHandler({EntityAlreadyExistsException.class, EntityValidateException.class,})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequestResponse(final AppException e) {
         String message = "Некорректный запрос. Сформирован ответ '400 Bad Request'.";
@@ -70,7 +71,7 @@ public class AppErrorResponseController {
      * @param e перехваченное исключение
      * @return стандартный API-ответ об ошибке ErrorResponse c указанием компонента, источника и вероятных причинах
      */
-    @ExceptionHandler({MethodArgumentNotValidException.class})
+    @ExceptionHandler({MethodArgumentNotValidException.class, HttpMessageNotReadableException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleAnnotationValidateErrorResponse(final MethodArgumentNotValidException e) {
         String message = "Некорректный запрос. Сформирован ответ '400 Bad Request'.";
