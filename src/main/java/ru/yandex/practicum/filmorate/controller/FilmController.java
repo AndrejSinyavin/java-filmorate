@@ -117,15 +117,19 @@ public class FilmController {
      * Endpoint обрабатывает запрос на получение топа рейтинга фильмов по лайкам пользователей.
      *
      * @param topSize размер топа рейтинга
+     * @param genreId идентификатор жанра (необязательный параметр)
+     * @param year год релиза фильма (необязательный параметр)
      * @return список из фильмов в порядке понижения рейтинга
      */
     @GetMapping("/popular")
     public List<Film> getTopFilms(
-            @RequestParam(name = "count", defaultValue = "10")
+            @RequestParam(name = "count", required = false)
             @Positive(message = "Размер топа фильмов должен быть положительным значением")
-            Integer topSize) {
+            Integer topSize,
+            @RequestParam(value = "genreId", required = false) Integer genreId,
+            @RequestParam(value = "year", required = false) Integer year) {
         log.info("Запрос ==> GET получить топ-{} лучших фильмов", topSize);
-        var topFilms = filmsService.getTopFilms(topSize);
+        var topFilms = filmsService.getTopFilms(topSize, genreId, year);
         log.info("Ответ <== 200 Ok. Топ-{} фильмотеки отправлен {}", topSize, topFilms.size());
         return topFilms;
     }
