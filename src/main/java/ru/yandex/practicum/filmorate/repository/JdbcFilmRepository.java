@@ -189,8 +189,22 @@ public class JdbcFilmRepository implements FilmRepository {
      * @return список ID фильмов топа в порядке убывания количества лайков
      */
     @Override
-    public List<Film> getPopularFilm(int topSize) {
+    public List<Film> getPopularFilm(Integer topSize) {
+        return getPopularFilm(topSize, null, null);
+    }
+
+    /**
+     * Метод возвращает топ рейтинга фильмов по количеству лайков
+     *
+     * @param topSize размер топа
+     * @param genreId дентификатор жанра
+     * @param year год релиза фильма
+     * @return список ID фильмов топа в порядке убывания количества лайков
+     */
+    @Override
+    public List<Film> getPopularFilm(Integer topSize, Integer genreId, Integer year) {
         log.info("Получение топа рейтинга фильмов из БД, размер топа: {}", topSize);
+        MapSqlParameterSource params = new MapSqlParameterSource();
         String sqlQuery = """
                 select *,
                 (select count(FR_USER_ID_PK)
@@ -199,10 +213,18 @@ public class JdbcFilmRepository implements FilmRepository {
                 (SELECT MPA_RATING_NAME
                         FROM MPA_RATINGS
                         WHERE MPA_RATING_ID_PK = FILM_MPA_RATING_FK) AS MPA_NAME
-                from FILMS
-                order by RATE desc
-                limit :topSize""";
-        return jdbc.query(sqlQuery, Map.of("topSize", topSize), filmMapper());
+                  FROM films f
+                 WHERE nvl(:year, EXTRACT(YEAR FROM f.FILM_RELEASE_DATE)) = EXTRACT(YEAR FROM f.FILM_RELEASE_DATE)
+                   AND (EXISTS(SELECT 1 FROM FILMS_GENRES fg
+                                WHERE fg.fg_film_id = FILM_ID_PK AND fg.fg_genre_id = :genre_id) OR :genre_id IS null)
+                order by RATE desc""";
+        if (topSize != null) {
+            sqlQuery += " limit :topSize";
+            params.addValue("topSize", topSize);
+        }
+        params.addValue("genre_id", genreId);
+        params.addValue("year", year);
+        return jdbc.query(sqlQuery, params, filmMapper());
     }
 
     /**

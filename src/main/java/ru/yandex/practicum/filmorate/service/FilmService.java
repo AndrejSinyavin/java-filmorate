@@ -61,9 +61,9 @@ public class FilmService implements BaseFilmService {
      * @return топ лучших фильмов
      */
     @Override
-    public List<Film> getTopFilms(int topSize) {
+    public List<Film> getTopFilms(Integer topSize, Integer genreId, Integer year) {
         log.info("Получение списка наиболее популярных фильмов по количеству лайков, топ {}:", topSize);
-        return films.getPopularFilm(topSize);
+        return films.getPopularFilm(topSize, genreId, year);
     }
 
     /**
