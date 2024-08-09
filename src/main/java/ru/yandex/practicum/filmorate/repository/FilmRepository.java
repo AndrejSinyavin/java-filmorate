@@ -53,17 +53,27 @@ public interface FilmRepository {
      * Метод возвращает топ рейтинга фильмов по количеству лайков
      *
      * @param topSize размер топа
+     * @param genreId дентификатор жанра
+     * @param year    год релиза фильма
      * @return список ID фильмов топа в порядке убывания количества лайков
      */
-    List<Film> getPopularFilm(Integer topSize);
+    List<Film> getPopularFilm(Integer topSize, Integer genreId, Integer year);
+
 
     /**
      * Метод возвращает топ рейтинга фильмов по количеству лайков
      *
      * @param topSize размер топа
-     * @param genreId дентификатор жанра
-     * @param year год релиза фильма
      * @return список ID фильмов топа в порядке убывания количества лайков
      */
-    List<Film> getPopularFilm(Integer topSize, Integer genreId, Integer year);
+    List<Film> getPopularFilm(Integer topSize);
+
+    /**
+     * Метод возвращает список общих с другом фильмов с сортировкой по их популярности
+     *
+     * @param userId   идентификатор пользователя, запрашивающего информацию
+     * @param friendId идентификатор пользователя, с которым необходимо сравнить список фильмов
+     * @return возвращает список фильмов, отсортированных по популярности.
+     */
+    List<Film> getCommonFilms(int userId, int friendId);
 }

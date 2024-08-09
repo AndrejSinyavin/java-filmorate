@@ -406,4 +406,24 @@ class FilmoRateApplicationTests {
         assertThat(likes.isUserHasLikes(1)).isEqualTo(true);
     }
 
+    @Test
+    @DisplayName("Должен возвращать список общих фильмоа отсортированных по популярности")
+    public void shouldReturnSortedCommonFilmsList() {
+        likes.likeFilm(5, 1);
+        likes.likeFilm(5, 2);
+        likes.likeFilm(4, 1);
+        likes.likeFilm(4, 2);
+        likes.likeFilm(5, 3);
+        List<Film> commonFilms = films.getCommonFilms(1, 2);
+
+        assertThat(commonFilms)
+                .hasSize(2);
+
+        assertThat(commonFilms.get(0))
+                .hasFieldOrPropertyWithValue("id", 5);
+
+        assertThat(commonFilms.get(1))
+                .hasFieldOrPropertyWithValue("id", 4);
+    }
+
 }

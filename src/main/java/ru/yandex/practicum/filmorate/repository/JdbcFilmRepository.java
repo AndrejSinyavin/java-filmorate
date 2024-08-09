@@ -329,6 +329,37 @@ public class JdbcFilmRepository implements FilmRepository {
         return setFilmGenres;
     }
 
+    /**
+     * Метод возвращает список общих с другом фильмов с сортировкой по их популярности
+     *
+     * @param userId   идентификатор пользователя, запрашивающего информацию
+     * @param friendId идентификатор пользователя, с которым необходимо сравнить список фильмов
+     * @return возвращает список фильмов, отсортированных по популярности.
+     */
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        String sqlQuery =
+                "SELECT *," +
+                        "(SELECT mpa_rating_name FROM mpa_ratings WHERE mpa_rating_id_pk = film_mpa_rating_fk) AS mpa_name," +
+                        "(SELECT COUNT(fr_film_id_pk) FROM films_ratings WHERE fr_film_id_pk = film_id_pk) AS rate " +
+                        "FROM films " +
+                        "WHERE film_id_pk IN(" +
+                        "SELECT fr_film_id_pk " +
+                        "FROM films_ratings AS fr0 " +
+                        "WHERE fr_film_id_pk IN(" +
+                        "SELECT DISTINCT fr_film_id_pk " +
+                        "FROM films_ratings fr " +
+                        "WHERE (fr_film_id_pk IN(SELECT fr_film_id_pk FROM films_ratings fr2 " +
+                        "WHERE fr_user_id_pk = :userId)" +
+                        "AND fr_film_id_pk IN(SELECT fr_film_id_pk FROM films_ratings fr3 " +
+                        "WHERE fr_user_id_pk = :friendId))))" +
+                        "ORDER BY rate DESC";
+
+        return jdbc.query(sqlQuery,
+                Map.of("userId", userId, "friendId", friendId),
+                filmMapper());
+    }
+
     private RowMapper<Genre> genreMapper() {
         return (ResultSet rs, int rowNum) -> new Genre(
                 rs.getInt("ID"),

@@ -118,4 +118,16 @@ public class FilmService implements BaseFilmService {
                 thisService, films.getClass().getName(),
                 String.format("Получить запись о фильме не удалось, фильм с ID %d не найден!", id)));
     }
+
+    /**
+     * Метод возвращает список общих с другом фильмов с сортировкой по их популярности
+     *
+     * @param userId   идентификатор пользователя, запрашивающего информацию
+     * @param friendId идентификатор пользователя, с которым необходимо сравнить список фильмов
+     * @return возвращает список фильмов, отсортированных по популярности.
+     */
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        return films.getCommonFilms(userId, friendId);
+    }
 }
