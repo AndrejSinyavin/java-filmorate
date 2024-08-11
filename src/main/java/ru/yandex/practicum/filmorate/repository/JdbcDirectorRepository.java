@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.repository;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -15,9 +16,7 @@ import ru.yandex.practicum.filmorate.exception.InternalServiceException;
 
 import javax.sql.DataSource;
 import java.sql.ResultSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Репозиторий, реализующий CRUD-операции для режиссера
@@ -39,11 +38,12 @@ public class JdbcDirectorRepository implements DirectorRepository {
      * @return список режиссеров, может быть пустым
      */
     @Override
-    public List<Director> findAll() {
+    public Collection<Director> findAll() {
         log.info("Создание списка всех режиссеров из БД");
-        String sqlQuery = "SELECT * FROM DIRECTORS ORDER BY DIRECTOR_ID_PK";
-        var result = jdbc.query(sqlQuery, directorMapper());
-        return result;
+        String sqlQuery = "SELECT * FROM DIRECTORS";
+        var sortedDirectors = new TreeSet<>(Director::compareTo);
+        sortedDirectors.addAll(jdbc.query(sqlQuery, directorMapper()));
+        return sortedDirectors;
     }
 
     /**
@@ -73,12 +73,13 @@ public class JdbcDirectorRepository implements DirectorRepository {
     /**
      * Создает режиссера в репозитории
      *
-     * @param name режиссер, которого нужно создать
+     * @param director режиссер, которого нужно создать
      * @return он же с установленным ID, или пустое значение, если не получилось
      */
     @Override
-    public Optional<Director> create(@NotNull(message = entityNullError) String name) {
+    public Optional<Director> create(@NotBlank(message = "Ошибка! Не задано ФИО режиссера") Director director) {
         log.info("Создание записи о режиссере в БД");
+        String name = director.getName();
         SimpleJdbcInsert simpleJdbc = new SimpleJdbcInsert(source);
         var generatedID = simpleJdbc.withTableName("DIRECTORS")
                 .usingGeneratedKeyColumns("DIRECTOR_ID_PK")
@@ -87,8 +88,9 @@ public class JdbcDirectorRepository implements DirectorRepository {
             log.warn("Режиссер уже есть в БД");
             return Optional.empty();
         } else {
-            log.info("Запись о фильме ID = {} успешно создана в БД", generatedID);
-            return Optional.of(new Director(generatedID, name));
+            log.info("Запись о режиссере ID = {} успешно создана в БД", generatedID);
+            director.setId(generatedID);
+            return Optional.of(director);
         }
     }
 

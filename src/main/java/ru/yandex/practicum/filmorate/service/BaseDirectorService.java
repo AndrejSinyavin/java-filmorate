@@ -1,11 +1,8 @@
 package ru.yandex.practicum.filmorate.service;
 
-import jakarta.validation.constraints.NotNull;
-import ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.DirectorSortParams;
 import ru.yandex.practicum.filmorate.entity.Director;
-import ru.yandex.practicum.filmorate.entity.Film;
 
-import java.util.List;
+import java.util.Collection;
 
 public interface BaseDirectorService {
 
@@ -14,7 +11,7 @@ public interface BaseDirectorService {
      *
      * @return список всех режиссеров
      */
-    List<Director> getAllDirectors();
+    Collection<Director> getAllDirectors();
 
     /**
      * Возвращает режиссера по его ID
@@ -27,10 +24,10 @@ public interface BaseDirectorService {
     /**
      * Создает новую запись о режиссере
      *
-     * @param name сущность режиссер
+     * @param director сущность режиссер
      * @return эта же сущность с установленным Id
      */
-    Director createDirector(String name);
+    Director createDirector(Director director);
 
 
     /**

@@ -8,9 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings;
 import ru.yandex.practicum.filmorate.entity.Film;
-import ru.yandex.practicum.filmorate.exception.EntityValidateException;
 import ru.yandex.practicum.filmorate.service.BaseFilmService;
 
 import java.util.List;
@@ -24,7 +22,6 @@ import java.util.List;
 @RequestMapping("/films")
 @RequiredArgsConstructor
 public class FilmController {
-    private final String thisService = this.getClass().getName();
     private final String idError = "Ошибка! ID может быть только положительным значением";
     /**
      * Подключение сервиса работы с фильмами.
@@ -134,23 +131,21 @@ public class FilmController {
         return topFilms;
     }
 
-    @GetMapping("/director/{directorId}?sortBy=[year,likes]")
-    @ResponseStatus(HttpStatus.CREATED)
+    /**
+     * Endpoint обрабатывает запрос на получение списка фильмов режиссера с вариантами сортировки результата
+     *
+     * @param directorId ID режиссера
+     * @param sortBy критерий сортировки
+     * @return отсортированный список фильмов с этим режиссером
+     */
+    @GetMapping("/director/{director-id}")
+    @ResponseStatus(HttpStatus.OK)
     public List<Film> getFilmsSortedByCriteria(
-            @Positive(message = idError) @PathVariable int directorId,
+            @Positive(message = idError) @PathVariable("director-id") int directorId,
             @NotEmpty(message = "Ошибка! Отсутствует критерий сортировки") @RequestParam String sortBy) {
         log.info("Запрос ==> GET список фильмов режиссера ID {}, критерий сортировки {}", directorId, sortBy);
-        FilmorateApplicationSettings.DirectorSortParams criteria;
-        try {
-            FilmorateApplicationSettings.DirectorSortParams.valueOf(sortBy);
-        } catch (IllegalArgumentException e) {
-            throw new EntityValidateException(
-                    thisService,"Ошибка валидации параметров в запросе",
-                    "Сортировка результата по этому критерию не предусмотрена"
-            );
-        }
         var result = filmsService.getFilmsSortedByCriteria(directorId, sortBy);
-        log.info("Ответ <== 200 Ok. Список фильмов режиссера ID {} отправлен", directorId);
+        log.info("Ответ <== 200 Ok. Список фильмов режиссера ID {} отправлен {}", directorId, result);
         return result;
     }
 }

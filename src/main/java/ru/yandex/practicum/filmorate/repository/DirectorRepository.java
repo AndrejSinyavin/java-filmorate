@@ -1,14 +1,12 @@
 package ru.yandex.practicum.filmorate.repository;
 
-import jakarta.validation.constraints.NotNull;
 import ru.yandex.practicum.filmorate.entity.Director;
-import ru.yandex.practicum.filmorate.entity.Film;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 
 /**
- * Интерфейс для репозиториев для работы с режиссерами
+ * Интерфейс репозиториев для работы с режиссерами
  */
 public interface DirectorRepository {
     /**
@@ -16,7 +14,7 @@ public interface DirectorRepository {
      *
      * @return список режиссеров
      */
-    List<Director> findAll();
+    Collection<Director> findAll();
 
     /**
      * Возвращает режиссера по его ID
@@ -27,12 +25,12 @@ public interface DirectorRepository {
     Optional<Director> findById(int id);
 
     /**
-     * Создает режиссера в репозитории
+     * Создает режиссера
      *
-     * @param name режиссер, которого нужно создать
+     * @param director режиссер, которого нужно создать
      * @return он же с установленным ID, или пустое значение, если не получилось
      */
-    Optional<Director> create(String name);
+    Optional<Director> create(Director director);
 
     /**
      * Обновление существующего режиссера

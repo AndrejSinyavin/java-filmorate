@@ -43,6 +43,9 @@ public class FilmService implements BaseFilmService {
      * Подключение репозитория для работы с "лайками".
      */
     private final LikeRepository likes;
+    /**
+     * Подключение репозитория для работы с сервисными запросами в репозиторий.
+     */
     private final UtilRepository utils;
 
     /**
@@ -95,7 +98,7 @@ public class FilmService implements BaseFilmService {
         validateAndUpdateFilm(film);
         return films.createFilm(film).orElseThrow(
                 () -> new InternalServiceException(thisService, films.getClass().getName(),
-                        "Не удалось создать запись на сервисе."));
+                        "Не удалось создать запись о фильме."));
     }
 
     /**
@@ -141,7 +144,7 @@ public class FilmService implements BaseFilmService {
         if (DirectorSortParams.year.toString().equals(criteria)) {
             conditions = " order by FILM_RELEASE_DATE";
         } else if (DirectorSortParams.likes.toString().equals(criteria)) {
-            conditions = " order by RATE;";
+            conditions = " order by RATE desc;";
         } else {
             throw new EntityValidateException(
                     thisService,"Валидация параметров запроса", "Этот функционал не реализован");
@@ -171,6 +174,11 @@ public class FilmService implements BaseFilmService {
      */
     private void validateAndUpdateFilm(@NotNull(message = entityNullError) Film film) {
         film.setMpa(getMpa(film));
+        film.setGenres(getGenres(film).stream().toList());
+        film.setDirectors(getDirectors(film));
+    }
+
+    private TreeSet<Genre> getGenres(Film film) {
         var genres = film.getGenres();
         var allGenres = utils.getAllGenres();
         var sortedGenres = new TreeSet<>(Genre::compareTo);
@@ -182,37 +190,42 @@ public class FilmService implements BaseFilmService {
             genres.forEach(genre -> genre.setName(allGenres.get(genre.getId()-1).getName()));
             sortedGenres.addAll(genres);
         }
-        film.setGenres(sortedGenres.stream().toList());
-        var directors = film.getDirector();
+        return sortedGenres;
+    }
+
+    private TreeSet<Director> getDirectors(@NotNull(message = entityNullError) Film film) {
+        var directors = film.getDirectors();
         var allDirectors = utils.getAllDirectors();
         var sortedDirectors = new TreeSet<>(Director::compareTo);
         if (directors != null) {
-            if (directors.stream().anyMatch(director -> director.getId() > allDirectors.size())) {
-                throw new EntityValidateException(thisService,
-                        "Ошибка валидации параметров запроса", "ID директора превышает число известных в БД");
-            }
-            directors.forEach(director ->
-                    director.setName(allDirectors.get(director.getId()-1).getName()));
-            sortedDirectors.addAll(directors);
+            directors.forEach(director -> {
+                var foundDirector = allDirectors
+                        .stream()
+                        .filter(d -> d.getId() == director.getId())
+                        .findFirst()
+                        .orElseThrow(() -> new EntityValidateException(thisService,
+                                "Поиск режиссера ID " + director.getId(), "Режиссера нет в БД"));
+                sortedDirectors.add(foundDirector);
+            });
         }
-        film.setDirector(sortedDirectors.stream().toList());
+        return sortedDirectors;
     }
 
     public Mpa getMpa(@NotNull(message = entityNullError) Film film) {
-        var mpa = film.getMpa();
-        var mpaId = DEFAULT_MPA_RATING;
-        var mpas = utils.getAllMpa();
-        if (mpa == null) {
-            mpa = new Mpa(mpaId, mpas.getFirst().getName());
+        var filmMpa = film.getMpa();
+        var filmMpaId = DEFAULT_MPA_RATING;
+        var allMpa = utils.getAllMpa();
+        if (filmMpa == null) {
+            filmMpa = new Mpa(filmMpaId, allMpa.getFirst().getName());
         } else {
-            mpaId = mpa.getId();
-            if (mpaId > mpas.size()) {
+            filmMpaId = filmMpa.getId();
+            if (filmMpaId > allMpa.size()) {
                 throw new EntityValidateException(thisService,
                         "Ошибка валидации параметров запроса", "ID MPA-рейтинга превышает число известных в БД");
             } else {
-                mpa = new Mpa(mpaId, mpas.get(mpaId - 1).getName());
+                filmMpa = new Mpa(filmMpaId, allMpa.get(filmMpaId - 1).getName());
             }
         }
-        return mpa;
+        return filmMpa;
     }
 }

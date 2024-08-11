@@ -1,8 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,12 +8,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.entity.Director;
-import ru.yandex.practicum.filmorate.entity.Film;
+import ru.yandex.practicum.filmorate.exception.EntityValidateException;
 import ru.yandex.practicum.filmorate.service.DirectorService;
-import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.util.List;
+import java.util.Collection;
 
+/**
+ * Контроллер обработки REST-запросов для работы с режиссерами.
+ */
 @Slf4j
 @Validated
 @RestController
@@ -23,7 +23,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DirectorController {
     private final String thisService = this.getClass().getName();
-    private final String entityNullError = "Ошибка! сущность Film = null";
     private final String idError = "Ошибка! ID сущности может быть только положительным значением";
     /**
      * Подключение сервиса работы с режиссерами.
@@ -33,15 +32,15 @@ public class DirectorController {
     /**
      * Endpoint обрабатывает запрос на создание режиссера.
      *
-     * @param name режиссер, получаемый из тела запроса
+     * @param director режиссер, получаемый из тела запроса
      * @return режиссер с уже зарегистрированным ID
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Director create(@Valid @RequestBody String name) {
-        log.info("Запрос ==> POST {}", name);
-        var director = directorService.createDirector(name);
-        log.info("Ответ <== 201 Created. Режиссер успешно добавлен {}", name);
+    public Director create(@Valid @RequestBody Director director) {
+        log.info("Запрос ==> POST {}", director);
+        director = directorService.createDirector(director);
+        log.info("Ответ <== 201 Created. Режиссер успешно добавлен {}", director);
         return director;
     }
 
@@ -55,6 +54,10 @@ public class DirectorController {
     @ResponseStatus(HttpStatus.OK)
     public Director update(@Valid @RequestBody() Director director) {
         log.info("Запрос ==> PUT {}", director);
+        String name = director.getName();
+        if (name == null || name.isEmpty()) {
+            throw new EntityValidateException(thisService, "Создание режиссера", "Не задано ФИО режиссера");
+        }
         director = directorService.updateDirector(director);
         log.info("Ответ <== 200 Ok. Режиссер успешно обновлен {}", director);
         return director;
@@ -80,11 +83,11 @@ public class DirectorController {
      * @return список всех режиссеров
      */
     @GetMapping
-    public List<Director> getAll() {
+    public Collection<Director> getAll() {
         log.info("Запрос ==> GET получить список всех режиссеров");
-        List<Director> directorList = directorService.getAllDirectors();
-        log.info("Ответ <== 200 Ok. Отправлен список всех режиссеров {}", directorList);
-        return directorList;
+        var directors = directorService.getAllDirectors();
+        log.info("Ответ <== 200 Ok. Отправлен список всех режиссеров {}", directors);
+        return directors;
     }
 
     /**

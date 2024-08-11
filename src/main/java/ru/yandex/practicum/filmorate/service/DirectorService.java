@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.service;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
@@ -9,12 +8,12 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.entity.Director;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
+import ru.yandex.practicum.filmorate.exception.EntityValidateException;
 import ru.yandex.practicum.filmorate.repository.DirectorRepository;
 
-import java.util.List;
+import java.util.Collection;
 
 @Log4j2
-@Valid
 @Service
 @AllArgsConstructor
 public class DirectorService implements BaseDirectorService{
@@ -29,7 +28,7 @@ public class DirectorService implements BaseDirectorService{
      * @return список всех режиссеров
      */
     @Override
-    public List<Director> getAllDirectors() {
+    public Collection<Director> getAllDirectors() {
         log.info("Получение списка всех режиссеров сервиса");
         return directorRepository.findAll();
     }
@@ -52,14 +51,17 @@ public class DirectorService implements BaseDirectorService{
     /**
      * Создает из БД новую запись о режиссере
      *
-     * @param name сущность режиссер
+     * @param director сущность режиссер
      * @return эта же сущность с установленным Id
      */
     @Override
-    public Director createDirector(@NotNull(message = entityNullError) String name) {
-        return directorRepository.create(name).orElseThrow(() ->
+    public Director createDirector(Director director) {
+        if (director.getName() == null || director.getName().isBlank()) {
+            throw new EntityValidateException(thisService, "Создание режиссера", "Не задано ФИО режиссера");
+        }
+        return directorRepository.create(director).orElseThrow(() ->
                 new EntityAlreadyExistsException(
-                        thisService, "Создание режиссера", name + " уже существует"
+                        thisService, "Создание режиссера", director.getName() + " уже существует"
                 ));
     }
 
@@ -73,7 +75,7 @@ public class DirectorService implements BaseDirectorService{
     public Director updateDirector(@NotNull(message = entityNullError) Director director) {
         return directorRepository.update(director).orElseThrow(() ->
                 new EntityNotFoundException(
-                        thisService, "Обновление режиссера", director.getName() + " не существует"
+                        thisService, "Обновление режиссера: режиссера ", director.getName() + " не существует"
                 ));
     }
 

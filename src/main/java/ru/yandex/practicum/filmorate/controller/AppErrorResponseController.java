@@ -29,12 +29,26 @@ public class AppErrorResponseController {
      * @param e перехваченное исключение
      * @return стандартный API-ответ об ошибке ErrorResponse c указанием компонента, источника и вероятных причинах
      */
-    @ExceptionHandler({EntityAlreadyExistsException.class, EntityValidateException.class,})
+    @ExceptionHandler({EntityAlreadyExistsException.class, EntityValidateException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequestResponse(final AppException e) {
         String message = "Некорректный запрос. Сформирован ответ '400 Bad Request'.";
         log.warn("{} {} {} {} \n{}", message, e.getSource(), e.getError(), e.getMessage(), e.getStackTrace());
         return new ErrorResponse(e.getError(), e.getMessage());
+    }
+
+    /**
+     * Обработчик исключений для ответов BAD_REQUEST для запросов с несоответствующим форматом тела или заголовков.
+     *
+     * @param e перехваченное исключение
+     * @return стандартный API-ответ об ошибке ErrorResponse c указанием компонента, источника и вероятных причинах
+     */
+    @ExceptionHandler({HttpMessageNotReadableException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleHttpMessageNotReadableExceptionResponse(final HttpMessageNotReadableException e) {
+        String message = "Отсутствует тело запроса. Сформирован ответ '400 Bad Request'.";
+        log.warn("{} {} {} {} \n{}", message, e.getHttpInputMessage(), e.getCause(), e.getMessage(), e.getStackTrace());
+        return new ErrorResponse(message, e.getMessage());
     }
 
     /**
@@ -71,7 +85,7 @@ public class AppErrorResponseController {
      * @param e перехваченное исключение
      * @return стандартный API-ответ об ошибке ErrorResponse c указанием компонента, источника и вероятных причинах
      */
-    @ExceptionHandler({MethodArgumentNotValidException.class, HttpMessageNotReadableException.class})
+    @ExceptionHandler({MethodArgumentNotValidException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleAnnotationValidateErrorResponse(final MethodArgumentNotValidException e) {
         String message = "Некорректный запрос. Сформирован ответ '400 Bad Request'.";

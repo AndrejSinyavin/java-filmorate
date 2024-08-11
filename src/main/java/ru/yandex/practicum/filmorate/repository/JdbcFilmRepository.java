@@ -20,9 +20,7 @@ import ru.yandex.practicum.filmorate.exception.InternalServiceException;
 
 import javax.sql.DataSource;
 import java.sql.ResultSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Репозиторий, реализующий интерфейс {@link FilmRepository} для БД
@@ -199,7 +197,8 @@ public class JdbcFilmRepository implements FilmRepository {
                 from FILMS
                 join FILMS_DIRECTORS on FILM_ID_PK = FD_FILM_ID
                 join DIRECTORS on FD_DIRECTOR_ID = DIRECTOR_ID_PK
-                where DIRECTOR_ID_PK = :directorId""" + conditions;
+                where DIRECTOR_ID_PK = :directorId""";
+        sqlQuery = sqlQuery.concat(conditions) ;
         return jdbc.query(sqlQuery, Map.of("directorId", directorId), filmMapper());
     }
 
@@ -238,7 +237,7 @@ public class JdbcFilmRepository implements FilmRepository {
         sqlQuery = """
                 insert into FILMS_DIRECTORS (FD_FILM_ID, FD_DIRECTOR_ID)
                 values (:filmId, :directorId)""";
-        for (var director : film.getDirector()) {
+        for (var director : film.getDirectors()) {
             jdbc.update(sqlQuery, new MapSqlParameterSource()
                     .addValue("filmId", id)
                     .addValue("directorId", director.getId()));
@@ -268,7 +267,7 @@ public class JdbcFilmRepository implements FilmRepository {
      * @param filmId ID фильма
      * @return список режиссеров
      */
-    private List<Director> getFilmDirectorsFromDb(@Positive(message = idError) int filmId) {
+    private Set<Director> getFilmDirectorsFromDb(@Positive(message = idError) int filmId) {
         log.info("Получение списка режиссеров фильма ID {} из БД", filmId);
         String sqlQuery = """
                 select FD_DIRECTOR_ID as ID, DIRECTOR_NAME as NAME
@@ -276,7 +275,7 @@ public class JdbcFilmRepository implements FilmRepository {
                 join DIRECTORS on DIRECTOR_ID_PK = FD_DIRECTOR_ID
                 where FD_FILM_ID = :filmId
                 order by ID""";
-        return jdbc.query(sqlQuery, Map.of("filmId", filmId), directorMapper());
+        return new HashSet<>(jdbc.query(sqlQuery, Map.of("filmId", filmId), directorMapper()));
     }
 
     private RowMapper<Genre> genreMapper() {
@@ -287,8 +286,8 @@ public class JdbcFilmRepository implements FilmRepository {
 
     private RowMapper<Director> directorMapper() {
         return (ResultSet rs, int rowNum) -> new Director(
-                rs.getInt("DIRECTOR_ID_PK"),
-                rs.getString("DIRECTOR_NAME"));
+                rs.getInt("ID"),
+                rs.getString("NAME"));
     }
 
     private RowMapper<Film> filmMapper() {
