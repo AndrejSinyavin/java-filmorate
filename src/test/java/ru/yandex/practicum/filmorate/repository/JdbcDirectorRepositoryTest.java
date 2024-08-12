@@ -48,7 +48,7 @@ class JdbcDirectorRepositoryTest {
                 .isInstanceOf(Optional.class)
                 .hasValueSatisfying(d -> {
                     assertThat(d).hasFieldOrPropertyWithValue("id", id);
-                    assertThat(d).hasFieldOrPropertyWithValue( "name", "create_7");
+                    assertThat(d).hasFieldOrPropertyWithValue("name", "create_7");
                 });
     }
 
@@ -67,7 +67,7 @@ class JdbcDirectorRepositoryTest {
                 .isPresent()
                 .hasValueSatisfying(director -> {
                     assertThat(director).hasFieldOrPropertyWithValue("id", id);
-                    assertThat(director).hasFieldOrPropertyWithValue( "name", "create_6");
+                    assertThat(director).hasFieldOrPropertyWithValue("name", "create_6");
                 });
     }
 
@@ -81,7 +81,7 @@ class JdbcDirectorRepositoryTest {
                 .isPresent()
                 .hasValueSatisfying(director -> assertThat(director)
                         .hasFieldOrPropertyWithValue("id", id)
-                        .hasFieldOrPropertyWithValue( "name", "create_1"));
+                        .hasFieldOrPropertyWithValue("name", "create_1"));
 
         director = directorRepository.create(new Director(0,"create_2"));
         assertThat(director).isPresent();
@@ -90,7 +90,7 @@ class JdbcDirectorRepositoryTest {
                 .isPresent()
                 .hasValueSatisfying(director -> assertThat(director)
                         .hasFieldOrPropertyWithValue("id", id)
-                        .hasFieldOrPropertyWithValue( "name", "create_2"));
+                        .hasFieldOrPropertyWithValue("name", "create_2"));
 
         director = directorRepository.create(new Director(0,"create_3"));
         assertThat(director).isPresent();
@@ -99,7 +99,7 @@ class JdbcDirectorRepositoryTest {
                 .isPresent()
                 .hasValueSatisfying(director -> assertThat(director)
                         .hasFieldOrPropertyWithValue("id", id)
-                        .hasFieldOrPropertyWithValue( "name", "create_3"));
+                        .hasFieldOrPropertyWithValue("name", "create_3"));
 
         assertThrows(EntityAlreadyExistsException.class,
                 () -> directorRepository.create(new Director(1,"create_3")));
@@ -127,7 +127,7 @@ class JdbcDirectorRepositoryTest {
                 .isPresent()
                 .hasValueSatisfying(director -> {
                     assertThat(director).hasFieldOrPropertyWithValue("id", id);
-                    assertThat(director).hasFieldOrPropertyWithValue( "name", "NewName");
+                    assertThat(director).hasFieldOrPropertyWithValue("name", "NewName");
                 });
     }
 

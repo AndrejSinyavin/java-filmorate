@@ -16,5 +16,5 @@ public class FilmorateApplicationSettings {
     private FilmorateApplicationSettings() {
     }
 
-    public enum DirectorSortParams{year, likes}
+    public enum DirectorSortParams { year, likes }
 }
