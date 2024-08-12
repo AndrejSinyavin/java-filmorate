@@ -41,7 +41,7 @@ public interface UtilRepository {
     /**
      * Метод возвращает список всех имеющихся режиссеров
      *
-     * @return
+     * @return список режиссеров
      */
     List<Director> getAllDirectors();
 }
