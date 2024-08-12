@@ -43,8 +43,11 @@ public class JdbcFilmRepository implements FilmRepository {
      * @return новая запись о фильме с установленным ID из БД, либо пустое значение, если запись не создана
      */
     @Override
-    public Optional<Film> createFilm(@NotNull(message = entityNullError) Film film) {
+    public Optional<Film> createFilm(Film film) {
         log.info("Создание записи о фильме в БД");
+        if (film == null) {
+            return Optional.empty();
+        }
         SimpleJdbcInsert simpleJdbc = new SimpleJdbcInsert(source);
         Map<String, Object> parameters = Map.of(
                 "FILM_NAME", film.getName(),
@@ -207,7 +210,7 @@ public class JdbcFilmRepository implements FilmRepository {
      *
      * @param film фильм, из которого берется список его жанров
      */
-    void updateFilmsGenresTable(@NotNull(message = entityNullError) Film film) {
+    private void updateFilmsGenresTable(@NotNull(message = entityNullError) Film film) {
         String sqlQuery = """
                 delete from FILMS_GENRES
                 where FG_FILM_ID = :filmId""";

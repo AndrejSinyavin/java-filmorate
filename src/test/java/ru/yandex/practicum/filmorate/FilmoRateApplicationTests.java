@@ -76,7 +76,8 @@ class FilmoRateApplicationTests {
                 120,
                 1000,
                 mpa,
-                List.of(genre));
+                List.of(genre),
+                null);
         films.createFilm(testFilm);
         film = films.getFilm(6);
 

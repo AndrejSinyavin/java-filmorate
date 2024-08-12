@@ -18,7 +18,7 @@ import java.util.Collection;
 @AllArgsConstructor
 public class DirectorService implements BaseDirectorService{
     private final String thisService = this.getClass().getName();
-    private final String entityNullError = "Ошибка! сущность Film = null";
+    private final String entityNullError = "Ошибка! сущность режиссер = null";
     private final String idError = "Ошибка! ID сущности может быть только положительным значением";
     private final DirectorRepository directorRepository;
 

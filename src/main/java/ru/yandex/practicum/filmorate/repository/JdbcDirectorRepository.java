@@ -1,17 +1,17 @@
 package ru.yandex.practicum.filmorate.repository;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.entity.Director;
+import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
 
 import javax.sql.DataSource;
@@ -22,14 +22,13 @@ import java.util.*;
  * Репозиторий, реализующий CRUD-операции для режиссера
  */
 @Slf4j
-@Valid
 @Repository
 @RequiredArgsConstructor
 public class JdbcDirectorRepository implements DirectorRepository {
     private final NamedParameterJdbcOperations jdbc;
     private final DataSource source;
     private final String thisService = this.getClass().getName();
-    private final String entityNullError = "Ошибка! сущность Film = null";
+    private final String entityNullError = "Ошибка! сущность режиссер = null";
     private final String idError = "Ошибка! ID сущности может быть только положительным значением";
 
     /**
@@ -43,6 +42,7 @@ public class JdbcDirectorRepository implements DirectorRepository {
         String sqlQuery = "SELECT * FROM DIRECTORS";
         var sortedDirectors = new TreeSet<>(Director::compareTo);
         sortedDirectors.addAll(jdbc.query(sqlQuery, directorMapper()));
+        log.info("Список найденных режиссеров: {}", sortedDirectors);
         return sortedDirectors;
     }
 
@@ -63,6 +63,7 @@ public class JdbcDirectorRepository implements DirectorRepository {
                 log.error(error);
                 throw new InternalServiceException(thisService, jdbc.getClass().getName(), error);
             }
+            log.info("Режиссер с ID {} найден в БД: {}", id, director);
             return Optional.of(director);
         } catch (EmptyResultDataAccessException e) {
             log.warn("Режиссер с ID {} не найден в БД", id);
@@ -77,20 +78,29 @@ public class JdbcDirectorRepository implements DirectorRepository {
      * @return он же с установленным ID, или пустое значение, если не получилось
      */
     @Override
-    public Optional<Director> create(@NotBlank(message = "Ошибка! Не задано ФИО режиссера") Director director) {
-        log.info("Создание записи о режиссере в БД");
+    public Optional<Director> create(Director director) {
+        log.info("Создание записи о режиссере в БД: {} ", director);
+        if (director == null || director.getName() == null) {
+            throw new InternalServiceException(thisService, "Создание режиссера", entityNullError);
+        }
         String name = director.getName();
-        SimpleJdbcInsert simpleJdbc = new SimpleJdbcInsert(source);
-        var generatedID = simpleJdbc.withTableName("DIRECTORS")
-                .usingGeneratedKeyColumns("DIRECTOR_ID_PK")
-                .executeAndReturnKey(Map.of("DIRECTOR_NAME", name)).intValue();
-        if (generatedID == 0) {
-            log.warn("Режиссер уже есть в БД");
-            return Optional.empty();
-        } else {
-            log.info("Запись о режиссере ID = {} успешно создана в БД", generatedID);
-            director.setId(generatedID);
-            return Optional.of(director);
+        try {
+            SimpleJdbcInsert simpleJdbc = new SimpleJdbcInsert(source);
+            var generatedID = simpleJdbc.withTableName("DIRECTORS")
+                    .usingGeneratedKeyColumns("DIRECTOR_ID_PK")
+                    .executeAndReturnKey(Map.of("DIRECTOR_NAME", name)).intValue();
+            if (generatedID == 0) {
+                log.warn("Запись не создана!");
+                return Optional.empty();
+            } else {
+                director.setId(generatedID);
+                log.info("Запись о режиссере ID = {} успешно создана в БД", generatedID);
+                return Optional.of(director);
+            }
+        } catch (DuplicateKeyException e) {
+            String warn = String.format("В БД уже есть режиссер %s", name);
+            log.warn(warn);
+            throw new EntityAlreadyExistsException(thisService, "Создание режиссера", warn);
         }
     }
 
@@ -102,8 +112,8 @@ public class JdbcDirectorRepository implements DirectorRepository {
      */
     @Override
     public Optional<Director> update(@NotNull(message = entityNullError) Director director) {
-        log.info("Обновление записи о режиссере в БД");
         int directorId = director.getId();
+        log.info("Обновление записи о режиссере ID {} в БД", directorId);
         String sqlQuery = """
                 update DIRECTORS set
                 DIRECTOR_NAME = :name
@@ -131,7 +141,8 @@ public class JdbcDirectorRepository implements DirectorRepository {
     public void delete(@Positive(message = idError) int directorId) {
         log.info("Удаление режиссера из БД");
         String sqlQuery = "DELETE FROM DIRECTORS WHERE DIRECTOR_ID_PK = :directorId";
-        jdbc.update(sqlQuery, Map.of("directorId", directorId));
+        var deletedRow = jdbc.update(sqlQuery, Map.of("directorId", directorId));
+        log.info("Успешно удалена {} запись", deletedRow);
     }
 
     private RowMapper<Director> directorMapper() {
