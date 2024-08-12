@@ -28,8 +28,6 @@ public class JdbcDirectorRepository implements DirectorRepository {
     private final NamedParameterJdbcOperations jdbc;
     private final DataSource source;
     private final String thisService = this.getClass().getName();
-    private final String entityNullError = "Ошибка! сущность режиссер = null";
-    private final String idError = "Ошибка! ID сущности может быть только положительным значением";
 
     /**
      * Возвращает список всех режиссеров из БД.
@@ -53,7 +51,7 @@ public class JdbcDirectorRepository implements DirectorRepository {
      * @return режиссер, или пустое значение, если не найден
      */
     @Override
-    public Optional<Director> findById(@Positive(message = idError) int id) {
+    public Optional<Director> findById(int id) {
         String sqlQuery = "SELECT * FROM DIRECTORS WHERE DIRECTOR_ID_PK = :id";
         try {
             var director = jdbc.queryForObject(sqlQuery, Map.of("id", id), directorMapper());
@@ -81,6 +79,8 @@ public class JdbcDirectorRepository implements DirectorRepository {
     public Optional<Director> create(Director director) {
         log.info("Создание записи о режиссере в БД: {} ", director);
         if (director == null || director.getName() == null) {
+            String entityNullError = "Ошибка! сущность режиссер = null";
+            log.error(entityNullError);
             throw new InternalServiceException(thisService, "Создание режиссера", entityNullError);
         }
         String name = director.getName();
@@ -111,7 +111,7 @@ public class JdbcDirectorRepository implements DirectorRepository {
      * @return он же, или пустое значение, если не получилось
      */
     @Override
-    public Optional<Director> update(@NotNull(message = entityNullError) Director director) {
+    public Optional<Director> update(Director director) {
         int directorId = director.getId();
         log.info("Обновление записи о режиссере ID {} в БД", directorId);
         String sqlQuery = """
@@ -120,7 +120,7 @@ public class JdbcDirectorRepository implements DirectorRepository {
                 where DIRECTOR_ID_PK = :id""";
         var dbUpdatedRows = jdbc.update(sqlQuery, Map.of("name", director.getName(), "id", directorId));
         if (dbUpdatedRows > 1) {
-            String error = "Критическая ошибка! БД обновила больше одной записи";
+            String error = "Ошибка! Возможно, что БД обновила больше одной записи";
             log.error(error);
             throw new InternalServiceException(thisService, jdbc.getClass().getName(), error);
         } else if (dbUpdatedRows == 0) {
@@ -138,7 +138,7 @@ public class JdbcDirectorRepository implements DirectorRepository {
      * @param directorId Id режиссера
      */
     @Override
-    public void delete(@Positive(message = idError) int directorId) {
+    public void delete(int directorId) {
         log.info("Удаление режиссера из БД");
         String sqlQuery = "DELETE FROM DIRECTORS WHERE DIRECTOR_ID_PK = :directorId";
         var deletedRow = jdbc.update(sqlQuery, Map.of("directorId", directorId));

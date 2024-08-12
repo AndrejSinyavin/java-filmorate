@@ -18,8 +18,6 @@ import java.util.Collection;
 @AllArgsConstructor
 public class DirectorService implements BaseDirectorService{
     private final String thisService = this.getClass().getName();
-    private final String entityNullError = "Ошибка! сущность режиссер = null";
-    private final String idError = "Ошибка! ID сущности может быть только положительным значением";
     private final DirectorRepository directorRepository;
 
     /**
@@ -40,7 +38,7 @@ public class DirectorService implements BaseDirectorService{
      * @return режиссер
      */
     @Override
-    public Director getDirectorById(@Positive(message = idError) int directorId) {
+    public Director getDirectorById(int directorId) {
         log.info("Чтение записи о режиссере из БД");
         return directorRepository.findById(directorId).orElseThrow(() -> new EntityNotFoundException(
                 thisService, directorRepository.getClass().getName(),
@@ -72,7 +70,7 @@ public class DirectorService implements BaseDirectorService{
      * @return измененный режиссер с этим же ID
      */
     @Override
-    public Director updateDirector(@NotNull(message = entityNullError) Director director) {
+    public Director updateDirector(Director director) {
         return directorRepository.update(director).orElseThrow(() ->
                 new EntityNotFoundException(
                         thisService, "Обновление режиссера: режиссера ", director.getName() + " не существует"
@@ -85,7 +83,7 @@ public class DirectorService implements BaseDirectorService{
      * @param directorId ID удаляемого режиссера
      */
     @Override
-    public void deleteDirector(@Positive(message = idError) int directorId) {
+    public void deleteDirector(int directorId) {
         directorRepository.delete(directorId);
     }
 }

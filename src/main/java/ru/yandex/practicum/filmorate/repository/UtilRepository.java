@@ -38,5 +38,10 @@ public interface UtilRepository {
      */
     List<Mpa> getAllMpa();
 
+    /**
+     * Метод возвращает список всех имеющихся режиссеров
+     *
+     * @return
+     */
     List<Director> getAllDirectors();
 }

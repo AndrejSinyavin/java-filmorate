@@ -117,7 +117,7 @@ class JdbcFilmRepositoryTest {
         filmService.addLike(film1.getId(), user1.getId());
         filmService.addLike(film1.getId(), user2.getId());
         filmService.addLike(film2.getId(), user2.getId());
-        var top = filmService.getTopFilms(2);
+        var top = filmService.getTopFilms(2, null, null);
         assertThat(top.size() == 2).isTrue();
         assertThat(top.getFirst().getId() == film1.getId()).isTrue();
         assertThat(top.getLast().getId() == film2.getId()).isTrue();
