@@ -14,7 +14,7 @@ public interface ReviewRepository {
      * Получение коллекции отзывов, отсортированных по рейтингу
      *
      * @param filmId идентификатор фильма
-     * @param count количество отзывов (по умолчанию 10)
+     * @param count  количество отзывов (по умолчанию 10)
      * @return возвращает коллекцию объектов Review
      */
     Collection<Review> get(Integer filmId, Integer count);

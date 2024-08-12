@@ -196,7 +196,7 @@ public class JdbcFilmRepository implements FilmRepository {
      *
      * @param topSize размер топа
      * @param genreId идентификатор жанра
-     * @param year год релиза фильма
+     * @param year    год релиза фильма
      * @return список ID фильмов топа в порядке убывания количества лайков
      */
     @Override
@@ -245,7 +245,7 @@ public class JdbcFilmRepository implements FilmRepository {
                 join FILMS_DIRECTORS on FILM_ID_PK = FD_FILM_ID
                 join DIRECTORS on FD_DIRECTOR_ID = DIRECTOR_ID_PK
                 where DIRECTOR_ID_PK = :directorId""";
-        sqlQuery = sqlQuery.concat(conditions) ;
+        sqlQuery = sqlQuery.concat(conditions);
         return jdbc.query(sqlQuery, Map.of("directorId", directorId), filmMapper());
     }
 

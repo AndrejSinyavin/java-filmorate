@@ -1,7 +1,5 @@
 package ru.yandex.practicum.filmorate.service;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -16,7 +14,7 @@ import java.util.Collection;
 @Log4j2
 @Service
 @AllArgsConstructor
-public class DirectorService implements BaseDirectorService{
+public class DirectorService implements BaseDirectorService {
     private final String thisService = this.getClass().getName();
     private final DirectorRepository directorRepository;
 

@@ -129,7 +129,7 @@ public class FilmService implements BaseFilmService {
      */
     @Override
     public List<Film> getFilmsSortedByCriteria(int directorId,
-            String criteria) {
+                                               String criteria) {
         log.info("Получение списка всех фильмов сервиса, отобранных по критериям:");
         String conditions;
         if (DirectorSortParams.year.toString().equals(criteria)) {
@@ -138,7 +138,7 @@ public class FilmService implements BaseFilmService {
             conditions = " order by RATE desc;";
         } else {
             throw new EntityValidateException(
-                    thisService,"Валидация параметров запроса", "Этот функционал не реализован");
+                    thisService, "Валидация параметров запроса", "Этот функционал не реализован");
         }
         return films.findFilmsForDirectorByConditions(directorId, conditions);
     }
@@ -190,7 +190,7 @@ public class FilmService implements BaseFilmService {
                 throw new EntityValidateException(thisService,
                         "Ошибка валидации параметров запроса", "ID жанра превышает число известных в БД");
             }
-            genres.forEach(genre -> genre.setName(allGenres.get(genre.getId()-1).getName()));
+            genres.forEach(genre -> genre.setName(allGenres.get(genre.getId() - 1).getName()));
             sortedGenres.addAll(genres);
         }
         return sortedGenres;

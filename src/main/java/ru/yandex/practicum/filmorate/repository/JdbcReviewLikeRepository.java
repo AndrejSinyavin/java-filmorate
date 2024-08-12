@@ -14,13 +14,11 @@ import java.util.Map;
 @Repository
 @RequiredArgsConstructor
 public class JdbcReviewLikeRepository implements ReviewLikeRepository {
-    private final NamedParameterJdbcOperations jdbc;
-
     private static final String INSERT_QUERY = "MERGE INTO review_like (review_id, user_id, liked) " +
             "KEY(review_id, user_id) VALUES(:review_id, :user_id, :liked)";
-
     private static final String DELETE_QUERY = "DELETE FROM review_like WHERE review_id = :review_id " +
             "and user_id = :user_id and liked = :liked";
+    private final NamedParameterJdbcOperations jdbc;
 
     @Override
     public void addLike(Integer reviewId, Integer userId) {

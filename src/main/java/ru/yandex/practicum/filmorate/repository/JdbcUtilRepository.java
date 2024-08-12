@@ -20,9 +20,9 @@ import java.util.Map;
 @Repository
 @RequiredArgsConstructor
 public class JdbcUtilRepository implements UtilRepository {
+    final String errorSql = "Ошибка! SQL-запрос вернул NULL, маппинг поиска жанра фильма выполнен некорректно";
     private final NamedParameterJdbcOperations jdbc;
     private final String thisService = this.getClass().getName();
-    final String errorSql = "Ошибка! SQL-запрос вернул NULL, маппинг поиска жанра фильма выполнен некорректно";
 
     /**
      * Метод получает из БД список всех имеющихся жанров для фильмов

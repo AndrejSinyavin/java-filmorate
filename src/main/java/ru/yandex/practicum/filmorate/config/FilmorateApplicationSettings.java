@@ -12,8 +12,9 @@ public class FilmorateApplicationSettings {
     public static final int MAX_DESCRIPTION_LENGTH = 200;
     public static final int MAX_AGE = 130;
     public static final int DEFAULT_MPA_RATING = 1;
-    public enum DirectorSortParams {year, likes}
 
     private FilmorateApplicationSettings() {
     }
+
+    public enum DirectorSortParams {year, likes}
 }

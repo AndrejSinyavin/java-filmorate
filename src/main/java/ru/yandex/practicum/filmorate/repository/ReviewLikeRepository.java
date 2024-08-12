@@ -8,7 +8,7 @@ public interface ReviewLikeRepository {
      * Добавление лайка пользователя для отзыва
      *
      * @param reviewId идентификатор отзыва
-     * @param userId идентификатор пользователя
+     * @param userId   идентификатор пользователя
      */
     void addLike(Integer reviewId, Integer userId);
 
@@ -16,7 +16,7 @@ public interface ReviewLikeRepository {
      * Добавление дизлайка пользователя для отзыва
      *
      * @param reviewId идентификатор отзыва
-     * @param userId идентификатор пользователя
+     * @param userId   идентификатор пользователя
      */
     void addDislike(Integer reviewId, Integer userId);
 
@@ -24,7 +24,7 @@ public interface ReviewLikeRepository {
      * Удаление лайка пользователя для отзыва
      *
      * @param reviewId идентификатор отзыва
-     * @param userId идентификатор пользователя
+     * @param userId   идентификатор пользователя
      */
     void deleteLike(Integer reviewId, Integer userId);
 
@@ -32,7 +32,7 @@ public interface ReviewLikeRepository {
      * Удаление дизлайка пользователя для отзыва
      *
      * @param reviewId идентификатор отзыва
-     * @param userId идентификатор пользователя
+     * @param userId   идентификатор пользователя
      */
     void deleteDislike(Integer reviewId, Integer userId);
 }
