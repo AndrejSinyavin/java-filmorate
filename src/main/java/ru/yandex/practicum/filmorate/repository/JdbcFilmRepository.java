@@ -18,7 +18,6 @@ import ru.yandex.practicum.filmorate.exception.InternalServiceException;
 import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.util.*;
-import java.util.function.IntPredicate;
 
 /**
  * Репозиторий, реализующий интерфейс {@link FilmRepository} для БД
@@ -358,14 +357,12 @@ public class JdbcFilmRepository implements FilmRepository {
     }
 
     @Override
-    public IntPredicate deleteFilmById(int filmId) {
+    public void deleteFilmById(int filmId) {
         log.info("удаление фильма ID {} из БД", filmId);
         String sqlQuery = """
                 delete from FILMS
                 where FILM_ID_PK = :filmId""";
         jdbc.update(sqlQuery, new MapSqlParameterSource().addValue("filmId", filmId));
-
-        return null;
     }
 
     private RowMapper<Genre> genreMapper() {

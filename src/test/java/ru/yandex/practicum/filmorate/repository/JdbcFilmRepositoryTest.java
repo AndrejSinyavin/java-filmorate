@@ -48,7 +48,7 @@ class JdbcFilmRepositoryTest {
         assertThat(filmRepository.getFilm(id))
                 .isPresent()
                 .hasValueSatisfying(film -> assertThat(film)
-                .hasFieldOrPropertyWithValue("id", id));
+                        .hasFieldOrPropertyWithValue("id", id));
     }
 
     @Test
@@ -164,7 +164,6 @@ class JdbcFilmRepositoryTest {
         assertThat(sortedFilmsByCriteria.getFirst().getId() == film1.getId()).isTrue();
         assertThat(sortedFilmsByCriteria.getLast().getId() == film2.getId()).isTrue();
     }
-
 
 
     @Test

@@ -4,7 +4,6 @@ import ru.yandex.practicum.filmorate.entity.Film;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.IntPredicate;
 
 /**
  * Интерфейс для служб, работающих с фильмотекой.
@@ -84,5 +83,5 @@ public interface FilmRepository {
      */
     List<Film> findFilmsForDirectorByConditions(int directorId, String conditions);
 
-    IntPredicate deleteFilmById(int filmId);
+    void deleteFilmById(int filmId);
 }
