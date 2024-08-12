@@ -14,14 +14,7 @@ import ru.yandex.practicum.filmorate.repository.FriendRepository;
 import ru.yandex.practicum.filmorate.repository.LikeRepository;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Сервис содержит логику работы с пользователями

@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -34,6 +35,20 @@ public class AppErrorResponseController {
         String message = "Некорректный запрос. Сформирован ответ '400 Bad Request'.";
         log.warn("{} {} {} {} \n{}", message, e.getSource(), e.getError(), e.getMessage(), e.getStackTrace());
         return new ErrorResponse(e.getError(), e.getMessage());
+    }
+
+    /**
+     * Обработчик исключений для ответов BAD_REQUEST для запросов с несоответствующим форматом тела или заголовков.
+     *
+     * @param e перехваченное исключение
+     * @return стандартный API-ответ об ошибке ErrorResponse c указанием компонента, источника и вероятных причинах
+     */
+    @ExceptionHandler({HttpMessageNotReadableException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleHttpMessageNotReadableExceptionResponse(final HttpMessageNotReadableException e) {
+        String message = "Отсутствует тело запроса. Сформирован ответ '400 Bad Request'.";
+        log.warn("{} {} {} {} \n{}", message, e.getHttpInputMessage(), e.getCause(), e.getMessage(), e.getStackTrace());
+        return new ErrorResponse(message, e.getMessage());
     }
 
     /**

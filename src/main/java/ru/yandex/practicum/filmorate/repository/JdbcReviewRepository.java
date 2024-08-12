@@ -21,9 +21,6 @@ import java.util.Optional;
 @Repository
 @RequiredArgsConstructor
 public class JdbcReviewRepository implements ReviewRepository {
-    private final NamedParameterJdbcOperations jdbc;
-    private final ReviewRowMapper mapper;
-
     private static final String FIND_FIRST_BY_FILM_QUERY = "SELECT rw.*, nvl(rl.useful, 0) AS useful " +
             "FROM review rw " +
             "LEFT JOIN (SELECT rl.review_id, NVL(SUM(CASEWHEN(liked, 1, 0)) - SUM(CASEWHEN(NOT liked, 1, 0)),0) AS useful " +
@@ -31,19 +28,17 @@ public class JdbcReviewRepository implements ReviewRepository {
             "WHERE rw.film_id = :film_id OR :film_id IS null " +
             "ORDER BY rl.useful DESC NULLS LAST " +
             "LIMIT :count";
-
     private static final String FIND_BY_ID_QUERY = "SELECT rw.*, " +
             "(SELECT SUM(CASEWHEN(liked, 1, 0)) - SUM(CASEWHEN(NOT liked, 1, 0)) " +
             "   FROM review_like rl WHERE rl.review_id = rw.review_id) AS useful " +
             "FROM review rw WHERE rw.review_id = :review_id";
-
     private static final String INSERT_QUERY = "INSERT INTO review (content, positive, user_id, film_id)" +
             "VALUES (:content, :positive, :user_id, :film_id)";
-
     private static final String UPDATE_QUERY = "UPDATE review SET content = :content, positive = :positive, " +
             "user_id = :user_id, film_id = :film_id WHERE review_id = :review_id";
-
     private static final String DELETE_QUERY = "DELETE FROM review WHERE review_id = :review_id";
+    private final NamedParameterJdbcOperations jdbc;
+    private final ReviewRowMapper mapper;
 
     @Override
     public Collection<Review> get(Integer filmId, Integer count) {

@@ -7,11 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.ComponentScan;
-import ru.yandex.practicum.filmorate.entity.Film;
-import ru.yandex.practicum.filmorate.entity.Genre;
-import ru.yandex.practicum.filmorate.entity.Like;
-import ru.yandex.practicum.filmorate.entity.Mpa;
-import ru.yandex.practicum.filmorate.entity.User;
+import ru.yandex.practicum.filmorate.entity.*;
 import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.FriendRepository;
 import ru.yandex.practicum.filmorate.repository.LikeRepository;
@@ -22,6 +18,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.TreeSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -85,7 +82,8 @@ class FilmoRateApplicationTests {
                 120,
                 1000,
                 mpa,
-                List.of(genre));
+                List.of(genre),
+                new TreeSet<>(Director::compareTo));
         films.createFilm(testFilm);
         film = films.getFilm(6);
 

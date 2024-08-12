@@ -1,21 +1,13 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.service.BaseFilmService;
 
@@ -127,7 +119,7 @@ public class FilmController {
      *
      * @param topSize размер топа рейтинга
      * @param genreId идентификатор жанра (необязательный параметр)
-     * @param year год релиза фильма (необязательный параметр)
+     * @param year    год релиза фильма (необязательный параметр)
      * @return список из фильмов в порядке понижения рейтинга
      */
     @GetMapping("/popular")
@@ -157,5 +149,23 @@ public class FilmController {
         List<Film> commonFilms = filmsService.getCommonFilms(userId, friendId);
         log.info("Ответ <== 200 Ok. Получены общие фильмы пользователей с ID = {} и ID ={}", userId, friendId);
         return commonFilms;
+    }
+
+    /**
+     * Endpoint обрабатывает запрос на получение списка фильмов режиссера с вариантами сортировки результата
+     *
+     * @param directorId ID режиссера
+     * @param sortBy     критерий сортировки
+     * @return отсортированный список фильмов с этим режиссером
+     */
+    @GetMapping("/director/{director-id}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<Film> getFilmsSortedByCriteria(
+            @Positive(message = idError) @PathVariable("director-id") int directorId,
+            @NotEmpty(message = "Ошибка! Отсутствует критерий сортировки") @RequestParam String sortBy) {
+        log.info("Запрос ==> GET список фильмов режиссера ID {}, критерий сортировки {}", directorId, sortBy);
+        var result = filmsService.getFilmsSortedByCriteria(directorId, sortBy);
+        log.info("Ответ <== 200 Ok. Список фильмов режиссера ID {} отправлен {}", directorId, result);
+        return result;
     }
 }

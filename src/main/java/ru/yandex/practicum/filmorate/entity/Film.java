@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.validate.Release;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.MAX_DESCRIPTION_LENGTH;
 
@@ -43,4 +44,5 @@ public class Film {
 
     private Mpa mpa;
     private List<Genre> genres;
+    private Set<Director> directors;
 }

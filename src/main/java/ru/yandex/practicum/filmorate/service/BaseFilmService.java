@@ -26,7 +26,7 @@ public interface BaseFilmService {
      *
      * @param topSize размер топа
      * @param genreId идентификатор жанра
-     * @param year год релиза фильма
+     * @param year    год релиза фильма
      * @return топ лучших фильмов
      */
     List<Film> getTopFilms(Integer topSize, Integer genreId, Integer year);
@@ -53,6 +53,15 @@ public interface BaseFilmService {
      * @return список фильмов
      */
     List<Film> getFilms();
+
+    /**
+     * Возвращает список фильмов режиссера, отсортированный по заданному критерию.
+     *
+     * @param directorId режиссер
+     * @param criteria   критерий сортировки
+     * @return список фильмов этого режиссера, отсортированный по критерию
+     */
+    List<Film> getFilmsSortedByCriteria(int directorId, String criteria);
 
     /**
      * Метод возвращает запись о конкретном фильме.

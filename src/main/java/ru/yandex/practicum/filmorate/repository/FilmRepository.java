@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface FilmRepository {
 
     /**
-     * Метод создает запись о фильме в фильмотеке.
+     * Метод создает запись о фильме
      *
      * @param film запись о фильме, которую нужно создать в фильмотеке
      * @return этот же фильм с новым ID, или пустое значение, если фильм создать не удалось
@@ -19,7 +19,7 @@ public interface FilmRepository {
     Optional<Film> createFilm(Film film);
 
     /**
-     * Метод обновляет существующую запись о фильме в фильмотеке.
+     * Метод обновляет существующую запись о фильме
      *
      * @param film запись о фильме из запроса с установленным ID, по которому ищется этот фильм в фильмотеке.
      * @return обновленная запись о фильме, или пустое значение при ошибке
@@ -27,7 +27,7 @@ public interface FilmRepository {
     Optional<Film> updateFilm(Film film);
 
     /**
-     * Метод возвращает список всех записей о фильмах в фильмотеке.
+     * Метод возвращает список всех записей о фильмах
      *
      * @return список фильмов, может быть пустым
      */
@@ -42,7 +42,7 @@ public interface FilmRepository {
     Optional<Film> getFilm(int filmId);
 
     /**
-     * Метод возвращает список фильмов соответсвующих списку их ID
+     * Метод возвращает список фильмов, которые соответствуют списку их ID
      *
      * @param filmsIds список ID искомых фильмов
      * @return записи о фильмах; либо пустой список, если записи не найдены в хранилище
@@ -53,12 +53,11 @@ public interface FilmRepository {
      * Метод возвращает топ рейтинга фильмов по количеству лайков
      *
      * @param topSize размер топа
-     * @param genreId дентификатор жанра
+     * @param genreId идентификатор жанра
      * @param year    год релиза фильма
      * @return список ID фильмов топа в порядке убывания количества лайков
      */
     List<Film> getPopularFilm(Integer topSize, Integer genreId, Integer year);
-
 
     /**
      * Метод возвращает топ рейтинга фильмов по количеству лайков
@@ -76,4 +75,12 @@ public interface FilmRepository {
      * @return возвращает список фильмов, отсортированных по популярности.
      */
     List<Film> getCommonFilms(int userId, int friendId);
+
+    /**
+     * Получение списка фильмов с режиссерами по условиям
+     *
+     * @param conditions условия поиска
+     * @return список найденных фильмов
+     */
+    List<Film> findFilmsForDirectorByConditions(int directorId, String conditions);
 }
