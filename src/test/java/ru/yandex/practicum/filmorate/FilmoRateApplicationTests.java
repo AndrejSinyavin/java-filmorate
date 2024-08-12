@@ -7,10 +7,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.ComponentScan;
-import ru.yandex.practicum.filmorate.entity.*;
-import ru.yandex.practicum.filmorate.repository.*;
+import ru.yandex.practicum.filmorate.entity.Film;
+import ru.yandex.practicum.filmorate.entity.Genre;
+import ru.yandex.practicum.filmorate.entity.Like;
+import ru.yandex.practicum.filmorate.entity.Mpa;
+import ru.yandex.practicum.filmorate.entity.User;
+import ru.yandex.practicum.filmorate.repository.FilmRepository;
+import ru.yandex.practicum.filmorate.repository.FriendRepository;
+import ru.yandex.practicum.filmorate.repository.LikeRepository;
+import ru.yandex.practicum.filmorate.repository.UserRepository;
+import ru.yandex.practicum.filmorate.repository.UtilRepository;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -115,9 +124,9 @@ class FilmoRateApplicationTests {
     @Test
     @DisplayName("Проверяем топ-2 рейтинга фильмов")
     public void testGetPopularFilm() {
-        likes.likeFilm(5,1);
-        likes.likeFilm(5,2);
-        likes.likeFilm(4,3);
+        likes.likeFilm(5, 1);
+        likes.likeFilm(5, 2);
+        likes.likeFilm(4, 3);
         var top = films.getPopularFilm(2);
 
         assertThat(top).hasSize(2);
@@ -366,4 +375,56 @@ class FilmoRateApplicationTests {
     public void testGetAllMpa() {
         assertThat(utils.getAllMpa()).hasSize(5);
     }
+
+    @Test
+    @DisplayName("Получение фильмов по списку ID")
+    public void shouldGetFilmsListByFilmsIdList() {
+        List<Film> filmsList = films.getFilmsByIds(List.of(1, 2, 3));
+        assertThat(filmsList)
+                .hasSize(3);
+    }
+
+    @Test
+    @DisplayName("Получение списка всех лайков")
+    public void shouldGetAllLikes() {
+        likes.likeFilm(5, 1);
+        likes.likeFilm(5, 2);
+        likes.likeFilm(4, 3);
+
+        List<Like> testLikes = new ArrayList<>();
+        testLikes.add(new Like(1, 5));
+        testLikes.add(new Like(2, 5));
+        testLikes.add(new Like(3, 4));
+
+        assertThat(likes.getLikes()).isEqualTo(testLikes);
+    }
+
+    @Test
+    @DisplayName("Проверка есть ли лайки у пользователя")
+    public void shouldReturnTrueWhenUserHasLikes() {
+        assertThat(likes.isUserHasLikes(1)).isEqualTo(false);
+        likes.likeFilm(5, 1);
+        assertThat(likes.isUserHasLikes(1)).isEqualTo(true);
+    }
+
+    @Test
+    @DisplayName("Должен возвращать список общих фильмоа отсортированных по популярности")
+    public void shouldReturnSortedCommonFilmsList() {
+        likes.likeFilm(5, 1);
+        likes.likeFilm(5, 2);
+        likes.likeFilm(4, 1);
+        likes.likeFilm(4, 2);
+        likes.likeFilm(5, 3);
+        List<Film> commonFilms = films.getCommonFilms(1, 2);
+
+        assertThat(commonFilms)
+                .hasSize(2);
+
+        assertThat(commonFilms.get(0))
+                .hasFieldOrPropertyWithValue("id", 5);
+
+        assertThat(commonFilms.get(1))
+                .hasFieldOrPropertyWithValue("id", 4);
+    }
+
 }

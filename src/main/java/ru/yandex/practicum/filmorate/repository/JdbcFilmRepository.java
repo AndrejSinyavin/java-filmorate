@@ -1,9 +1,6 @@
 package ru.yandex.practicum.filmorate.repository;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -33,8 +30,6 @@ public class JdbcFilmRepository implements FilmRepository {
     private final NamedParameterJdbcOperations jdbc;
     private final DataSource source;
     private final String thisService = this.getClass().getName();
-    private final String entityNullError = "Ошибка! сущность Film = null";
-    private final String idError = "Ошибка! ID сущности может быть только положительным значением";
 
     /**
      * Метод создает запись о фильме в БД.
@@ -77,7 +72,7 @@ public class JdbcFilmRepository implements FilmRepository {
      * @return обновленная запись о фильме, либо пустое значение, если запись не была найдена в БД.
      */
     @Override
-    public Optional<Film> updateFilm(@NotNull(message = entityNullError) Film film) {
+    public Optional<Film> updateFilm(Film film) {
         log.info("Обновление записи о фильме в БД");
         int filmId = film.getId();
         String sqlQuery = """
@@ -132,7 +127,7 @@ public class JdbcFilmRepository implements FilmRepository {
      * @return запись о фильме; либо пустое значение, если запись о фильме не найдена в хранилище
      */
     @Override
-    public Optional<Film> getFilm(@Positive(message = idError) int filmId) {
+    public Optional<Film> getFilm(int filmId) {
         log.info("Чтение записи о фильме из БД");
         String sqlQuery = """
                 select *,
@@ -158,14 +153,56 @@ public class JdbcFilmRepository implements FilmRepository {
     }
 
     /**
+     * Метод возвращает список фильмов из БД с указанными ID.
+     *
+     * @return список фильмов, может быть пустым
+     */
+    @Override
+    public List<Film> getFilmsByIds(List<Integer> filmsIds) {
+        log.info("Создание списка фильмов из БД по списку их ID");
+
+        if (filmsIds.isEmpty())
+            return new ArrayList<>();
+
+        StringBuilder ids = new StringBuilder();
+        for (int i = 0; i < filmsIds.size() - 1; i++) {
+            ids.append(filmsIds.get(i)).append(", ");
+        }
+        ids.append(filmsIds.getLast());
+
+        String sqlQuery = """
+                select *,
+                (SELECT MPA_RATING_NAME FROM MPA_RATINGS WHERE MPA_RATING_ID_PK = FILM_MPA_RATING_FK) AS MPA_NAME,
+                (select count(FR_FILM_ID_PK) from FILMS_RATINGS where FR_FILM_ID_PK = FILM_ID_PK) as RATE
+                from FILMS
+                where FILM_ID_PK IN(""" + ids + ")" +
+                "order by FILM_ID_PK";
+        return jdbc.query(sqlQuery, filmMapper());
+    }
+
+    /**
      * Метод возвращает топ рейтинга фильмов по количеству лайков
      *
      * @param topSize размер топа
      * @return список ID фильмов топа в порядке убывания количества лайков
      */
     @Override
-    public List<Film> getPopularFilm(@Positive(message = idError) int topSize) {
+    public List<Film> getPopularFilm(Integer topSize) {
+        return getPopularFilm(topSize, null, null);
+    }
+
+    /**
+     * Метод возвращает топ рейтинга фильмов по количеству лайков
+     *
+     * @param topSize размер топа
+     * @param genreId идентификатор жанра
+     * @param year год релиза фильма
+     * @return список ID фильмов топа в порядке убывания количества лайков
+     */
+    @Override
+    public List<Film> getPopularFilm(Integer topSize, Integer genreId, Integer year) {
         log.info("Получение топа рейтинга фильмов из БД, размер топа: {}", topSize);
+        MapSqlParameterSource params = new MapSqlParameterSource();
         String sqlQuery = """
                 select *,
                 (select count(FR_USER_ID_PK)
@@ -174,10 +211,18 @@ public class JdbcFilmRepository implements FilmRepository {
                 (SELECT MPA_RATING_NAME
                         FROM MPA_RATINGS
                         WHERE MPA_RATING_ID_PK = FILM_MPA_RATING_FK) AS MPA_NAME
-                from FILMS
-                order by RATE desc
-                limit :topSize""";
-        return jdbc.query(sqlQuery, Map.of("topSize", topSize), filmMapper());
+                  FROM films f
+                 WHERE nvl(:year, EXTRACT(YEAR FROM f.FILM_RELEASE_DATE)) = EXTRACT(YEAR FROM f.FILM_RELEASE_DATE)
+                   AND (EXISTS(SELECT 1 FROM FILMS_GENRES fg
+                                WHERE fg.fg_film_id = FILM_ID_PK AND fg.fg_genre_id = :genre_id) OR :genre_id IS null)
+                order by RATE desc""";
+        if (topSize != null) {
+            sqlQuery += " limit :topSize";
+            params.addValue("topSize", topSize);
+        }
+        params.addValue("genre_id", genreId);
+        params.addValue("year", year);
+        return jdbc.query(sqlQuery, params, filmMapper());
     }
 
     /**
@@ -187,8 +232,7 @@ public class JdbcFilmRepository implements FilmRepository {
      * @return список найденных фильмов
      */
     @Override
-    public List<Film> findFilmsForDirectorByConditions(@Positive(message = idError) int directorId,
-            @NotBlank(message = "Ошибка! Пустой запрос") String conditions) {
+    public List<Film> findFilmsForDirectorByConditions(int directorId, String conditions) {
         String sqlQuery = """
                 select *,
                 (select count(FR_USER_ID_PK)
@@ -210,7 +254,7 @@ public class JdbcFilmRepository implements FilmRepository {
      *
      * @param film фильм, из которого берется список его жанров
      */
-    private void updateFilmsGenresTable(@NotNull(message = entityNullError) Film film) {
+    private void updateFilmsGenresTable(Film film) {
         String sqlQuery = """
                 delete from FILMS_GENRES
                 where FG_FILM_ID = :filmId""";
@@ -231,7 +275,7 @@ public class JdbcFilmRepository implements FilmRepository {
      *
      * @param film фильм, из которого берется список его режиссеров
      */
-    private void updateFilmsDirectorsTable(@NotNull(message = entityNullError) Film film) {
+    private void updateFilmsDirectorsTable(Film film) {
         int id = film.getId();
         String sqlQuery = """
                 delete from FILMS_DIRECTORS
@@ -253,7 +297,7 @@ public class JdbcFilmRepository implements FilmRepository {
      * @param filmId ID фильма
      * @return список жанров
      */
-    private List<Genre> getFilmGenresFromDb(@Positive(message = idError) int filmId) {
+    private List<Genre> getFilmGenresFromDb(int filmId) {
         log.info("Получение списка жанров фильма ID {} из БД", filmId);
         String sqlQuery = """
                 select FG_GENRE_ID as ID, GENRE_NAME as NAME
@@ -270,7 +314,7 @@ public class JdbcFilmRepository implements FilmRepository {
      * @param filmId ID фильма
      * @return список режиссеров
      */
-    private Set<Director> getFilmDirectorsFromDb(@Positive(message = idError) int filmId) {
+    private Set<Director> getFilmDirectorsFromDb(int filmId) {
         log.info("Получение списка режиссеров фильма ID {} из БД", filmId);
         String sqlQuery = """
                 select FD_DIRECTOR_ID as ID, DIRECTOR_NAME as NAME
@@ -279,6 +323,37 @@ public class JdbcFilmRepository implements FilmRepository {
                 where FD_FILM_ID = :filmId
                 order by ID""";
         return new HashSet<>(jdbc.query(sqlQuery, Map.of("filmId", filmId), directorMapper()));
+    }
+
+    /**
+     * Метод возвращает список общих с другом фильмов с сортировкой по их популярности
+     *
+     * @param userId   идентификатор пользователя, запрашивающего информацию
+     * @param friendId идентификатор пользователя, с которым необходимо сравнить список фильмов
+     * @return возвращает список фильмов, отсортированных по популярности.
+     */
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        String sqlQuery =
+                "SELECT *," +
+                        "(SELECT mpa_rating_name FROM mpa_ratings WHERE mpa_rating_id_pk = film_mpa_rating_fk) AS mpa_name," +
+                        "(SELECT COUNT(fr_film_id_pk) FROM films_ratings WHERE fr_film_id_pk = film_id_pk) AS rate " +
+                        "FROM films " +
+                        "WHERE film_id_pk IN(" +
+                        "SELECT fr_film_id_pk " +
+                        "FROM films_ratings AS fr0 " +
+                        "WHERE fr_film_id_pk IN(" +
+                        "SELECT DISTINCT fr_film_id_pk " +
+                        "FROM films_ratings fr " +
+                        "WHERE (fr_film_id_pk IN(SELECT fr_film_id_pk FROM films_ratings fr2 " +
+                        "WHERE fr_user_id_pk = :userId)" +
+                        "AND fr_film_id_pk IN(SELECT fr_film_id_pk FROM films_ratings fr3 " +
+                        "WHERE fr_user_id_pk = :friendId))))" +
+                        "ORDER BY rate DESC";
+
+        return jdbc.query(sqlQuery,
+                Map.of("userId", userId, "friendId", friendId),
+                filmMapper());
     }
 
     private RowMapper<Genre> genreMapper() {

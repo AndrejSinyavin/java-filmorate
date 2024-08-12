@@ -6,15 +6,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsertOperations;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.entity.Like;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
 
 import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -99,5 +104,39 @@ public class JdbcLikeRepository implements LikeRepository {
             log.info("Фильм ID {} имеет {} лайк(а)", filmId, filmRating);
             return filmRating;
         }
+    }
+
+    /**
+     * Метод получения всех лайков всех пользователей
+     *
+     * @return список объектов лайк с данными таблицы FILMS_RATINGS
+     */
+    @Override
+    public List<Like> getLikes() {
+        log.info("Получение информации о всех лайках из БД");
+        String sqlQuery = """
+                select *
+                from FILMS_RATINGS""";
+        return jdbc.query(sqlQuery, likeMapper());
+    }
+
+    /**
+     * Метод возвращает истину, если пользователь поставил хотя бы 1 лайк
+     *
+     * @param userId ID пользователя
+     * @return true или false
+     */
+    @Override
+    public Boolean isUserHasLikes(int userId) {
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("id", userId);
+        return jdbc.queryForObject("select exists(select from FILMS_RATINGS where FR_USER_ID_PK = :id)",
+                params, Boolean.class);
+    }
+
+    private RowMapper<Like> likeMapper() {
+        return (ResultSet rs, int rowNum) -> new Like(
+                rs.getInt("FR_USER_ID_PK"),
+                rs.getInt("FR_FILM_ID_PK"));
     }
 }

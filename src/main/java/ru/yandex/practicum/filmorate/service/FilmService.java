@@ -1,9 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -33,8 +30,6 @@ import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.
 @RequiredArgsConstructor
 public class FilmService implements BaseFilmService {
     private final String thisService = this.getClass().getName();
-    private final String entityNullError = "Ошибка! сущность Film = null";
-    private final String idError = "Ошибка! ID сущности может быть только положительным значением";
     /**
      * Подключение репозитория для работы с фильмами.
      */
@@ -55,8 +50,7 @@ public class FilmService implements BaseFilmService {
      * @param userId ID пользователя
      */
     @Override
-    public void addLike(@Positive(message = idError) int filmId,
-                        @Positive(message = idError) int userId) {
+    public void addLike(int filmId, int userId) {
         log.info("Добавление лайка фильму на сервисе");
         likes.likeFilm(filmId, userId);
     }
@@ -68,8 +62,7 @@ public class FilmService implements BaseFilmService {
      * @param userId ID пользователя
      */
     @Override
-    public void deleteLike(@Positive(message = idError) int filmId,
-                           @Positive(message = idError) int userId) {
+    public void deleteLike(int filmId, int userId) {
         log.info("Удаление лайка фильму на сервисе:");
         likes.unLikeFilm(filmId, userId);
     }
@@ -81,9 +74,9 @@ public class FilmService implements BaseFilmService {
      * @return топ лучших фильмов
      */
     @Override
-    public List<Film> getTopFilms(@Positive(message = idError) int topSize) {
+    public List<Film> getTopFilms(Integer topSize, Integer genreId, Integer year) {
         log.info("Получение списка наиболее популярных фильмов по количеству лайков, топ {}:", topSize);
-        return films.getPopularFilm(topSize);
+        return films.getPopularFilm(topSize, genreId, year);
     }
 
     /**
@@ -93,7 +86,7 @@ public class FilmService implements BaseFilmService {
      * @return этот же фильм с установленным ID после регистрации
      */
     @Override
-    public Film createfilm(@NotNull(message = entityNullError) Film film) {
+    public Film createfilm(Film film) {
         log.info("Создание записи о фильме: {}", film);
         validateAndUpdateFilm(film);
         return films.createFilm(film).orElseThrow(
@@ -108,7 +101,7 @@ public class FilmService implements BaseFilmService {
      * @return обновленная запись о фильме
      */
     @Override
-    public Film updateFilm(@NotNull(message = entityNullError) Film film) {
+    public Film updateFilm(Film film) {
         log.info("Обновление записи о фильме на сервисе: {}", film);
         validateAndUpdateFilm(film);
         return films.updateFilm(film).orElseThrow(
@@ -135,9 +128,7 @@ public class FilmService implements BaseFilmService {
      * @return список фильмов этого режиссера, отсортированный по критерию
      */
     @Override
-    public List<Film> getFilmsSortedByCriteria(
-            @Positive(message = idError) int directorId,
-            @NotBlank(message = "Ошибка! Отсутствует критерий сортировки")
+    public List<Film> getFilmsSortedByCriteria(int directorId,
             String criteria) {
         log.info("Получение списка всех фильмов сервиса, отобранных по критериям:");
         String conditions;
@@ -159,11 +150,23 @@ public class FilmService implements BaseFilmService {
      * @return найденная запись о фильме
      */
     @Override
-    public Film getFilm(@Positive(message = idError) int id) {
+    public Film getFilm(int id) {
         log.info("Получение с сервиса записи о фильме:");
         return films.getFilm(id).orElseThrow(() -> new EntityNotFoundException(
                 thisService, films.getClass().getName(),
                 String.format("Получить запись о фильме не удалось, фильм с ID %d не найден!", id)));
+    }
+
+    /**
+     * Метод возвращает список общих с другом фильмов с сортировкой по их популярности
+     *
+     * @param userId   идентификатор пользователя, запрашивающего информацию
+     * @param friendId идентификатор пользователя, с которым необходимо сравнить список фильмов
+     * @return возвращает список фильмов, отсортированных по популярности.
+     */
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        return films.getCommonFilms(userId, friendId);
     }
 
     /**
@@ -172,7 +175,7 @@ public class FilmService implements BaseFilmService {
      *
      * @param film фильм, в котором нужно проверить ID и присвоить полям названия
      */
-    private void validateAndUpdateFilm(@NotNull(message = entityNullError) Film film) {
+    private void validateAndUpdateFilm(Film film) {
         film.setMpa(getMpa(film));
         film.setGenres(getGenres(film).stream().toList());
         film.setDirectors(getDirectors(film));
@@ -193,7 +196,7 @@ public class FilmService implements BaseFilmService {
         return sortedGenres;
     }
 
-    private TreeSet<Director> getDirectors(@NotNull(message = entityNullError) Film film) {
+    private TreeSet<Director> getDirectors(Film film) {
         var directors = film.getDirectors();
         var allDirectors = utils.getAllDirectors();
         var sortedDirectors = new TreeSet<>(Director::compareTo);
@@ -211,7 +214,7 @@ public class FilmService implements BaseFilmService {
         return sortedDirectors;
     }
 
-    public Mpa getMpa(@NotNull(message = entityNullError) Film film) {
+    public Mpa getMpa(Film film) {
         var filmMpa = film.getMpa();
         var filmMpaId = DEFAULT_MPA_RATING;
         var allMpa = utils.getAllMpa();
