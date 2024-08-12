@@ -165,4 +165,12 @@ public class UserController {
         return result;
     }
 
+    @DeleteMapping("/{id}")
+    public void deleteUserById(
+            @PathVariable("id") int id) {
+        log.info("Запрос ==> DELETE на удаление пользователя с ID {}", id);
+        userService.deleteUserById(id);
+        log.info("Ответ <==  200 Ok. Пользователь с ID {} удалён", id);
+    }
+
 }

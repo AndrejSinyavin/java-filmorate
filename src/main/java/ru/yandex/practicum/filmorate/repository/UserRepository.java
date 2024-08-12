@@ -33,6 +33,8 @@ public interface UserRepository {
      */
     List<User> getAllUsers();
 
+    void removeUserById(int id);
+
     /**
      * Метод возвращает запись о пользователе по его ID
      *

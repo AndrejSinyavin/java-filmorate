@@ -4,12 +4,12 @@ import ru.yandex.practicum.filmorate.entity.Film;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.IntPredicate;
 
 /**
  * Интерфейс для служб, работающих с фильмотекой.
  */
 public interface FilmRepository {
-
     /**
      * Метод создает запись о фильме
      *
@@ -83,4 +83,6 @@ public interface FilmRepository {
      * @return список найденных фильмов
      */
     List<Film> findFilmsForDirectorByConditions(int directorId, String conditions);
+
+    IntPredicate deleteFilmById(int filmId);
 }

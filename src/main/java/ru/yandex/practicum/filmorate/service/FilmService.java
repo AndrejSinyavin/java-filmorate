@@ -175,6 +175,11 @@ public class FilmService implements BaseFilmService {
      *
      * @param film фильм, в котором нужно проверить ID и присвоить полям названия
      */
+    @Override
+    public void deleteFilm(int id) {
+        films.deleteFilmById(id);
+    }
+
     private void validateAndUpdateFilm(Film film) {
         film.setMpa(getMpa(film));
         film.setGenres(getGenres(film).stream().toList());
@@ -231,4 +236,6 @@ public class FilmService implements BaseFilmService {
         }
         return filmMpa;
     }
+
+
 }

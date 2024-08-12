@@ -168,4 +168,13 @@ public class FilmController {
         log.info("Ответ <== 200 Ok. Список фильмов режиссера ID {} отправлен {}", directorId, result);
         return result;
     }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteFilmById(
+            @Positive(message = idError) @PathVariable("id") int id) {
+        log.info("Запрос ==> DELETE на удаление фильма с  ID {}", id);
+        filmsService.deleteFilm(id);
+        log.info("Ответ <== 200 Ok. Фильм с ID {} удален", id);
+    }
 }
