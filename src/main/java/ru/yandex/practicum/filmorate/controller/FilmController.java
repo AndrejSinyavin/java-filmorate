@@ -28,7 +28,6 @@ public class FilmController {
      * Подключение сервиса работы с фильмами.
      */
     private final BaseFilmService filmsService;
-    private final FilmService filmService;
 
     /**
      * Endpoint обрабатывает запрос на создание в фильмотеке новой записи "Фильм".
@@ -175,6 +174,6 @@ public class FilmController {
     public List<Film> searchFilms(@RequestParam(value = "query", required = true) String query,
                                   @RequestParam(value = "by", required = true) String by) {
         log.info("Запрос ==> GET список фильмов по строке {}, и параметры фильтрации {}", query, by);
-        return filmService.getFilmsByTitleAndDirector(query, by);
+        return filmsService.getFilmsByTitleAndDirector(query, by);
     }
 }
