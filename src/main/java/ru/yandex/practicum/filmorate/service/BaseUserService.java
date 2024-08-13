@@ -77,4 +77,6 @@ public interface BaseUserService {
      * @return список рекомендаций
      */
     List<Film> getRecommendations(int userId);
+
+    void deleteUserById(int userId);
 }

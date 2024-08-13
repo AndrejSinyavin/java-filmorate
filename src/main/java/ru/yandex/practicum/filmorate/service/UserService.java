@@ -194,6 +194,13 @@ public class UserService implements BaseUserService {
         return films.getFilmsByIds(new ArrayList<>(filmsIdsOfMostSimilarUsers));
     }
 
+    @Override
+    public void deleteUserById(int userId) {
+        getUser(userId);
+        users.removeUserById(userId);
+    }
+
+
     /**
      * Метод преобразует список с объектами Like в HashMap вида:
      * key: id пользователя, value: список понравившихся фильмов

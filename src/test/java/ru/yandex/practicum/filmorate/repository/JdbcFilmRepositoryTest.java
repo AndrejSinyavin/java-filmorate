@@ -48,7 +48,7 @@ class JdbcFilmRepositoryTest {
         assertThat(filmRepository.getFilm(id))
                 .isPresent()
                 .hasValueSatisfying(film -> assertThat(film)
-                .hasFieldOrPropertyWithValue("id", id));
+                        .hasFieldOrPropertyWithValue("id", id));
     }
 
     @Test
@@ -163,6 +163,23 @@ class JdbcFilmRepositoryTest {
         assertThat(sortedFilmsByCriteria.size() == 2).isTrue();
         assertThat(sortedFilmsByCriteria.getFirst().getId() == film1.getId()).isTrue();
         assertThat(sortedFilmsByCriteria.getLast().getId() == film2.getId()).isTrue();
+    }
+
+
+    @Test
+    @DisplayName("Сценарий проверки удаления фильма")
+    void deleteFilm() {
+        film = filmRepository.createFilm(null);
+        assertThat(film).isNotPresent();
+        film = filmRepository.createFilm(testFilm());
+        assertThat(film).isPresent();
+        id = film.get().getId();
+        assertThat(filmRepository.getFilm(id))
+                .isPresent()
+                .hasValueSatisfying(film -> assertThat(film)
+                        .hasFieldOrPropertyWithValue("id", id));
+        filmRepository.deleteFilmById(id);
+        assertThat(filmRepository.getFilm(id)).isNotPresent();
     }
 
     private Film testFilm() {

@@ -169,6 +169,15 @@ public class FilmController {
         return result;
     }
 
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteFilmById(
+            @Positive(message = idError) @PathVariable("id") int id) {
+        log.info("Запрос ==> DELETE на удаление фильма с  ID {}", id);
+        filmsService.deleteFilm(id);
+        log.info("Ответ <== 200 Ok. Фильм с ID {} удален", id);
+    }
+
     @GetMapping("/search")
     public List<Film> searchFilms(@RequestParam(value = "query", required = true) String query,
                                   @RequestParam(value = "by", required = true) String by) {
