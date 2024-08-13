@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.service;
 import ru.yandex.practicum.filmorate.entity.Film;
 
 import java.util.List;
-import java.util.Set;
 
 public interface BaseFilmService {
     /**
