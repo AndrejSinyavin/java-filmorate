@@ -177,4 +177,11 @@ public class FilmController {
         filmsService.deleteFilm(id);
         log.info("Ответ <== 200 Ok. Фильм с ID {} удален", id);
     }
+
+    @GetMapping("/search")
+    public List<Film> searchFilms(@RequestParam(value = "query", required = true) String query,
+                                  @RequestParam(value = "by", required = true) String by) {
+        log.info("Запрос ==> GET список фильмов по строке {}, и параметры фильтрации {}", query, by);
+        return filmsService.getFilmsByTitleAndDirector(query, by);
+    }
 }

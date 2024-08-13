@@ -389,4 +389,76 @@ public class JdbcFilmRepository implements FilmRepository {
                 getFilmGenresFromDb(rs.getInt("FILM_ID_PK")),
                 getFilmDirectorsFromDb(rs.getInt(("FILM_ID_PK"))));
     }
+
+    //Ищем в БД все фильмы по режисёру и названию фильма
+    @Override
+    public List<Film> search(String title, String director) {
+
+        log.info("Параметры на вход title ={} и director = {}", title, director);
+        String sqlSelect = "";
+        List<Film> filmsLilst = new ArrayList<>();
+        Map<String, Object> params = new HashMap<>();
+
+        if (title.isEmpty() && !director.isEmpty()) {
+            log.info("Сработало правило title.isEmpty()");
+            sqlSelect = """
+                    SELECT FILM_ID_PK FROM (SELECT f.*
+                    FROM FILMS f
+                    LEFT JOIN (SELECT FR_FILM_ID_PK, COUNT(*) AS num_likes
+                    FROM FILMS_RATINGS
+                    GROUP BY FR_FILM_ID_PK) r ON f.FILM_ID_PK = r.FR_FILM_ID_PK
+                    LEFT JOIN FILMS_DIRECTORS fd ON f.FILM_ID_PK = fd.FD_FILM_ID
+                    LEFT JOIN DIRECTORS d ON fd.FD_DIRECTOR_ID = d.DIRECTOR_ID_PK
+                    WHERE d.DIRECTOR_NAME LIKE :directorName
+                    ORDER BY r.num_likes DESC)
+                    """;
+            params.put("directorName", "%" + director + "%");
+        }
+        if (director.isEmpty() && !title.isEmpty()) {
+            log.info("Сработало правило director.isEmpty()");
+            sqlSelect = """
+                    SELECT FILM_ID_PK FROM (SELECT f.*
+                    FROM FILMS f
+                    LEFT JOIN (SELECT FR_FILM_ID_PK, COUNT(*) AS num_likes
+                    FROM FILMS_RATINGS
+                    GROUP BY FR_FILM_ID_PK) r ON f.FILM_ID_PK = r.FR_FILM_ID_PK
+                    LEFT JOIN FILMS_DIRECTORS fd ON f.FILM_ID_PK = fd.FD_FILM_ID
+                    LEFT JOIN DIRECTORS d ON fd.FD_DIRECTOR_ID = d.DIRECTOR_ID_PK
+                    WHERE f.FILM_NAME LIKE :filmName
+                    ORDER BY r.num_likes DESC)
+                    """;
+
+            params.put("filmName", "%" + title + "%");
+        }
+        if (!title.isBlank() && !director.isBlank()) {
+            log.info("Сработало правило !title.isBlank() && !director.isBlank()");
+            sqlSelect = """
+                    SELECT FILM_ID_PK FROM (SELECT f.*
+                    FROM FILMS f
+                    LEFT JOIN (SELECT FR_FILM_ID_PK, COUNT(*) AS num_likes
+                    FROM FILMS_RATINGS
+                    GROUP BY FR_FILM_ID_PK) r ON f.FILM_ID_PK = r.FR_FILM_ID_PK
+                    LEFT JOIN FILMS_DIRECTORS fd ON f.FILM_ID_PK = fd.FD_FILM_ID
+                    LEFT JOIN DIRECTORS d ON fd.FD_DIRECTOR_ID = d.DIRECTOR_ID_PK
+                    WHERE f.FILM_NAME LIKE :filmName OR d.DIRECTOR_NAME LIKE :directorName
+                    ORDER BY r.num_likes DESC)
+                    """;
+            params.put("filmName", "%" + title + "%");
+            params.put("directorName", "%" + director + "%");
+
+        }
+
+        jdbc.query(sqlSelect, params, getIntFromDb());
+        List<Integer> filmIdLilst = jdbc.query(sqlSelect, params, getIntFromDb());
+        for (Integer filmId : filmIdLilst) {
+            filmsLilst.add(getFilm(filmId).get());
+        }
+        return filmsLilst;
+    }
+
+    private RowMapper<Integer> getIntFromDb() {
+        return (ResultSet rs, int rowNum) -> new Integer(
+                rs.getInt("FILM_ID_PK")
+        );
+    }
 }

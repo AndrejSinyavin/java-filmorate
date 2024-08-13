@@ -81,4 +81,7 @@ public interface BaseFilmService {
     List<Film> getCommonFilms(int userId, int friendId);
 
     void deleteFilm(int id);
+
+    //Метод для поиска фильмов по режисеру и/или названию, в том числе по подстроке
+    List<Film> getFilmsByTitleAndDirector(String query, String searchParameters);
 }
