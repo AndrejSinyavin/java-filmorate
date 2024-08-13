@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import jakarta.validation.Valid;
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,9 @@ import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.LikeRepository;
 import ru.yandex.practicum.filmorate.repository.UtilRepository;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeSet;
 
 import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.DEFAULT_MPA_RATING;
 
@@ -179,7 +182,6 @@ public class FilmService implements BaseFilmService {
      *
      * @param film фильм, в котором нужно проверить ID и присвоить полям названия
      */
-
     private void validateAndUpdateFilm(Film film) {
         film.setMpa(getMpa(film));
         film.setGenres(getGenres(film).stream().toList());
@@ -237,7 +239,6 @@ public class FilmService implements BaseFilmService {
         return filmMpa;
     }
 
-    //Метод для поиска по подстроке фильмов по режиссёру и/или названию
     @Override
     public List<Film> getFilmsByTitleAndDirector(String query, String searchParameters) {
 
@@ -280,5 +281,9 @@ public class FilmService implements BaseFilmService {
         DIRECTOR, TITLE
     }
 
-
+    //Метод для проверки того, что пришедший параметр находится в списке разрешенных
+    public static boolean isInEnum(String str) {
+        By.valueOf(str.toUpperCase());
+        return true;
+    }
 }
