@@ -33,7 +33,7 @@ public class JdbcEventRepository implements EventRepository {
     public Collection<Event> getAllFriendsEventsByUserId(int userId) {
         log.info("Получение всех событий друзей пользователя с ID = {}", userId);
         var events = jdbc.query("SELECT * FROM EVENTS WHERE USER_ID = (" +
-                "SELECT USER_ID FROM FRIENDSHIP_STATUSES WHERE FS_USER_ID = :USER_ID);", mapRow());
+                "SELECT USER_ID FROM FRIENDSHIP_STATUSES WHERE FS_USER_ID = :USER_ID);", new MapSqlParameterSource("USER_ID", userId), mapRow());
         log.info("Получены события друзей пользователя с ID = {}", userId);
         return events;
     }
@@ -57,7 +57,7 @@ public class JdbcEventRepository implements EventRepository {
     private RowMapper<Event> mapRow() {
         return (ResultSet rs, int rowNum) -> new Event(
                 rs.getInt("EVENT_ID"),
-                rs.getTimestamp("TIMESTAMP").toInstant(),
+                rs.getLong("TIMESTAMP"),
                 rs.getInt("USER_ID"),
                 rs.getString("EVENT_TYPE_NAME"),
                 rs.getString("OPERATION_NAME"),

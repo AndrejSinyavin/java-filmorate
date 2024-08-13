@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.repository.EventRepository;
 import ru.yandex.practicum.filmorate.repository.ReviewLikeRepository;
 import ru.yandex.practicum.filmorate.repository.ReviewRepository;
 
+import java.time.Instant;
 import java.util.Collection;
 
 @Slf4j
@@ -50,7 +51,7 @@ public class ReviewService implements BaseReviewService {
         Review resultReview = reviewRepository.create(review).orElseThrow(
                 () -> new InternalServiceException(getClass().getSimpleName(), "", "Ошибка добавления отзыва")
         );
-        eventRepository.create(new Event(review.getUserId(), EventType.REVIEW.toString(), EventOperation.ADD.toString(),
+        eventRepository.create(new Event(Instant.now().toEpochMilli(), review.getUserId(), EventType.REVIEW.toString(), EventOperation.ADD.toString(),
                 review.getReviewId()));
         return resultReview;
     }
@@ -64,16 +65,17 @@ public class ReviewService implements BaseReviewService {
                         "",
                         String.format("Отзыв с ид %s не найден", review.getReviewId()))
         );
-        eventRepository.create(new Event(review.getUserId(), EventType.REVIEW.toString(), EventOperation.UPDATE.toString(),
+        eventRepository.create(new Event(Instant.now().toEpochMilli(), review.getUserId(), EventType.REVIEW.toString(), EventOperation.UPDATE.toString(),
                 review.getReviewId()));
         return resultReview;
     }
 
     @Override
     public void delete(Integer reviewId) {
+        int userId = getById(reviewId).getUserId();
         log.info("{}: Удаление отзыва по идентификатору {}", getClass().getSimpleName(), reviewId);
         reviewRepository.delete(reviewId);
-        eventRepository.create(new Event(getById(reviewId).getUserId(), EventType.REVIEW.toString(),
+        eventRepository.create(new Event(Instant.now().toEpochMilli(), userId, EventType.REVIEW.toString(),
                 EventOperation.REMOVE.toString(),
                 reviewId));
     }

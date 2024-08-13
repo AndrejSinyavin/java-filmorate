@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
 import ru.yandex.practicum.filmorate.repository.*;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -55,7 +56,7 @@ public class UserService implements BaseUserService {
     public void addFriend(int userId, int friendId) {
         log.info("Запрос/подтверждение дружбы пользователей {} и {}", userId, friendId);
         friends.addFriend(userId, friendId);
-        events.create(new Event(userId, EventType.FRIEND.toString(), EventOperation.ADD.toString(),
+        events.create(new Event(Instant.now().toEpochMilli(), userId, EventType.FRIEND.toString(), EventOperation.ADD.toString(),
                 friendId));
     }
 
@@ -69,7 +70,7 @@ public class UserService implements BaseUserService {
     public void deleteFriend(int userId, int friendId) {
         log.info("Удаление запроса/подтверждения дружбы пользователей {} и {}", userId, friendId);
         friends.deleteFriend(userId, friendId);
-        events.create(new Event(userId, EventType.FRIEND.toString(), EventOperation.REMOVE.toString(),
+        events.create(new Event(Instant.now().toEpochMilli(), userId, EventType.FRIEND.toString(), EventOperation.REMOVE.toString(),
                 friendId));
     }
 

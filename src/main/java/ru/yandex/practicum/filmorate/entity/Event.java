@@ -7,8 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-import java.time.Instant;
-
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Data
@@ -17,7 +15,7 @@ public class Event {
     @Positive(message = "ID события не может быть отрицательным значением")
     private int id;
     @NotNull(message = "Дата события не может быть null")
-    private Instant timestamp;
+    private long timestamp;
     @NotNull(message = "ID пользователя не может быть null")
     @Positive(message = "ID пользователя не может быть отрицательным значением")
     private int userId;
@@ -29,7 +27,8 @@ public class Event {
     @Positive(message = "ID сущности не может быть отрицательным значением")
     private int entityId;
 
-    public Event(int userId, String eventType, String operation, int entityId) {
+    public Event(long instant, int userId, String eventType, String operation, int entityId) {
+        this.timestamp = instant;
         this.userId = userId;
         this.eventType = eventType;
         this.operation = operation;

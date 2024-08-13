@@ -14,6 +14,7 @@ import ru.yandex.practicum.filmorate.repository.EventRepository;
 import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.LikeRepository;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -46,7 +47,7 @@ public class FilmService implements BaseFilmService {
     public void addLike(int filmId, int userId) {
         log.info("Добавление лайка фильму на сервисе");
         likes.likeFilm(filmId, userId);
-        events.create(new Event(userId, EventType.LIKE.toString(), EventOperation.ADD.toString(), filmId));
+        events.create(new Event(Instant.now().toEpochMilli(), userId, EventType.LIKE.toString(), EventOperation.ADD.toString(), filmId));
     }
 
     /**
@@ -59,7 +60,7 @@ public class FilmService implements BaseFilmService {
     public void deleteLike(int filmId, int userId) {
         log.info("Удаление лайка фильму на сервисе:");
         likes.unLikeFilm(filmId, userId);
-        events.create(new Event(userId, EventType.LIKE.toString(), EventOperation.REMOVE.toString(), filmId));
+        events.create(new Event(Instant.now().toEpochMilli(), userId, EventType.LIKE.toString(), EventOperation.REMOVE.toString(), filmId));
     }
 
     /**
