@@ -255,20 +255,15 @@ public class FilmService implements BaseFilmService {
             title = query;
             filmsList.addAll(films.search(title, director));
 
-        }
-
-        //Т.к. не сработало правило на 2 параметра через запятую - проверяем одинарный параметр фильтрации
-        else {
-            if (!isInEnum(searchParameters)) {
-                throw new ValidationException("Параметра " + searchParameters + " не существует ");
-            }
+            //Т.к. не сработало правило на 2 параметра через запятую - проверяем одинарный параметр фильтрации
+        } else {
             log.info("Сработало правило фильтрации searchParameters без запятой, на вход пришло {}",
                     searchParameters);
-
-            if (searchParameters.equals(By.DIRECTOR.toString().toLowerCase())) {
+            if (!isInEnum(searchParameters)) {
+                throw new ValidationException("Параметра " + searchParameters + " не существует ");
+            } else if (searchParameters.equals(By.DIRECTOR.toString().toLowerCase())) {
                 director = query;
-            }
-            if (searchParameters.equals(By.TITLE.toString().toLowerCase())) {
+            } else if (searchParameters.equals(By.TITLE.toString().toLowerCase())) {
                 title = query;
             }
             filmsList.addAll(films.search(title, director));
