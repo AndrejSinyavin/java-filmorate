@@ -13,7 +13,6 @@ import ru.yandex.practicum.filmorate.service.BaseFilmService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * Контроллер обработки REST-запросов для работы с фильмотекой.
