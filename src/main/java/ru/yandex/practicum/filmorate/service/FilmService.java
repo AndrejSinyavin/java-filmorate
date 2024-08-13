@@ -4,9 +4,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.entity.Event;
+import ru.yandex.practicum.filmorate.entity.EventOperation;
+import ru.yandex.practicum.filmorate.entity.EventType;
 import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
+import ru.yandex.practicum.filmorate.repository.EventRepository;
 import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.LikeRepository;
 
@@ -30,6 +34,8 @@ public class FilmService implements BaseFilmService {
      */
     private final LikeRepository likes;
 
+    private final EventRepository events;
+
     /**
      * Метод позволяет пользователю лайкнуть фильм.
      *
@@ -40,6 +46,7 @@ public class FilmService implements BaseFilmService {
     public void addLike(int filmId, int userId) {
         log.info("Добавление лайка фильму на сервисе");
         likes.likeFilm(filmId, userId);
+        events.create(new Event(userId, EventType.LIKE.toString(), EventOperation.ADD.toString(), filmId));
     }
 
     /**
@@ -52,6 +59,7 @@ public class FilmService implements BaseFilmService {
     public void deleteLike(int filmId, int userId) {
         log.info("Удаление лайка фильму на сервисе:");
         likes.unLikeFilm(filmId, userId);
+        events.create(new Event(userId, EventType.LIKE.toString(), EventOperation.REMOVE.toString(), filmId));
     }
 
     /**

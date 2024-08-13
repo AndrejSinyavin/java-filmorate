@@ -3,9 +3,13 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.entity.Event;
+import ru.yandex.practicum.filmorate.entity.EventOperation;
+import ru.yandex.practicum.filmorate.entity.EventType;
 import ru.yandex.practicum.filmorate.entity.Review;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
+import ru.yandex.practicum.filmorate.repository.EventRepository;
 import ru.yandex.practicum.filmorate.repository.ReviewLikeRepository;
 import ru.yandex.practicum.filmorate.repository.ReviewRepository;
 
@@ -17,6 +21,7 @@ import java.util.Collection;
 public class ReviewService implements BaseReviewService {
     private final ReviewRepository reviewRepository;
     private final ReviewLikeRepository reviewLikeRepository;
+    private final EventRepository eventRepository;
 
     @Override
     public Collection<Review> get(Integer filmId, Integer count) {
@@ -42,26 +47,35 @@ public class ReviewService implements BaseReviewService {
     @Override
     public Review create(Review review) {
         log.info("{}: Добавление отзыва {} ", getClass().getSimpleName(), review.toString());
-        return reviewRepository.create(review).orElseThrow(
+        Review resultReview = reviewRepository.create(review).orElseThrow(
                 () -> new InternalServiceException(getClass().getSimpleName(), "", "Ошибка добавления отзыва")
         );
+        eventRepository.create(new Event(review.getUserId(), EventType.REVIEW.toString(), EventOperation.ADD.toString(),
+                review.getReviewId()));
+        return resultReview;
     }
 
     @Override
     public Review update(Review review) {
         log.info("{}: Обновление отзыва {} ", getClass().getSimpleName(), review.toString());
-        return reviewRepository.update(review).orElseThrow(
+        Review resultReview = reviewRepository.update(review).orElseThrow(
                 () -> new EntityNotFoundException(
                         getClass().getSimpleName(),
                         "",
                         String.format("Отзыв с ид %s не найден", review.getReviewId()))
         );
+        eventRepository.create(new Event(review.getUserId(), EventType.REVIEW.toString(), EventOperation.UPDATE.toString(),
+                review.getReviewId()));
+        return resultReview;
     }
 
     @Override
     public void delete(Integer reviewId) {
         log.info("{}: Удаление отзыва по идентификатору {}", getClass().getSimpleName(), reviewId);
         reviewRepository.delete(reviewId);
+        eventRepository.create(new Event(getById(reviewId).getUserId(), EventType.REVIEW.toString(),
+                EventOperation.REMOVE.toString(),
+                reviewId));
     }
 
     @Override

@@ -15,10 +15,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.entity.Event;
 import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.entity.User;
 import ru.yandex.practicum.filmorate.service.BaseUserService;
+import ru.yandex.practicum.filmorate.service.EventService;
 
+import java.util.Collection;
 import java.util.List;
 
 import static ru.yandex.practicum.filmorate.validate.ValidateExtender.validateUser;
@@ -37,6 +40,7 @@ public class UserController {
      * Подключение сервиса работы с пользователями.
      */
     private final BaseUserService userService;
+    private final EventService eventService;
 
     /**
      * Endpoint обрабатывает запрос на создание нового пользователя фильмотеки.
@@ -173,4 +177,11 @@ public class UserController {
         return result;
     }
 
+    @GetMapping("/{id}/feed")
+    public Collection<Event> getFeed(@PathVariable("id") @Positive(message = idError) int id) {
+        log.info("Запрос ==> GET получить список новостей пользователя с ID {}", id);
+        var result = eventService.getFeed(id);
+        log.info("Ответ <==  200 Ok. Список новостей пользователю с ID {}", id);
+        return result;
+    }
 }
