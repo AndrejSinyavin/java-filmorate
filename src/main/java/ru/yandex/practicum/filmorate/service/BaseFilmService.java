@@ -79,4 +79,6 @@ public interface BaseFilmService {
      * @return возвращает список фильмов, отсортированных по популярности.
      */
     List<Film> getCommonFilms(int userId, int friendId);
+
+    void deleteFilm(int id);
 }

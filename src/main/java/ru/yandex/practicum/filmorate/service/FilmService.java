@@ -169,12 +169,18 @@ public class FilmService implements BaseFilmService {
         return films.getCommonFilms(userId, friendId);
     }
 
+    @Override
+    public void deleteFilm(int id) {
+        films.deleteFilmById(id);
+    }
+
     /**
      * Метод проверяет, что ID MPA-рейтинга, ID в списках жанров и режиссеров имеются в БД,
      * и присваивает соответствующие названия полям фильма по этим ID. В списках удаляются повторы.
      *
      * @param film фильм, в котором нужно проверить ID и присвоить полям названия
      */
+
     private void validateAndUpdateFilm(Film film) {
         film.setMpa(getMpa(film));
         film.setGenres(getGenres(film).stream().toList());
@@ -231,4 +237,6 @@ public class FilmService implements BaseFilmService {
         }
         return filmMpa;
     }
+
+
 }

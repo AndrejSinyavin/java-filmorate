@@ -356,6 +356,15 @@ public class JdbcFilmRepository implements FilmRepository {
                 filmMapper());
     }
 
+    @Override
+    public void deleteFilmById(int filmId) {
+        log.info("удаление фильма ID {} из БД", filmId);
+        String sqlQuery = """
+                delete from FILMS
+                where FILM_ID_PK = :filmId""";
+        jdbc.update(sqlQuery, new MapSqlParameterSource().addValue("filmId", filmId));
+    }
+
     private RowMapper<Genre> genreMapper() {
         return (ResultSet rs, int rowNum) -> new Genre(
                 rs.getInt("ID"),

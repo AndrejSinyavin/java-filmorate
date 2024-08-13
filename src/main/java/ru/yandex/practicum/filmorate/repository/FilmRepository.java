@@ -9,7 +9,6 @@ import java.util.Optional;
  * Интерфейс для служб, работающих с фильмотекой.
  */
 public interface FilmRepository {
-
     /**
      * Метод создает запись о фильме
      *
@@ -83,4 +82,6 @@ public interface FilmRepository {
      * @return список найденных фильмов
      */
     List<Film> findFilmsForDirectorByConditions(int directorId, String conditions);
+
+    void deleteFilmById(int filmId);
 }
