@@ -10,8 +10,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.service.BaseFilmService;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Контроллер обработки REST-запросов для работы с фильмотекой.
@@ -27,6 +29,7 @@ public class FilmController {
      * Подключение сервиса работы с фильмами.
      */
     private final BaseFilmService filmsService;
+    private final FilmService filmService;
 
     /**
      * Endpoint обрабатывает запрос на создание в фильмотеке новой записи "Фильм".
@@ -167,5 +170,12 @@ public class FilmController {
         var result = filmsService.getFilmsSortedByCriteria(directorId, sortBy);
         log.info("Ответ <== 200 Ok. Список фильмов режиссера ID {} отправлен {}", directorId, result);
         return result;
+    }
+
+    @GetMapping("/search")
+    public List<Film> searchFilms(@RequestParam(value = "query", required = true) String query,
+                                  @RequestParam(value = "by", required = true) String by) {
+        log.info("Запрос ==> GET список фильмов по строке {}, и параметры фильтрации {}", query, by);
+        return filmService.getFilmsByTitleAndDirector(query, by);
     }
 }

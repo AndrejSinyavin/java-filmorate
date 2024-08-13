@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import ru.yandex.practicum.filmorate.entity.Film;
 
 import java.util.List;
+import java.util.Set;
 
 public interface BaseFilmService {
     /**
@@ -79,4 +80,7 @@ public interface BaseFilmService {
      * @return возвращает список фильмов, отсортированных по популярности.
      */
     List<Film> getCommonFilms(int userId, int friendId);
+
+    //Метод для поиска фильмов по режисеру и/или названию, в том числе по подстроке
+    List<Film> getFilmsByTitleAndDirector(String query, String searchParameters);
 }

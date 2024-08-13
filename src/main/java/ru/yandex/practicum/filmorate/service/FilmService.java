@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import jakarta.validation.Valid;
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -16,8 +17,7 @@ import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.LikeRepository;
 import ru.yandex.practicum.filmorate.repository.UtilRepository;
 
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 
 import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.DEFAULT_MPA_RATING;
 
@@ -230,5 +230,59 @@ public class FilmService implements BaseFilmService {
             }
         }
         return filmMpa;
+    }
+
+    //Метод для поиска по подстроке фильмов по режиссёру и/или названию
+    @Override
+    public List<Film> getFilmsByTitleAndDirector(String query, String searchParameters) {
+
+        log.info("Начали проверять вошедшие параметры {}", searchParameters);
+
+        String director = "";
+        String title = "";
+        List<Film> filmsList = new ArrayList<>();
+//Проверяем 1 или 2 параметра пришло на вход(по наличию запятой)
+        if (searchParameters.contains(",")) {
+            log.info("Пришло 2 параметра на вход query =  {} ,  searchParameters = {}",
+                    query, searchParameters);
+            String[] params = searchParameters.split(",");
+            for (String param : params) {
+                if (!isInEnum(param)) {
+                    throw new ValidationException("Такого параметра не существует " + param);
+                }
+            }
+            director = query;
+            title = query;
+            filmsList.addAll(films.search(title, director));
+
+        }
+
+        //Т.к. не сработало правило на 2 параметра через запятую - проверяем одинарный параметр фильтрации
+        else {
+            if (!isInEnum(searchParameters)) {
+                throw new ValidationException("Параметра " + searchParameters + " не существует ");
+            }
+            log.info("Сработало правило фильтрации searchParameters без запятой, на вход пришло {}",
+                    searchParameters);
+
+            if (searchParameters.equals(By.DIRECTOR.toString().toLowerCase())) {
+                director = query;
+            }
+            if (searchParameters.equals(By.TITLE.toString().toLowerCase())) {
+                title = query;
+            }
+            filmsList.addAll(films.search(title, director));
+        }
+        return filmsList;
+    }
+
+    enum By {
+        DIRECTOR, TITLE
+    }
+
+    //Метод для проверки того, что пришедший параметр находится в списке разрешенных
+    public static boolean isInEnum(String str) {
+        By.valueOf(str.toUpperCase());
+        return true;
     }
 }

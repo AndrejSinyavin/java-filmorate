@@ -83,4 +83,7 @@ public interface FilmRepository {
      * @return список найденных фильмов
      */
     List<Film> findFilmsForDirectorByConditions(int directorId, String conditions);
+
+    //Ищем в БД все фильмы по режисёру и названию фильма
+    List<Film> search(String title, String director);
 }
