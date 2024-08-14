@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import ru.yandex.practicum.filmorate.entity.Event;
 import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.entity.User;
@@ -165,7 +167,7 @@ public class UserController {
     /**
      * Endpoint обрабатывает запрос на получение списка рекомендованных фильмов.
      *
-     * @param id идентифиткатор пользователя
+     * @param id идентификатор пользователя
      * @return список всех рекомендованных фильмов пользователю
      */
     @GetMapping("/{id}/recommendations")
@@ -183,5 +185,13 @@ public class UserController {
         var result = eventService.getFeed(id);
         log.info("Ответ <==  200 Ok. Список новостей пользователю с ID {}", id);
         return result;
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUserById(
+            @PathVariable("id") int id) {
+        log.info("Запрос ==> DELETE на удаление пользователя с ID {}", id);
+        userService.deleteUserById(id);
+        log.info("Ответ <==  200 Ok. Пользователь с ID {} удалён", id);
     }
 }
