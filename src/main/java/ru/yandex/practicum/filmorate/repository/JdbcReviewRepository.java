@@ -26,7 +26,7 @@ public class JdbcReviewRepository implements ReviewRepository {
             "LEFT JOIN (SELECT rl.review_id, NVL(SUM(CASEWHEN(liked, 1, 0)) - SUM(CASEWHEN(NOT liked, 1, 0)),0) AS useful " +
             "             FROM review_like rl GROUP BY rl.review_id) rl ON rl.review_id = rw.REVIEW_ID " +
             "WHERE rw.film_id = :film_id OR :film_id IS null " +
-            "ORDER BY rl.useful DESC NULLS LAST " +
+            "ORDER BY nvl(rl.useful, 0) DESC " +
             "LIMIT :count";
     private static final String FIND_BY_ID_QUERY = "SELECT rw.*, " +
             "(SELECT SUM(CASEWHEN(liked, 1, 0)) - SUM(CASEWHEN(NOT liked, 1, 0)) " +
@@ -34,8 +34,8 @@ public class JdbcReviewRepository implements ReviewRepository {
             "FROM review rw WHERE rw.review_id = :review_id";
     private static final String INSERT_QUERY = "INSERT INTO review (content, positive, user_id, film_id)" +
             "VALUES (:content, :positive, :user_id, :film_id)";
-    private static final String UPDATE_QUERY = "UPDATE review SET content = :content, positive = :positive, " +
-            "user_id = :user_id, film_id = :film_id WHERE review_id = :review_id";
+    private static final String UPDATE_QUERY = "UPDATE review SET content = :content, positive = :positive " +
+            " WHERE review_id = :review_id";
     private static final String DELETE_QUERY = "DELETE FROM review WHERE review_id = :review_id";
     private final NamedParameterJdbcOperations jdbc;
     private final ReviewRowMapper mapper;
@@ -132,8 +132,9 @@ public class JdbcReviewRepository implements ReviewRepository {
                     "Не удалось обновить данные"
             );
         }
+        Review resultReview = getById(review.getReviewId()).orElse(review);
 
-        return Optional.of(review);
+        return Optional.of(resultReview);
     }
 
     @Override
