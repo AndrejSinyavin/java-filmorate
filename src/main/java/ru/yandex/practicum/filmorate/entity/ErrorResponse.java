@@ -9,13 +9,13 @@ import java.util.Map;
  */
 @Getter
 public class ErrorResponse {
-    private final Map<String, String> errors;
+    private final Map<String, String> error;
 
     public ErrorResponse(String error, String message) {
-        errors = Map.of(error, message);
+        this.error = Map.of(error, message);
     }
 
-    public ErrorResponse(Map<String, String> errors) {
-        this.errors = errors;
+    public ErrorResponse(Map<String, String> error) {
+        this.error = error;
     }
 }

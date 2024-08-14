@@ -121,6 +121,16 @@ public class JdbcUserRepository implements UserRepository {
         return jdbc.query(sqlQuery, userMapper());
     }
 
+    @Override
+    public void removeUserById(int id) {
+        log.info("Удаление пользователия {} из БД", id);
+        String sqlQuery = """
+                delete from USERS
+                where USER_ID_PK = :id""";
+        jdbc.update(sqlQuery, new MapSqlParameterSource().addValue("id", id));
+    }
+
+
     /**
      * Метод возвращает из БД запись о пользователе по его ID
      *
