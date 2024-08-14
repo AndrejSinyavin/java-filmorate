@@ -25,7 +25,7 @@ import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.
 @JdbcTest
 @Import({JdbcFilmRepository.class, FilmService.class, UserService.class, JdbcLikeRepository.class,
         JdbcUtilRepository.class, JdbcUserRepository.class, JdbcFilmRepository.class, JdbcFriendRepository.class,
-        DirectorService.class, JdbcDirectorRepository.class})
+        DirectorService.class, JdbcDirectorRepository.class, JdbcEventRepository.class})
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @DisplayName("Набор тестов для JdbcFilmRepository")

@@ -5,6 +5,10 @@ import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+
+import ru.yandex.practicum.filmorate.entity.Event;
+import ru.yandex.practicum.filmorate.entity.EventOperation;
+import ru.yandex.practicum.filmorate.entity.EventType;
 import ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.DirectorSortParams;
 import ru.yandex.practicum.filmorate.entity.Director;
 import ru.yandex.practicum.filmorate.entity.Film;
@@ -13,10 +17,12 @@ import ru.yandex.practicum.filmorate.entity.Mpa;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.EntityValidateException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
+import ru.yandex.practicum.filmorate.repository.EventRepository;
 import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.LikeRepository;
 import ru.yandex.practicum.filmorate.repository.UtilRepository;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
@@ -45,6 +51,8 @@ public class FilmService implements BaseFilmService {
      */
     private final UtilRepository utils;
 
+    private final EventRepository events;
+
     /**
      * Метод позволяет пользователю лайкнуть фильм.
      *
@@ -55,6 +63,7 @@ public class FilmService implements BaseFilmService {
     public void addLike(int filmId, int userId) {
         log.info("Добавление лайка фильму на сервисе");
         likes.likeFilm(filmId, userId);
+        events.create(new Event(Instant.now().toEpochMilli(), userId, EventType.LIKE.toString(), EventOperation.ADD.toString(), filmId));
     }
 
     /**
@@ -67,6 +76,7 @@ public class FilmService implements BaseFilmService {
     public void deleteLike(int filmId, int userId) {
         log.info("Удаление лайка фильму на сервисе:");
         likes.unLikeFilm(filmId, userId);
+        events.create(new Event(Instant.now().toEpochMilli(), userId, EventType.LIKE.toString(), EventOperation.REMOVE.toString(), filmId));
     }
 
     /**
