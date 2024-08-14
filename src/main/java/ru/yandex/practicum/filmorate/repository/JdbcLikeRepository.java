@@ -5,14 +5,13 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsertOperations;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.entity.Like;
-import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
 
@@ -43,14 +42,13 @@ public class JdbcLikeRepository implements LikeRepository {
                          @Positive(message = idError) int userId) {
         log.info("Пользователь ID {} ставит лайк фильму ID {}", userId, filmId);
         SimpleJdbcInsertOperations simpleJdbc = new SimpleJdbcInsert(jdbcTemplate);
+
         try {
-            simpleJdbc.withTableName("FILMS_RATINGS")
-                    .execute(Map.of("FR_FILM_ID_PK", filmId, "FR_USER_ID_PK", userId));
+            String sqlQuery = "MERGE INTO FILMS_RATINGS (FR_FILM_ID_PK , FR_USER_ID_PK) VALUES (:filmId,:userId)";
+            jdbc.update(sqlQuery, new MapSqlParameterSource()
+                    .addValue("filmId", filmId)
+                    .addValue("userId", userId));
             log.info("Лайк добавлен в БД");
-        } catch (DuplicateKeyException e) {
-            String info = "Лайк уже был добавлен в БД";
-            log.warn(info);
-            throw new EntityAlreadyExistsException(thisService, e.getClass().getName(), info);
         } catch (DataAccessException e) {
             String warn = String.format("Пользователя %d и/или фильма %d не найдено", userId, filmId);
             log.warn(warn);

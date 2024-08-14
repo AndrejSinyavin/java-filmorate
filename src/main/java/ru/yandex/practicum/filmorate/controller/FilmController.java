@@ -10,6 +10,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.service.BaseFilmService;
+import ru.yandex.practicum.filmorate.service.DirectorService;
 
 import java.util.List;
 
@@ -27,6 +28,7 @@ public class FilmController {
      * Подключение сервиса работы с фильмами.
      */
     private final BaseFilmService filmsService;
+    private final DirectorService directorService;
 
     /**
      * Endpoint обрабатывает запрос на создание в фильмотеке новой записи "Фильм".
@@ -164,6 +166,7 @@ public class FilmController {
             @Positive(message = idError) @PathVariable("director-id") int directorId,
             @NotEmpty(message = "Ошибка! Отсутствует критерий сортировки") @RequestParam String sortBy) {
         log.info("Запрос ==> GET список фильмов режиссера ID {}, критерий сортировки {}", directorId, sortBy);
+        directorService.getDirectorById(directorId);
         var result = filmsService.getFilmsSortedByCriteria(directorId, sortBy);
         log.info("Ответ <== 200 Ok. Список фильмов режиссера ID {} отправлен {}", directorId, result);
         return result;
