@@ -4,17 +4,21 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.entity.Film;
-import ru.yandex.practicum.filmorate.entity.Like;
-import ru.yandex.practicum.filmorate.entity.User;
+import ru.yandex.practicum.filmorate.entity.*;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
-import ru.yandex.practicum.filmorate.repository.FilmRepository;
-import ru.yandex.practicum.filmorate.repository.FriendRepository;
-import ru.yandex.practicum.filmorate.repository.LikeRepository;
-import ru.yandex.practicum.filmorate.repository.UserRepository;
+import ru.yandex.practicum.filmorate.repository.*;
 
-import java.util.*;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Сервис содержит логику работы с пользователями
@@ -42,16 +46,20 @@ public class UserService implements BaseUserService {
      */
     private final LikeRepository likes;
 
+    private final EventRepository events;
     /**
      * Метод создает запрос на дружбу, или подтверждает уже имеющийся запрос.
      *
      * @param userId   ID пользователя, создающего запрос
      * @param friendId ID пользователя, к которому добавляются
      */
+
     @Override
     public void addFriend(int userId, int friendId) {
         log.info("Запрос/подтверждение дружбы пользователей {} и {}", userId, friendId);
         friends.addFriend(userId, friendId);
+        events.create(new Event(Instant.now().toEpochMilli(), userId, EventType.FRIEND.toString(), EventOperation.ADD.toString(),
+                friendId));
     }
 
     /**
@@ -64,6 +72,8 @@ public class UserService implements BaseUserService {
     public void deleteFriend(int userId, int friendId) {
         log.info("Удаление запроса/подтверждения дружбы пользователей {} и {}", userId, friendId);
         friends.deleteFriend(userId, friendId);
+        events.create(new Event(Instant.now().toEpochMilli(), userId, EventType.FRIEND.toString(), EventOperation.REMOVE.toString(),
+                friendId));
     }
 
     /**
