@@ -9,9 +9,7 @@ import ru.yandex.practicum.filmorate.entity.EventType;
 import ru.yandex.practicum.filmorate.entity.Review;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
-import ru.yandex.practicum.filmorate.repository.EventRepository;
-import ru.yandex.practicum.filmorate.repository.ReviewLikeRepository;
-import ru.yandex.practicum.filmorate.repository.ReviewRepository;
+import ru.yandex.practicum.filmorate.repository.*;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -23,6 +21,8 @@ public class ReviewService implements BaseReviewService {
     private final ReviewRepository reviewRepository;
     private final ReviewLikeRepository reviewLikeRepository;
     private final EventRepository eventRepository;
+    private final FilmRepository filmRepository;
+    private final UserRepository userRepository;
 
     @Override
     public Collection<Review> get(Integer filmId, Integer count) {
@@ -48,6 +48,13 @@ public class ReviewService implements BaseReviewService {
     @Override
     public Review create(Review review) {
         log.info("{}: Добавление отзыва {} ", getClass().getSimpleName(), review.toString());
+        if (!isFilmExist(review.getFilmId()) || !isUserExist(review.getUserId())) {
+            throw new EntityNotFoundException(
+                    getClass().getSimpleName(),
+                    "",
+                    "Пользователь/Фильм не найден"
+            );
+        }
         Review resultReview = reviewRepository.create(review).orElseThrow(
                 () -> new InternalServiceException(getClass().getSimpleName(), "", "Ошибка добавления отзыва")
         );
@@ -102,5 +109,13 @@ public class ReviewService implements BaseReviewService {
     public void deleteDislike(Integer reviewId, Integer userId) {
         log.info("{}: Удаление дизлайка для отзыва с идентификатором {} пользователем {}", getClass().getSimpleName(), reviewId, userId);
         reviewLikeRepository.deleteDislike(reviewId, userId);
+    }
+
+    private boolean isFilmExist(Integer filmId) {
+        return filmRepository.getFilm(filmId).isPresent();
+    }
+
+    private boolean isUserExist(Integer userId) {
+        return userRepository.getUser(userId).isPresent();
     }
 }
