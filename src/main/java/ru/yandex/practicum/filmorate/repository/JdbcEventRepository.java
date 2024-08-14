@@ -22,10 +22,17 @@ public class JdbcEventRepository implements EventRepository {
     public void create(Event event) {
         log.info("Добавление события: {}", event);
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+        if (event.getEventType().equals("REVIEW") && event.getOperation().equals("UPDATE")) {
+            var newEvent = jdbc.queryForObject("SELECT * FROM EVENTS WHERE (ENTITY_ID =:NEW_ENTITY_ID AND " +
+                            "EVENT_TYPE_NAME LIKE 'REVIEW' AND OPERATION_NAME LIKE 'ADD')",
+                    new MapSqlParameterSource("NEW_ENTITY_ID", event.getEntityId()), mapRow());
+            event.setUserId(newEvent.getUserId());
+        }
         jdbc.update("INSERT INTO EVENTS (TIMESTAMP, USER_ID, EVENT_TYPE_NAME," +
                 " OPERATION_NAME, ENTITY_ID) VALUES (:TIMESTAMP, :USER_ID," +
                 " :EVENT_TYPE_NAME, :OPERATION_NAME, :ENTITY_ID);", toMap(event), keyHolder, new String[]{"EVENT_ID"});
-        event.setId(keyHolder.getKeyAs(Integer.class));
+
+        event.setEventId(keyHolder.getKeyAs(Integer.class));
         log.info("Событие {} добавлено в БД", event);
     }
 
@@ -41,11 +48,12 @@ public class JdbcEventRepository implements EventRepository {
 
     @Override
     public void update(Event event) {
-        log.info("Обновление события: {}", event);
+        log.warn("Обновление события: {}", event);
         jdbc.update("UPDATE EVENTS SET TIMESTAMP = :TIMESTAMP, USER_ID = :USER_ID," +
                 " EVENT_TYPE_NAME = :EVENT_TYPE_NAME, OPERATION_NAME = :OPERATION_NAME," +
                 " ENTITY_ID = :ENTITY_ID WHERE EVENT_ID = :EVENT_ID;", toMap(event));
         log.info("Событие {} обновлено", event);
+        log.warn("Обновление события: {}", event);
     }
 
     @Override

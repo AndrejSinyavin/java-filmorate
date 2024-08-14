@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 public class Event {
     @NotNull(message = "ID события не может быть null")
     @Positive(message = "ID события не может быть отрицательным значением")
-    private int id;
+    private int eventId;
     @NotNull(message = "Дата события не может быть null")
     private long timestamp;
     @NotNull(message = "ID пользователя не может быть null")
