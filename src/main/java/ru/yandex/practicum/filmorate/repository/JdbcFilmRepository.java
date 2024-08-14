@@ -409,7 +409,7 @@ public class JdbcFilmRepository implements FilmRepository {
                     GROUP BY FR_FILM_ID_PK) r ON f.FILM_ID_PK = r.FR_FILM_ID_PK
                     LEFT JOIN FILMS_DIRECTORS fd ON f.FILM_ID_PK = fd.FD_FILM_ID
                     LEFT JOIN DIRECTORS d ON fd.FD_DIRECTOR_ID = d.DIRECTOR_ID_PK
-                    WHERE d.DIRECTOR_NAME LIKE :directorName
+                    WHERE LOWER(d.DIRECTOR_NAME) LIKE LOWER(:directorName)
                     ORDER BY r.num_likes DESC)
                     """;
             params.put("directorName", "%" + director + "%");
@@ -424,7 +424,7 @@ public class JdbcFilmRepository implements FilmRepository {
                     GROUP BY FR_FILM_ID_PK) r ON f.FILM_ID_PK = r.FR_FILM_ID_PK
                     LEFT JOIN FILMS_DIRECTORS fd ON f.FILM_ID_PK = fd.FD_FILM_ID
                     LEFT JOIN DIRECTORS d ON fd.FD_DIRECTOR_ID = d.DIRECTOR_ID_PK
-                    WHERE f.FILM_NAME LIKE :filmName
+                    WHERE LOWER(f.FILM_NAME) LIKE LOWER(:filmName)
                     ORDER BY r.num_likes DESC)
                     """;
 
@@ -433,16 +433,19 @@ public class JdbcFilmRepository implements FilmRepository {
         if (!title.isBlank() && !director.isBlank()) {
             log.info("Сработало правило !title.isBlank() && !director.isBlank()");
             sqlSelect = """
-                    SELECT FILM_ID_PK FROM (SELECT f.*
-                    FROM FILMS f
-                    LEFT JOIN (SELECT FR_FILM_ID_PK, COUNT(*) AS num_likes
-                    FROM FILMS_RATINGS
-                    GROUP BY FR_FILM_ID_PK) r ON f.FILM_ID_PK = r.FR_FILM_ID_PK
-                    LEFT JOIN FILMS_DIRECTORS fd ON f.FILM_ID_PK = fd.FD_FILM_ID
-                    LEFT JOIN DIRECTORS d ON fd.FD_DIRECTOR_ID = d.DIRECTOR_ID_PK
-                    WHERE f.FILM_NAME LIKE :filmName OR d.DIRECTOR_NAME LIKE :directorName
-                    ORDER BY r.num_likes DESC)
-                    """;
+                                SELECT FILM_ID_PK FROM (SELECT f.*
+                                 FROM FILMS f
+                                 LEFT JOIN (SELECT FR_FILM_ID_PK, COUNT(*) AS num_likes
+                                 FROM FILMS_RATINGS
+                                 GROUP BY FR_FILM_ID_PK) r ON f.FILM_ID_PK = r.FR_FILM_ID_PK
+                                 LEFT JOIN FILMS_DIRECTORS fd ON f.FILM_ID_PK = fd.FD_FILM_ID
+                                 LEFT JOIN DIRECTORS d ON fd.FD_DIRECTOR_ID = d.DIRECTOR_ID_PK
+                                 WHERE FILM_ID_PK IN
+                                (SELECT f.FILM_ID_PK FROM FILMS f WHERE
+                                                   LOWER( FILM_NAME ) LIKE
+                                            LOWER (:filmName) OR  (LOWER(DIRECTOR_NAME) LIKE LOWER(:directorName)))
+                                 ORDER BY r.num_likes DESC) AS cmplx
+                                """;
             params.put("filmName", "%" + title + "%");
             params.put("directorName", "%" + director + "%");
 
@@ -457,8 +460,6 @@ public class JdbcFilmRepository implements FilmRepository {
     }
 
     private RowMapper<Integer> getIntFromDb() {
-        return (ResultSet rs, int rowNum) -> new Integer(
-                rs.getInt("FILM_ID_PK")
-        );
+        return (ResultSet rs, int rowNum) -> rs.getInt("FILM_ID_PK");
     }
 }
