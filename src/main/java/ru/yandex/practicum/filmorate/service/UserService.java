@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.*;
 
 /**
  * Сервис содержит логику работы с пользователями
@@ -54,6 +53,7 @@ public class UserService implements BaseUserService {
      * @param userId   ID пользователя, создающего запрос
      * @param friendId ID пользователя, к которому добавляются
      */
+
     @Override
     public void addFriend(int userId, int friendId) {
         log.info("Запрос/подтверждение дружбы пользователей {} и {}", userId, friendId);
