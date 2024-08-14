@@ -433,16 +433,20 @@ public class JdbcFilmRepository implements FilmRepository {
         if (!title.isBlank() && !director.isBlank()) {
             log.info("Сработало правило !title.isBlank() && !director.isBlank()");
             sqlSelect = """
-                    SELECT FILM_ID_PK FROM (SELECT f.*
-                    FROM FILMS f
-                    LEFT JOIN (SELECT FR_FILM_ID_PK, COUNT(*) AS num_likes
-                    FROM FILMS_RATINGS
-                    GROUP BY FR_FILM_ID_PK) r ON f.FILM_ID_PK = r.FR_FILM_ID_PK
-                    LEFT JOIN FILMS_DIRECTORS fd ON f.FILM_ID_PK = fd.FD_FILM_ID
-                    LEFT JOIN DIRECTORS d ON fd.FD_DIRECTOR_ID = d.DIRECTOR_ID_PK
-                    WHERE FILM_ID_PK IN ( SELECT f.FILM_ID_PK FROM FILMS f WHERE LOWER( FILM_NAME ) LIKE LOWER (:filmName) OR  LOWER( d.DIRECTOR_NAME  LIKE LOWER(:directorName)))
-                    ORDER BY r.num_likes DESC)
-                    """;
+                                SELECT FILM_ID_PK FROM (SELECT f.*
+                                 FROM FILMS f
+                                 LEFT JOIN (SELECT FR_FILM_ID_PK, COUNT(*) AS num_likes
+                                 FROM FILMS_RATINGS
+                                 GROUP BY FR_FILM_ID_PK) r ON f.FILM_ID_PK = r.FR_FILM_ID_PK
+                                 LEFT JOIN FILMS_DIRECTORS fd ON f.FILM_ID_PK = fd.FD_FILM_ID
+                                 LEFT JOIN DIRECTORS d ON fd.FD_DIRECTOR_ID = d.DIRECTOR_ID_PK
+                                 WHERE FILM_ID_PK IN 
+                                (SELECT f.FILM_ID_PK FROM FILMS f WHERE 
+                                                   LOWER( FILM_NAME ) LIKE 
+                                            LOWER (:filmName) OR  (LOWER(DIRECTOR_NAME) LIKE LOWER(:directorName)))
+                                 ORDER BY r.num_likes DESC) AS cmplx
+                                \s
+                                 """;
             params.put("filmName", "%" + title + "%");
             params.put("directorName", "%" + director + "%");
 
