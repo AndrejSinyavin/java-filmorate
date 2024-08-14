@@ -32,9 +32,10 @@ public class JdbcEventRepository implements EventRepository {
     @Override
     public Collection<Event> getAllFriendsEventsByUserId(int userId) {
         log.info("Получение всех событий друзей пользователя с ID = {}", userId);
-        var events = jdbc.query("SELECT * FROM EVENTS WHERE USER_ID = (" +
-                "SELECT USER_ID FROM FRIENDSHIP_STATUSES WHERE FS_USER_ID = :USER_ID);", new MapSqlParameterSource("USER_ID", userId), mapRow());
+        var events = jdbc.query("SELECT * FROM EVENTS WHERE USER_ID = :USER_ID;",
+                new MapSqlParameterSource("USER_ID", userId), mapRow());
         log.info("Получены события друзей пользователя с ID = {}", userId);
+        log.info(events.toString());
         return events;
     }
 
@@ -70,7 +71,7 @@ public class JdbcEventRepository implements EventRepository {
         params.addValue("USER_ID", event.getUserId());
         params.addValue("EVENT_TYPE_NAME", event.getEventType());
         params.addValue("OPERATION_NAME", event.getOperation());
-        params.addValue("ENTITY_ID", event.getId());
+        params.addValue("ENTITY_ID", event.getEntityId());
         return params;
     }
 }
