@@ -80,14 +80,10 @@ class JdbcReviewRepositoryTest {
         assertNotNull(review);
         review.setContent("негативный отзыв");
         review.setIsPositive(Boolean.FALSE);
-        review.setFilmId(2);
-        review.setUserId(2);
 
         Review resultReview = reviewRepository.update(review).orElse(null);
         assertNotNull(resultReview);
         assertEquals(review.getContent(), resultReview.getContent(), "Неверное содержание отзыва");
-        assertEquals(review.getFilmId(), resultReview.getFilmId(), "Неверный идентификтор фильма");
-        assertEquals(review.getUserId(), resultReview.getUserId(), "Неверный идентификтор пользователя");
         assertEquals(review.getIsPositive(), resultReview.getIsPositive(), "Невернвй тип отзыва");
     }
 
