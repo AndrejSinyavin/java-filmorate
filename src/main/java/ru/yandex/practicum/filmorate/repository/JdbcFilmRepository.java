@@ -440,13 +440,12 @@ public class JdbcFilmRepository implements FilmRepository {
                                  GROUP BY FR_FILM_ID_PK) r ON f.FILM_ID_PK = r.FR_FILM_ID_PK
                                  LEFT JOIN FILMS_DIRECTORS fd ON f.FILM_ID_PK = fd.FD_FILM_ID
                                  LEFT JOIN DIRECTORS d ON fd.FD_DIRECTOR_ID = d.DIRECTOR_ID_PK
-                                 WHERE FILM_ID_PK IN 
-                                (SELECT f.FILM_ID_PK FROM FILMS f WHERE 
-                                                   LOWER( FILM_NAME ) LIKE 
+                                 WHERE FILM_ID_PK IN
+                                (SELECT f.FILM_ID_PK FROM FILMS f WHERE
+                                                   LOWER( FILM_NAME ) LIKE
                                             LOWER (:filmName) OR  (LOWER(DIRECTOR_NAME) LIKE LOWER(:directorName)))
                                  ORDER BY r.num_likes DESC) AS cmplx
-                                \s
-                                 """;
+                                """;
             params.put("filmName", "%" + title + "%");
             params.put("directorName", "%" + director + "%");
 
