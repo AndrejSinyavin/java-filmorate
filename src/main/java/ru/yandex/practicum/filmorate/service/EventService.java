@@ -13,9 +13,11 @@ import java.util.Collection;
 @Slf4j
 public class EventService implements BaseEventService {
     private final EventRepository eventRepository;
+    private final UserService userService;
 
     @Override
     public Collection<Event> getFeed(int userId) {
+        userService.getUser(userId);
         return eventRepository.getAllFriendsEventsByUserId(userId);
     }
 }
