@@ -1,14 +1,17 @@
 package ru.yandex.practicum.filmorate.entity;
 
 import jakarta.validation.constraints.*;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.format.annotation.DateTimeFormat;
 import ru.yandex.practicum.filmorate.validate.Release;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.MAX_DESCRIPTION_LENGTH;
 
@@ -18,29 +21,31 @@ import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Film {
     @DecimalMin(value = "0", message = "ID записи не может быть отрицательным значением")
-    private int id;
+    int id;
 
     @NotBlank(message = "Название фильма не может быть пустым")
-    private String name;
+    String name;
 
     @NotBlank(message = "Описание фильма не должно быть null")
     @Size(max = MAX_DESCRIPTION_LENGTH,
             message = "Описание фильма не должно быть больше " + MAX_DESCRIPTION_LENGTH + " символов")
-    private String description;
+    String description;
 
     @NotNull(message = "Поле даты не должно быть null")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Release
-    private LocalDate releaseDate;
+    LocalDate releaseDate;
 
     @Positive(message = "Продолжительность фильма может быть только положительным значением")
-    private int duration;
+    int duration;
 
     @DecimalMin(value = "0", message = "Рейтинг фильма не может быть отрицательным значением")
-    private int rate;
+    int rate;
 
-    private Mpa mpa;
-    private List<Genre> genres;
+    Mpa mpa;
+    List<Genre> genres;
+    Set<Director> directors;
 }

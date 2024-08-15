@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.service.BaseFilmService;
+import ru.yandex.practicum.filmorate.service.DirectorService;
 
 import java.util.List;
 
@@ -26,6 +28,7 @@ public class FilmController {
      * Подключение сервиса работы с фильмами.
      */
     private final BaseFilmService filmsService;
+    private final DirectorService directorService;
 
     /**
      * Endpoint обрабатывает запрос на создание в фильмотеке новой записи "Фильм".
@@ -86,7 +89,7 @@ public class FilmController {
     /**
      * Endpoint обрабатывает запрос на лайк фильма пользователем.
      *
-     * @param filmId     фильма
+     * @param filmId фильма
      * @param userId пользователя
      */
     @PutMapping("/{film-id}/like/{user-id}")
@@ -101,7 +104,7 @@ public class FilmController {
     /**
      * Endpoint обрабатывает запрос на отмену лайка фильма пользователем.
      *
-     * @param filmId     фильма
+     * @param filmId фильма
      * @param userId пользователя
      */
     @DeleteMapping("/{film-id}/like/{user-id}")
@@ -117,16 +120,71 @@ public class FilmController {
      * Endpoint обрабатывает запрос на получение топа рейтинга фильмов по лайкам пользователей.
      *
      * @param topSize размер топа рейтинга
+     * @param genreId идентификатор жанра (необязательный параметр)
+     * @param year    год релиза фильма (необязательный параметр)
      * @return список из фильмов в порядке понижения рейтинга
      */
     @GetMapping("/popular")
     public List<Film> getTopFilms(
-            @RequestParam(name = "count", defaultValue = "10")
+            @RequestParam(name = "count", required = false)
             @Positive(message = "Размер топа фильмов должен быть положительным значением")
-            Integer topSize) {
+            Integer topSize,
+            @RequestParam(value = "genreId", required = false) Integer genreId,
+            @RequestParam(value = "year", required = false) Integer year) {
         log.info("Запрос ==> GET получить топ-{} лучших фильмов", topSize);
-        var topFilms = filmsService.getTopFilms(topSize);
+        var topFilms = filmsService.getTopFilms(topSize, genreId, year);
         log.info("Ответ <== 200 Ok. Топ-{} фильмотеки отправлен {}", topSize, topFilms.size());
         return topFilms;
+    }
+
+    /**
+     * Endpoint обрабатывает запрос на получение списка общих фильмов
+     *
+     * @param userId   идентификатор пользователя, запрашивающего информацию
+     * @param friendId идентификатор пользователя, с которым необходимо сравнить список фильмов
+     * @return возвращает список фильмов, отсортированных по популярности.
+     */
+    @GetMapping("/common")
+    public List<Film> getCommonFilms(@RequestParam @Positive(message = idError) int userId,
+                                     @RequestParam @Positive(message = idError) int friendId) {
+        log.info("Запрос ==> GET получить общие фильмы пользователей с ID = {} и ID ={}", userId, friendId);
+        List<Film> commonFilms = filmsService.getCommonFilms(userId, friendId);
+        log.info("Ответ <== 200 Ok. Получены общие фильмы пользователей с ID = {} и ID ={}", userId, friendId);
+        return commonFilms;
+    }
+
+    /**
+     * Endpoint обрабатывает запрос на получение списка фильмов режиссера с вариантами сортировки результата
+     *
+     * @param directorId ID режиссера
+     * @param sortBy     критерий сортировки
+     * @return отсортированный список фильмов с этим режиссером
+     */
+    @GetMapping("/director/{director-id}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<Film> getFilmsSortedByCriteria(
+            @Positive(message = idError) @PathVariable("director-id") int directorId,
+            @NotEmpty(message = "Ошибка! Отсутствует критерий сортировки") @RequestParam String sortBy) {
+        log.info("Запрос ==> GET список фильмов режиссера ID {}, критерий сортировки {}", directorId, sortBy);
+        directorService.getDirectorById(directorId);
+        var result = filmsService.getFilmsSortedByCriteria(directorId, sortBy);
+        log.info("Ответ <== 200 Ok. Список фильмов режиссера ID {} отправлен {}", directorId, result);
+        return result;
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteFilmById(
+            @Positive(message = idError) @PathVariable("id") int id) {
+        log.info("Запрос ==> DELETE на удаление фильма с  ID {}", id);
+        filmsService.deleteFilm(id);
+        log.info("Ответ <== 200 Ok. Фильм с ID {} удален", id);
+    }
+
+    @GetMapping("/search")
+    public List<Film> searchFilms(@RequestParam(value = "query", required = true) String query,
+                                  @RequestParam(value = "by", required = true) String by) {
+        log.info("Запрос ==> GET список фильмов по строке {}, и параметры фильтрации {}", query, by);
+        return filmsService.getFilmsByTitleAndDirector(query, by);
     }
 }

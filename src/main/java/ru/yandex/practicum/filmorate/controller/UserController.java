@@ -6,10 +6,24 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
+
+import ru.yandex.practicum.filmorate.entity.Event;
+import ru.yandex.practicum.filmorate.entity.Film;
 import ru.yandex.practicum.filmorate.entity.User;
 import ru.yandex.practicum.filmorate.service.BaseUserService;
+import ru.yandex.practicum.filmorate.service.EventService;
 
+import java.util.Collection;
 import java.util.List;
 
 import static ru.yandex.practicum.filmorate.validate.ValidateExtender.validateUser;
@@ -28,6 +42,7 @@ public class UserController {
      * Подключение сервиса работы с пользователями.
      */
     private final BaseUserService userService;
+    private final EventService eventService;
 
     /**
      * Endpoint обрабатывает запрос на создание нового пользователя фильмотеки.
@@ -89,7 +104,7 @@ public class UserController {
     /**
      * Endpoint обрабатывает запрос на добавление в друзья двух пользователей.
      *
-     * @param userId       пользователь, создающий запрос
+     * @param userId   пользователь, создающий запрос
      * @param friendId пользователь, добавляемый в друзья
      */
     @PutMapping("/{user-id}/friends/{friend-id}")
@@ -105,7 +120,7 @@ public class UserController {
     /**
      * Endpoint обрабатывает запрос на удаление пользователей из друзей друг у друга.
      *
-     * @param userId       пользователь, создающий запрос
+     * @param userId   пользователь, создающий запрос
      * @param friendId пользователь, которого нужно удалить из списка друзей
      */
     @DeleteMapping("/{user-id}/friends/{friend-id}")
@@ -135,7 +150,7 @@ public class UserController {
     /**
      * Endpoint обрабатывает запрос на получение списка всех общих друзей двух пользователей.
      *
-     * @param firstId      первый пользователь
+     * @param firstId  первый пользователь
      * @param secondId второй пользователь
      * @return список всех общих друзей двух пользователей
      */
@@ -149,4 +164,34 @@ public class UserController {
         return result;
     }
 
+    /**
+     * Endpoint обрабатывает запрос на получение списка рекомендованных фильмов.
+     *
+     * @param id идентификатор пользователя
+     * @return список всех рекомендованных фильмов пользователю
+     */
+    @GetMapping("/{id}/recommendations")
+    public List<Film> getRecommendations(
+            @PathVariable("id") @Positive(message = idError) int id) {
+        log.info("Запрос ==> GET получить список рекомендованных фильмов пользователю с ID {}", id);
+        var result = userService.getRecommendations(id);
+        log.info("Ответ <==  200 Ok. Список рекомендованных фильмов пользователю с ID {}", id);
+        return result;
+    }
+
+    @GetMapping("/{id}/feed")
+    public Collection<Event> getFeed(@PathVariable("id") @Positive(message = idError) int id) {
+        log.info("Запрос ==> GET получить список новостей пользователя с ID {}", id);
+        var result = eventService.getFeed(id);
+        log.info("Ответ <==  200 Ok. Список новостей пользователю с ID {}", id);
+        return result;
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUserById(
+            @PathVariable("id") int id) {
+        log.info("Запрос ==> DELETE на удаление пользователя с ID {}", id);
+        userService.deleteUserById(id);
+        log.info("Ответ <==  200 Ok. Пользователь с ID {} удалён", id);
+    }
 }
