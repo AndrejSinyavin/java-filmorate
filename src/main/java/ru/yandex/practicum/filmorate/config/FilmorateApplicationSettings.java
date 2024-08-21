@@ -12,6 +12,9 @@ public class FilmorateApplicationSettings {
     public static final int MAX_DESCRIPTION_LENGTH = 200;
     public static final int MAX_AGE = 130;
     public static final int DEFAULT_MPA_RATING = 1;
+    public static final int RATING_SCALE_DIMENSION = 10;
+    public static final boolean TEST_MODE = true;
+    public static final double DEFAULT_RATE = 0;
 
     private FilmorateApplicationSettings() {
     }

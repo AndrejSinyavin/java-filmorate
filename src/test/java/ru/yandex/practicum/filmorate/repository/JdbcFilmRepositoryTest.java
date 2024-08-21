@@ -23,7 +23,7 @@ import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.
 import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.DirectorSortParams.likes;
 
 @JdbcTest
-@Import({JdbcFilmRepository.class, FilmService.class, UserService.class, JdbcLikeRepository.class,
+@Import({JdbcFilmRepository.class, FilmService.class, UserService.class, JdbcRatingRepository.class,
         JdbcUtilRepository.class, JdbcUserRepository.class, JdbcFilmRepository.class, JdbcFriendRepository.class,
         DirectorService.class, JdbcDirectorRepository.class, JdbcEventRepository.class})
 @AutoConfigureTestDatabase
@@ -114,9 +114,9 @@ class JdbcFilmRepositoryTest {
                 LocalDate.of(2000, 1, 2)));
         var film1 = filmService.createfilm(testFilm());
         var film2 = filmService.createfilm(testFilm());
-        filmService.addLike(film1.getId(), user1.getId());
-        filmService.addLike(film1.getId(), user2.getId());
-        filmService.addLike(film2.getId(), user2.getId());
+        filmService.likeFilm(film1.getId(), user1.getId());
+        filmService.likeFilm(film1.getId(), user2.getId());
+        filmService.likeFilm(film2.getId(), user2.getId());
         var top = filmService.getTopFilms(2, null, null);
         assertThat(top.size() == 2).isTrue();
         assertThat(top.getFirst().getId() == film1.getId()).isTrue();
@@ -150,9 +150,9 @@ class JdbcFilmRepositoryTest {
         film2.setName("film2");
         film2.setReleaseDate(LocalDate.of(2010, 1, 1));
         film2 = filmService.createfilm(film2);
-        filmService.addLike(film1.getId(), user1.getId());
-        filmService.addLike(film1.getId(), user2.getId());
-        filmService.addLike(film2.getId(), user2.getId());
+        filmService.likeFilm(film1.getId(), user1.getId());
+        filmService.likeFilm(film1.getId(), user2.getId());
+        filmService.likeFilm(film2.getId(), user2.getId());
 
         var sortedFilmsByCriteria = filmService.getFilmsSortedByCriteria(directorId, likes.name());
         assertThat(sortedFilmsByCriteria.size() == 2).isTrue();

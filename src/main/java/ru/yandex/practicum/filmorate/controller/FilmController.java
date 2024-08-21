@@ -87,32 +87,32 @@ public class FilmController {
     }
 
     /**
-     * Endpoint обрабатывает запрос на лайк фильма пользователем.
+     * Endpoint обрабатывает запрос на 'лайк' фильма пользователем.
      *
      * @param filmId фильма
      * @param userId пользователя
      */
     @PutMapping("/{film-id}/like/{user-id}")
-    public void addLike(
+    public void likeFilm(
             @PathVariable("film-id") @Positive(message = idError) int filmId,
             @PathVariable("user-id") @Positive(message = idError) int userId) {
         log.info("Запрос ==> PUT поставить лайк фильму ID {} от пользователя {}", filmId, userId);
-        filmsService.addLike(filmId, userId);
+        filmsService.likeFilm(filmId, userId);
         log.info("Ответ <== 200 Ok. Лайк поставлен");
     }
 
     /**
-     * Endpoint обрабатывает запрос на отмену лайка фильма пользователем.
+     * Endpoint обрабатывает запрос на 'дизлайк' фильма пользователем.
      *
      * @param filmId фильма
      * @param userId пользователя
      */
     @DeleteMapping("/{film-id}/like/{user-id}")
-    public void deleteLike(
+    public void dislikeFilm(
             @PathVariable("film-id") @Positive(message = idError) int filmId,
             @PathVariable("user-id") @Positive(message = idError) int userId) {
         log.info("Запрос ==> DELETE отменить лайк фильму ID {} от пользователя {}", filmId, userId);
-        filmsService.deleteLike(filmId, userId);
+        filmsService.dislikeFilm(filmId, userId);
         log.info("Ответ <== 200 Ok. Лайк отменен");
     }
 
@@ -157,7 +157,7 @@ public class FilmController {
      * Endpoint обрабатывает запрос на получение списка фильмов режиссера с вариантами сортировки результата
      *
      * @param directorId ID режиссера
-     * @param sortBy     критерий сортировки
+     * @param sortBy критерий сортировки
      * @return отсортированный список фильмов с этим режиссером
      */
     @GetMapping("/director/{director-id}")

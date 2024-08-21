@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Интерфейс для служб, работающих с рейтингом фильмов.
  */
-public interface LikeRepository {
+public interface RatingRepository {
 
     /**
      * Пользователь ставит лайк фильму.
@@ -23,15 +23,9 @@ public interface LikeRepository {
      * @param filmId фильм
      * @param userId пользователь
      */
-    void unLikeFilm(int filmId, int userId);
+    void dislikeFilm(int filmId, int userId);
 
-    /**
-     * Метод возвращает рейтинг фильма
-     *
-     * @param filmId ID фильма
-     * @return пустое значение, если операция завершена успешно, иначе сформированное исключение
-     */
-    int getFilmRate(int filmId);
+    void updateFilmRate(int filmId);
 
     /**
      * Метод возвращает список всех записей о лайках фильмам.

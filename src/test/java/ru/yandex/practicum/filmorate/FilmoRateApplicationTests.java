@@ -10,7 +10,7 @@ import org.springframework.context.annotation.ComponentScan;
 import ru.yandex.practicum.filmorate.entity.*;
 import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.FriendRepository;
-import ru.yandex.practicum.filmorate.repository.LikeRepository;
+import ru.yandex.practicum.filmorate.repository.RatingRepository;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
 import ru.yandex.practicum.filmorate.repository.UtilRepository;
 
@@ -31,7 +31,7 @@ class FilmoRateApplicationTests {
     private final FilmRepository films;
     private final FriendRepository friends;
     private final UserRepository users;
-    private final LikeRepository likes;
+    private final RatingRepository likes;
     private final UtilRepository utils;
     private Optional<Film> film;
     private Optional<User> user;
@@ -281,7 +281,7 @@ class FilmoRateApplicationTests {
         likes.likeFilm(1, 1);
         rate = likes.getFilmRate(1);
         assertThat(rate).isEqualTo(1);
-        likes.unLikeFilm(1, 1);
+        likes.dislikeFilm(1, 1);
         rate = likes.getFilmRate(1);
         assertThat(rate).isEqualTo(0);
         likes.likeFilm(1, 1);
@@ -298,7 +298,7 @@ class FilmoRateApplicationTests {
         likes.likeFilm(1, 1);
         rate = likes.getFilmRate(1);
         assertThat(rate).isEqualTo(1);
-        likes.unLikeFilm(1, 1);
+        likes.dislikeFilm(1, 1);
         rate = likes.getFilmRate(1);
         assertThat(rate).isEqualTo(0);
     }

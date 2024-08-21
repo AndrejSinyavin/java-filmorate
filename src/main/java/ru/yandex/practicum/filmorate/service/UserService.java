@@ -44,7 +44,7 @@ public class UserService implements BaseUserService {
     /**
      * Подключение репозитория для работы с фильмами.
      */
-    private final LikeRepository likes;
+    private final RatingRepository ratings;
 
     private final EventRepository events;
     /**
@@ -161,35 +161,25 @@ public class UserService implements BaseUserService {
     @Override
     public List<Film> getRecommendations(int userId) {
         log.info("Получение фильмов рекомендуемых пользователю ID {}", userId);
-
         Map<Integer, List<Integer>> likesByUserId;
-        List<Like> likesList = likes.getLikes();
-
-        if (!likes.isUserHasLikes(userId)) {
+        List<Like> likesList = ratings.getLikes();
+        if (!ratings.isUserHasLikes(userId)) {
             return new ArrayList<>();
         }
-
         if (likesList.isEmpty()) {
-            throw new EntityNotFoundException(thisService, likes.getClass().getName(),
+            throw new EntityNotFoundException(thisService, ratings.getClass().getName(),
                     "Таблица likes пуста");
         }
         likesByUserId = likesListToMap(likesList);
-
-        Map<Integer, Double> filmsMatchPercents = new HashMap<>();
-
+        Map<Integer, Double> filmsMatchPercents;
         filmsMatchPercents = getFilmsMatchPercents(userId, likesByUserId);
-
         Set<Integer> filmsIdsOfMostSimilarUsers = new HashSet<>();
-
         Optional<Double> optionalMaxMatchPercent = filmsMatchPercents.values().stream()
                 .max(Comparator.comparing(Double::doubleValue));
-
         if (optionalMaxMatchPercent.isPresent()) {
             Double maxPercent = optionalMaxMatchPercent.get();
-
             if (maxPercent == 0.0)
                 return new ArrayList<>();
-
             for (int otherUserId : filmsMatchPercents.keySet()) {
                 if (filmsMatchPercents.get(otherUserId) >= maxPercent) {
                     for (int i = 0; i < likesByUserId.get(otherUserId).size(); i++) {
@@ -200,13 +190,18 @@ public class UserService implements BaseUserService {
                 }
             }
         }
-
-        return films.getFilmsByIds(new ArrayList<>(filmsIdsOfMostSimilarUsers));
+        var filmsList = films.getFilmsByIds(new ArrayList<>(filmsIdsOfMostSimilarUsers));
+        var resultList = new ArrayList<Film>();
+        for (Film film : filmsList) {
+            if (film.getRate() >= 6) {
+                resultList.add(film);
+            }
+        }
+        return resultList;
     }
 
     @Override
     public void deleteUserById(int userId) {
-        getUser(userId);
         users.removeUserById(userId);
     }
 
@@ -236,7 +231,7 @@ public class UserService implements BaseUserService {
      * с другими пользователями
      *
      * @param userId        id пользователя
-     * @param likesByUserId HashMap с лайкнутыми фильмами, разделенных по ID пользовтелей
+     * @param likesByUserId HashMap с лайкнутыми фильмами, разделенных по ID пользователей
      * @return HashMap с долями совпадения
      */
     private Map<Integer, Double> getFilmsMatchPercents(Integer userId, Map<Integer, List<Integer>> likesByUserId) {
@@ -254,7 +249,6 @@ public class UserService implements BaseUserService {
                 }
             }
         }
-
         return filmsMatchPercent;
     }
 }

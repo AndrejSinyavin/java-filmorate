@@ -34,6 +34,7 @@ import java.util.Optional;
 public class JdbcUserRepository implements UserRepository {
     private final NamedParameterJdbcOperations jdbc;
     private final DataSource source;
+    private final RatingRepository ratings;
     private final String thisService = this.getClass().getName();
     private final String entityNullError = "Ошибка! сущность User = null";
     private final String idError = "Ошибка! ID пользователя может быть только положительным значением";
@@ -122,14 +123,24 @@ public class JdbcUserRepository implements UserRepository {
     }
 
     @Override
-    public void removeUserById(int id) {
-        log.info("Удаление пользователия {} из БД", id);
-        String sqlQuery = """
+    public void removeUserById(int userId) {
+        log.info("Удаление пользователя ID {} из БД", userId);
+        String sqlQuery = "select FR_FILM_ID_PK from FILMS_RATINGS where FR_USER_ID_PK = :userId";
+        var listId = jdbc.queryForList(sqlQuery, Map.of("userId", userId), Integer.class);
+        sqlQuery = """
                 delete from USERS
                 where USER_ID_PK = :id""";
-        jdbc.update(sqlQuery, new MapSqlParameterSource().addValue("id", id));
+        int numRows = jdbc.update(sqlQuery, new MapSqlParameterSource().addValue("id", userId));
+        if (numRows == 0) {
+            String warn = String.format("Пользователь ID %d не найден в БД", userId);
+            log.warn(warn);
+            throw new EntityNotFoundException(thisService, jdbc.getClass().getName(), warn);
+        } else {
+            for (Integer filmId: listId) {
+                ratings.updateFilmRate(filmId);
+            }
+        }
     }
-
 
     /**
      * Метод возвращает из БД запись о пользователе по его ID

@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @DisplayName("Класс тестов для JdbcReviewLikeRepository")
-class JdbcReviewLikeRepositoryTest {
+class JdbcReviewRatingRepositoryTest {
     private final JdbcReviewRepository reviewRepository;
     private final JdbcReviewLikeRepository reviewLikeRepository;
 
