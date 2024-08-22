@@ -63,6 +63,7 @@ public class FilmService implements BaseFilmService {
     public void likeFilm(int filmId, int userId) {
         log.info("Добавление 'лайка' фильму на сервисе");
         ratings.likeFilm(filmId, userId);
+        ratings.updateFilmRate(filmId);
         events.create(new Event(
                 Instant.now().toEpochMilli(),
                 userId, EventType.LIKE.toString(),
@@ -80,6 +81,7 @@ public class FilmService implements BaseFilmService {
     public void dislikeFilm(int filmId, int userId) {
         log.info("Добавление 'дизлайка' фильму на сервисе");
         ratings.dislikeFilm(filmId, userId);
+        ratings.updateFilmRate(filmId);
         events.create(new Event(Instant.now().toEpochMilli(), userId, EventType.LIKE.toString(), EventOperation.REMOVE.toString(), filmId));
     }
 
@@ -104,9 +106,6 @@ public class FilmService implements BaseFilmService {
     @Override
     public Film createfilm(Film film) {
         log.info("Создание записи о фильме: {}", film);
-        if (!TEST_MODE) {
-            film.setRate(DEFAULT_RATE);
-        }
         validateAndUpdateFilm(film);
         return films.createFilm(film).orElseThrow(
                 () -> new InternalServiceException(thisService, films.getClass().getName(),
@@ -123,13 +122,9 @@ public class FilmService implements BaseFilmService {
     public Film updateFilm(Film film) {
         log.info("Обновление записи о фильме на сервисе: {}", film);
         validateAndUpdateFilm(film);
-        var result = films.updateFilm(film).orElseThrow(
+        return films.updateFilm(film).orElseThrow(
                 () -> new EntityNotFoundException(thisService, films.getClass().getName(),
                         "Обновить запись о фильме не удалось, запись не найдена на сервисе."));
-        if (!TEST_MODE) {
-            ratings.updateFilmRate(film.getId());
-        }
-        return result;
     }
 
     /**
@@ -206,6 +201,7 @@ public class FilmService implements BaseFilmService {
         film.setMpa(getMpa(film));
         film.setGenres(getGenres(film).stream().toList());
         film.setDirectors(getDirectors(film));
+        film.setRate(DEFAULT_RATE);
     }
 
     private TreeSet<Genre> getGenres(Film film) {

@@ -162,7 +162,7 @@ public class UserService implements BaseUserService {
     public List<Film> getRecommendations(int userId) {
         log.info("Получение фильмов рекомендуемых пользователю ID {}", userId);
         Map<Integer, List<Integer>> likesByUserId;
-        List<Like> likesList = ratings.getLikes();
+        List<Like> likesList = ratings.getAllLikes();
         if (!ratings.isUserHasLikes(userId)) {
             return new ArrayList<>();
         }
@@ -193,7 +193,7 @@ public class UserService implements BaseUserService {
         var filmsList = films.getFilmsByIds(new ArrayList<>(filmsIdsOfMostSimilarUsers));
         var resultList = new ArrayList<Film>();
         for (Film film : filmsList) {
-            if (film.getRate() >= 6) {
+            if (film.getRate() >= 6.0) {
                 resultList.add(film);
             }
         }
@@ -202,9 +202,12 @@ public class UserService implements BaseUserService {
 
     @Override
     public void deleteUserById(int userId) {
+        var filmIds = ratings.getAllFilmIdThatUserLiked(userId);
         users.removeUserById(userId);
+        for (var filmId : filmIds) {
+            ratings.updateFilmRate(filmId);
+        }
     }
-
 
     /**
      * Метод преобразует список с объектами Like в HashMap вида:

@@ -32,7 +32,9 @@ public interface RatingRepository {
      *
      * @return список лайков, может быть пустым
      */
-    List<Like> getLikes();
+    List<Like> getAllLikes();
+
+    List<Integer> getAllFilmIdThatUserLiked(int userId);
 
     /**
      * Метод возвращает true, если у пользователя есть хотя бы 1 лайк
