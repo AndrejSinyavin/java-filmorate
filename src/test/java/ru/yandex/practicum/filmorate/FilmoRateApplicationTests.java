@@ -393,7 +393,7 @@ class FilmoRateApplicationTests {
         testLikes.add(new Like(2, 5));
         testLikes.add(new Like(3, 4));
 
-        assertThat(likes.getLikes()).isEqualTo(testLikes);
+        assertThat(likes.getAllLikes()).isEqualTo(testLikes);
     }
 
     @Test

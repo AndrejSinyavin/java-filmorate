@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.RATING_SCALE_DIMENSION;
+import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.*;
 
 /**
  * Репозиторий для работы с рейтингами фильмов в БД
@@ -37,9 +37,8 @@ public class JdbcRatingRepository implements RatingRepository {
     @Override
     public void likeFilm(int filmId, int userId) {
         log.info("Пользователь ID {} ставит 'лайк' фильму ID {}", userId, filmId);
-        setLike(filmId, userId, true);
-        updateFilmRate(filmId);
-        log.info("Лайк добавлен в БД");
+        setLike(filmId, userId, LIKE);
+        log.info("Ок.");
     }
 
     /**
@@ -51,25 +50,36 @@ public class JdbcRatingRepository implements RatingRepository {
     @Override
     public void dislikeFilm(int filmId, int userId) {
         log.info("Пользователь ID {} ставит 'дизлайк' фильму ID {}", userId, filmId);
-        setLike(filmId, userId, false);
-        updateFilmRate(filmId);
-        log.info("Дизлайк добавлен в БД");
+        // Для реализации другой модели рейтинга
+        // setLike(filmId, userId, DISLIKE);
+        // Здесь реализация для тестов:
+        deleteLike(filmId, userId);
+        log.info("Ок.");
     }
 
-    private void setLike(int filmId, int userId, boolean like) {
+    private void setLike(int filmId, int userId, int rating) {
         try {
             String sqlQuery =
                     "MERGE INTO FILMS_RATINGS (FR_FILM_ID_PK , FR_USER_ID_PK, FR_RATING) " +
-                    "VALUES (:filmId, :userId, :like)";
+                    "VALUES (:filmId, :userId, :rating)";
             jdbc.update(sqlQuery, new MapSqlParameterSource()
                     .addValue("filmId", filmId)
                     .addValue("userId", userId)
-                    .addValue("like", like));
+                    .addValue("rating", rating));
         } catch (DataIntegrityViolationException e) {
             String warn = "Фильма и/или пользователя с указанными ID не существует";
             log.warn(warn);
             throw new EntityNotFoundException(thisService, e.getClass().getName(), warn);
         }
+    }
+
+    private void deleteLike(int filmId, int userId) {
+        String sqlQuery =
+                "DELETE FROM FILMS_RATINGS " +
+                "WHERE FR_USER_ID_PK = :userId AND FR_FILM_ID_PK = :filmId";
+        jdbc.update(sqlQuery, new MapSqlParameterSource()
+                .addValue("filmId", filmId)
+                .addValue("userId", userId));
     }
 
     /**
@@ -83,13 +93,13 @@ public class JdbcRatingRepository implements RatingRepository {
         String sqlQuery = """
                 MERGE INTO FILMS (FILM_ID_PK, FILM_RATING)
                 VALUES (:filmId,
-                    (SELECT CAST(SUM(FR_RATING) AS DEC(7,2)) / COUNT(*) * :scale
+                    (SELECT CAST(SUM(FR_RATING) AS DOUBLE) / (COUNT(*))
                     FROM FILMS_RATINGS
                     WHERE FR_FILM_ID_PK = :filmId)
                 )""";
         int numRows;
         try {
-            numRows = jdbc.update(sqlQuery, Map.of("filmId", filmId, "scale", RATING_SCALE_DIMENSION));
+            numRows = jdbc.update(sqlQuery, Map.of("filmId", filmId));
         } catch (DataIntegrityViolationException e) {
             log.warn("Фильм не имеет лайков от пользователей");
             return;
@@ -104,18 +114,33 @@ public class JdbcRatingRepository implements RatingRepository {
     }
 
     /**
-     * Метод получения всех лайков всех пользователей
+     * Метод получает список всех лайков всех пользователей
      *
-     * @return список объектов лайк с данными таблицы FILMS_RATINGS
+     * @return список всех объектов лайк всех пользователей
      */
     @Override
-    public List<Like> getLikes() {
-        log.info("Получение информации о всех лайках из БД");
+    public List<Like> getAllLikes() {
+        log.info("Получение списка всех лайков для всех фильмов из БД");
         String sqlQuery = """
                 SELECT FR_USER_ID_PK, FR_FILM_ID_PK
-                from FILMS_RATINGS
-                where FR_RATING IS TRUE""";
+                from FILMS_RATINGS""";
         return jdbc.query(sqlQuery, likeMapper());
+    }
+
+    /**
+     * Метод получает список всех фильмов, которым пользователь поставил оценку
+     *
+     * @param userId ID пользователя
+     * @return список ID фильмов
+     */
+    @Override
+    public List<Integer> getAllFilmIdThatUserLiked(int userId) {
+        log.info("Получение списка всех фильмов, которым пользователь поставил оценку");
+        String sqlQuery = """
+                SELECT FR_FILM_ID_PK
+                from FILMS_RATINGS
+                WHERE FR_USER_ID_PK = :userId""";
+        return jdbc.queryForList(sqlQuery, Map.of("userId", userId), Integer.class);
     }
 
     /**
@@ -131,7 +156,7 @@ public class JdbcRatingRepository implements RatingRepository {
         return jdbc.queryForObject("""
                     select exists (select FR_USER_ID_PK
                                    from FILMS_RATINGS
-                                   where FR_USER_ID_PK = :id and (FR_RATING is TRUE))""",
+                                   where FR_USER_ID_PK = :id)""",
                 params, Boolean.class);
     }
 
