@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate;
+package ru.yandex.practicum.filmorate.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.DisplayName;
@@ -7,12 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.ComponentScan;
-import ru.yandex.practicum.filmorate.entity.*;
-import ru.yandex.practicum.filmorate.repository.FilmRepository;
-import ru.yandex.practicum.filmorate.repository.FriendRepository;
-import ru.yandex.practicum.filmorate.repository.RatingRepository;
-import ru.yandex.practicum.filmorate.repository.UserRepository;
-import ru.yandex.practicum.filmorate.repository.UtilRepository;
+import ru.yandex.practicum.filmorate.entity.Film;
+import ru.yandex.practicum.filmorate.entity.Director;
+import ru.yandex.practicum.filmorate.entity.Genre;
+import ru.yandex.practicum.filmorate.entity.Mpa;
+import ru.yandex.practicum.filmorate.entity.User;
+import ru.yandex.practicum.filmorate.entity.Like;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -26,22 +26,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase
 @ComponentScan
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@DisplayName("Тесты работы с БД")
-class FilmoRateApplicationTests {
+@DisplayName("Тесты репозиториев")
+class BaseRepositoryTests {
     private final FilmRepository films;
     private final FriendRepository friends;
     private final UserRepository users;
-    private final RatingRepository likes;
+    private final RatingRepository ratings;
     private final UtilRepository utils;
     private Optional<Film> film;
     private Optional<User> user;
-    private Genre genre;
-    private Mpa mpa;
 
     @Test
-    @DisplayName("Фильм1 читается из БД")
+    @DisplayName("Фильм1 читается из репозитория")
     public void testGetFilm() {
-
         film = films.getFilm(1);
 
         assertThat(film)
@@ -51,29 +48,26 @@ class FilmoRateApplicationTests {
     }
 
     @Test
-    @DisplayName("Фильм6 не существует в БД")
+    @DisplayName("Фильм6 не существует в репозитории")
     public void testGetUnknownFilm() {
-
         film = films.getFilm(6);
 
         assertThat(film).isNotPresent();
     }
 
     @Test
-    @DisplayName("В БД есть 5 фильмов")
+    @DisplayName("В репозитории есть 5 фильмов")
     public void testGetFilms() {
-
         var listFilms = films.getFilms();
 
         assertThat(listFilms).hasSize(5);
     }
 
     @Test
-    @DisplayName("В БД корректно создан и затем прочитан новый фильм")
+    @DisplayName("В репозитории корректно создан и затем прочитан новый фильм")
     public void testCreateFilm() {
-
-        genre = utils.getGenreById(1);
-        mpa = utils.getMpaById(1);
+        Genre genre = utils.getGenreById(1);
+        Mpa mpa = utils.getMpaById(1);
         Film testFilm = new Film(
                 0,
                 "name",
@@ -95,7 +89,7 @@ class FilmoRateApplicationTests {
                     assertThat(film).hasFieldOrPropertyWithValue("description", testFilm.getDescription());
                     assertThat(film).hasFieldOrPropertyWithValue("releaseDate", testFilm.getReleaseDate());
                     assertThat(film).hasFieldOrPropertyWithValue("duration", testFilm.getDuration());
-                    assertThat(film).hasFieldOrPropertyWithValue("rate", 0);
+                    assertThat(film).hasFieldOrPropertyWithValue("rate", 1000.0);
                     assertThat(film).hasFieldOrPropertyWithValue("mpa", testFilm.getMpa());
                 });
     }
@@ -103,10 +97,9 @@ class FilmoRateApplicationTests {
     @Test
     @DisplayName("Обновляем фильм c ID 5")
     public void testUpdateFilm() {
-
         film = films.getFilm(5);
         var testFilm = film.get();
-        testFilm.setDescription("NEWdescription");
+        testFilm.setDescription("NewDescription");
         films.updateFilm(testFilm);
         film = films.getFilm(5);
 
@@ -121,19 +114,18 @@ class FilmoRateApplicationTests {
     @Test
     @DisplayName("Проверяем топ-2 рейтинга фильмов")
     public void testGetPopularFilm() {
-        likes.likeFilm(5, 1);
-        likes.likeFilm(5, 2);
-        likes.likeFilm(4, 3);
+        ratings.likeFilm(5, 1);
+        ratings.likeFilm(5, 2);
+        ratings.likeFilm(4, 3);
         var top = films.getPopularFilm(2);
 
         assertThat(top).hasSize(2);
         var testFilm = top.getFirst();
-
         assertThat(testFilm).hasFieldOrPropertyWithValue("id", 5);
-        assertThat(testFilm).hasFieldOrPropertyWithValue("rate", 2);
+        assertThat(testFilm).hasFieldOrPropertyWithValue("rate", 4.0);
         testFilm = top.getLast();
         assertThat(testFilm).hasFieldOrPropertyWithValue("id", 4);
-        assertThat(testFilm).hasFieldOrPropertyWithValue("rate", 1);
+        assertThat(testFilm).hasFieldOrPropertyWithValue("rate", 2.0);
     }
 
     @Test
@@ -164,7 +156,7 @@ class FilmoRateApplicationTests {
 
         user = users.getUser(1);
         var testUser = user.get();
-        testUser.setName("NEWname");
+        testUser.setName("NewName");
         users.updateUser(testUser);
         user = users.getUser(1);
 
@@ -179,7 +171,6 @@ class FilmoRateApplicationTests {
     @Test
     @DisplayName("Получаем пользователя c ID 1")
     public void testGetUser() {
-
         user = users.getUser(1);
 
         assertThat(user)
@@ -189,16 +180,15 @@ class FilmoRateApplicationTests {
     }
 
     @Test
-    @DisplayName("В БД есть 5 пользователей")
+    @DisplayName("В репозитории есть 5 пользователей")
     public void testGetUsers() {
-
         var listUsers = films.getFilms();
 
         assertThat(listUsers).hasSize(5);
     }
 
     @Test
-    @DisplayName("Добавляем юзера 2 в друзья юзеру 1, и удаляем")
+    @DisplayName("Добавляем пользователя 2 в друзья пользователю 1, и удаляем из друзей")
     public void testAddFriend() {
         var friendListUser1 = friends.getFriends(1);
         assertThat(friendListUser1).hasSize(0);
@@ -276,49 +266,45 @@ class FilmoRateApplicationTests {
     @Test
     @DisplayName("Пользователи ставят лайк фильму")
     public void testLikeFilm() {
-        var rate = likes.getFilmRate(1);
-        assertThat(rate).isEqualTo(0);
-        likes.likeFilm(1, 1);
-        rate = likes.getFilmRate(1);
-        assertThat(rate).isEqualTo(1);
-        likes.dislikeFilm(1, 1);
-        rate = likes.getFilmRate(1);
-        assertThat(rate).isEqualTo(0);
-        likes.likeFilm(1, 1);
-        likes.likeFilm(1, 2);
-        rate = likes.getFilmRate(1);
-        assertThat(rate).isEqualTo(2);
+        assertThat(ratings.getFilmRate(1)).isEqualTo(0);
+        ratings.likeFilm(1, 1);
+        assertThat(ratings.getFilmRate(1)).isEqualTo(2.0);
+        ratings.dislikeFilm(1, 1);
+        assertThat(ratings.getFilmRate(1)).isEqualTo(0);
+        ratings.likeFilm(1, 1);
+        ratings.likeFilm(1, 2);
+        assertThat(ratings.getFilmRate(1)).isEqualTo(4.0);
     }
 
     @Test
     @DisplayName("Удаление лайка фильму")
     public void testUnLikeFilm() {
-        var rate = likes.getFilmRate(1);
+        var rate = ratings.getFilmRate(1);
         assertThat(rate).isEqualTo(0);
-        likes.likeFilm(1, 1);
-        rate = likes.getFilmRate(1);
-        assertThat(rate).isEqualTo(1);
-        likes.dislikeFilm(1, 1);
-        rate = likes.getFilmRate(1);
+        ratings.likeFilm(1, 1);
+        rate = ratings.getFilmRate(1);
+        assertThat(rate).isEqualTo(2.0);
+        ratings.dislikeFilm(1, 1);
+        rate = ratings.getFilmRate(1);
         assertThat(rate).isEqualTo(0);
     }
 
     @Test
     @DisplayName("Рейтинги фильмов")
     public void testGetFilmRate() {
-        likes.likeFilm(1, 1);
-        likes.likeFilm(1, 2);
-        likes.likeFilm(1, 3);
-        likes.likeFilm(2, 4);
-        likes.likeFilm(2, 5);
-        likes.likeFilm(3, 1);
-        var film1Rate = likes.getFilmRate(1);
-        var film2Rate = likes.getFilmRate(2);
-        var film3Rate = likes.getFilmRate(3);
-        var film4Rate = likes.getFilmRate(4);
-        assertThat(film1Rate).isEqualTo(3);
-        assertThat(film2Rate).isEqualTo(2);
-        assertThat(film3Rate).isEqualTo(1);
+        ratings.likeFilm(1, 1);
+        ratings.likeFilm(1, 2);
+        ratings.likeFilm(1, 3);
+        ratings.likeFilm(2, 4);
+        ratings.likeFilm(2, 5);
+        ratings.likeFilm(3, 1);
+        var film1Rate = ratings.getFilmRate(1);
+        var film2Rate = ratings.getFilmRate(2);
+        var film3Rate = ratings.getFilmRate(3);
+        var film4Rate = ratings.getFilmRate(4);
+        assertThat(film1Rate).isEqualTo(6.0);
+        assertThat(film2Rate).isEqualTo(4.0);
+        assertThat(film3Rate).isEqualTo(2.0);
         assertThat(film4Rate).isEqualTo(0);
         var top = films.getPopularFilm(4);
         assertThat(top).hasSize(4);
@@ -384,34 +370,34 @@ class FilmoRateApplicationTests {
     @Test
     @DisplayName("Получение списка всех лайков")
     public void shouldGetAllLikes() {
-        likes.likeFilm(5, 1);
-        likes.likeFilm(5, 2);
-        likes.likeFilm(4, 3);
+        ratings.likeFilm(5, 1);
+        ratings.likeFilm(5, 2);
+        ratings.likeFilm(4, 3);
 
         List<Like> testLikes = new ArrayList<>();
         testLikes.add(new Like(1, 5));
         testLikes.add(new Like(2, 5));
         testLikes.add(new Like(3, 4));
 
-        assertThat(likes.getAllLikes()).isEqualTo(testLikes);
+        assertThat(ratings.getAllLikes()).isEqualTo(testLikes);
     }
 
     @Test
     @DisplayName("Проверка есть ли лайки у пользователя")
     public void shouldReturnTrueWhenUserHasLikes() {
-        assertThat(likes.isUserHasLikes(1)).isEqualTo(false);
-        likes.likeFilm(5, 1);
-        assertThat(likes.isUserHasLikes(1)).isEqualTo(true);
+        assertThat(ratings.isUserHasLikes(1)).isEqualTo(false);
+        ratings.likeFilm(5, 1);
+        assertThat(ratings.isUserHasLikes(1)).isEqualTo(true);
     }
 
     @Test
-    @DisplayName("Должен возвращать список общих фильмоа отсортированных по популярности")
+    @DisplayName("Должен возвращать список общих фильмов отсортированных по популярности")
     public void shouldReturnSortedCommonFilmsList() {
-        likes.likeFilm(5, 1);
-        likes.likeFilm(5, 2);
-        likes.likeFilm(4, 1);
-        likes.likeFilm(4, 2);
-        likes.likeFilm(5, 3);
+        ratings.likeFilm(5, 1);
+        ratings.likeFilm(5, 2);
+        ratings.likeFilm(4, 1);
+        ratings.likeFilm(4, 2);
+        ratings.likeFilm(5, 3);
         List<Film> commonFilms = films.getCommonFilms(1, 2);
 
         assertThat(commonFilms)

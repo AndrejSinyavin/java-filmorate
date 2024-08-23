@@ -190,23 +190,12 @@ public class UserService implements BaseUserService {
                 }
             }
         }
-        var filmsList = films.getFilmsByIds(new ArrayList<>(filmsIdsOfMostSimilarUsers));
-        var resultList = new ArrayList<Film>();
-        for (Film film : filmsList) {
-            if (film.getRate() >= 6.0) {
-                resultList.add(film);
-            }
-        }
-        return resultList;
+        return films.getFilmsByIds(new ArrayList<>(filmsIdsOfMostSimilarUsers));
     }
 
     @Override
     public void deleteUserById(int userId) {
-        var filmIds = ratings.getAllFilmIdThatUserLiked(userId);
         users.removeUserById(userId);
-        for (var filmId : filmIds) {
-            ratings.updateFilmRate(filmId);
-        }
     }
 
     /**

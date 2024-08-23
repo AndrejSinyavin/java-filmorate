@@ -125,9 +125,8 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     public void removeUserById(int userId) {
         log.info("Удаление пользователя ID {} из БД", userId);
-        String sqlQuery = "select FR_FILM_ID_PK from FILMS_RATINGS where FR_USER_ID_PK = :userId";
-        var listId = jdbc.queryForList(sqlQuery, Map.of("userId", userId), Integer.class);
-        sqlQuery = """
+        var filmIds = ratings.getAllFilmIdThatUserLiked(userId);
+        String sqlQuery = """
                 delete from USERS
                 where USER_ID_PK = :id""";
         int numRows = jdbc.update(sqlQuery, new MapSqlParameterSource().addValue("id", userId));
@@ -136,7 +135,7 @@ public class JdbcUserRepository implements UserRepository {
             log.warn(warn);
             throw new EntityNotFoundException(thisService, jdbc.getClass().getName(), warn);
         } else {
-            for (Integer filmId: listId) {
+            for (var filmId : filmIds) {
                 ratings.updateFilmRate(filmId);
             }
         }

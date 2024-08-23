@@ -63,7 +63,6 @@ public class FilmService implements BaseFilmService {
     public void likeFilm(int filmId, int userId) {
         log.info("Добавление 'лайка' фильму на сервисе");
         ratings.likeFilm(filmId, userId);
-        ratings.updateFilmRate(filmId);
         events.create(new Event(
                 Instant.now().toEpochMilli(),
                 userId, EventType.LIKE.toString(),
@@ -81,7 +80,6 @@ public class FilmService implements BaseFilmService {
     public void dislikeFilm(int filmId, int userId) {
         log.info("Добавление 'дизлайка' фильму на сервисе");
         ratings.dislikeFilm(filmId, userId);
-        ratings.updateFilmRate(filmId);
         events.create(new Event(Instant.now().toEpochMilli(), userId, EventType.LIKE.toString(), EventOperation.REMOVE.toString(), filmId));
     }
 

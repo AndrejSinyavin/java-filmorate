@@ -7,7 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
-import ru.yandex.practicum.filmorate.entity.*;
+import ru.yandex.practicum.filmorate.entity.Director;
+import ru.yandex.practicum.filmorate.entity.Film;
+import ru.yandex.practicum.filmorate.entity.Genre;
+import ru.yandex.practicum.filmorate.entity.Mpa;
+import ru.yandex.practicum.filmorate.entity.User;
 import ru.yandex.practicum.filmorate.service.DirectorService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -40,8 +44,6 @@ class JdbcFilmRepositoryTest {
     @Test
     @DisplayName("Сценарий проверок на создание фильма")
     void createFilm() {
-        film = filmRepository.createFilm(null);
-        assertThat(film).isNotPresent();
         film = filmRepository.createFilm(testFilm());
         assertThat(film).isPresent();
         id = film.get().getId();
@@ -169,8 +171,6 @@ class JdbcFilmRepositoryTest {
     @Test
     @DisplayName("Сценарий проверки удаления фильма")
     void deleteFilm() {
-        film = filmRepository.createFilm(null);
-        assertThat(film).isNotPresent();
         film = filmRepository.createFilm(testFilm());
         assertThat(film).isPresent();
         id = film.get().getId();

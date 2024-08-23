@@ -34,6 +34,8 @@ public interface RatingRepository {
      */
     List<Like> getAllLikes();
 
+    double getFilmRate(int filmId);
+
     List<Integer> getAllFilmIdThatUserLiked(int userId);
 
     /**

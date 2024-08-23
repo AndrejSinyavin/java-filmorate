@@ -38,7 +38,7 @@ public class JdbcRatingRepository implements RatingRepository {
     public void likeFilm(int filmId, int userId) {
         log.info("Пользователь ID {} ставит 'лайк' фильму ID {}", userId, filmId);
         setLike(filmId, userId, LIKE);
-        log.info("Ок.");
+        updateFilmRate(filmId);
     }
 
     /**
@@ -54,7 +54,7 @@ public class JdbcRatingRepository implements RatingRepository {
         // setLike(filmId, userId, DISLIKE);
         // Здесь реализация для тестов:
         deleteLike(filmId, userId);
-        log.info("Ок.");
+        updateFilmRate(filmId);
     }
 
     private void setLike(int filmId, int userId, int rating) {
@@ -77,7 +77,7 @@ public class JdbcRatingRepository implements RatingRepository {
         String sqlQuery =
                 "DELETE FROM FILMS_RATINGS " +
                 "WHERE FR_USER_ID_PK = :userId AND FR_FILM_ID_PK = :filmId";
-        jdbc.update(sqlQuery, new MapSqlParameterSource()
+        var result = jdbc.update(sqlQuery, new MapSqlParameterSource()
                 .addValue("filmId", filmId)
                 .addValue("userId", userId));
     }
@@ -93,7 +93,8 @@ public class JdbcRatingRepository implements RatingRepository {
         String sqlQuery = """
                 MERGE INTO FILMS (FILM_ID_PK, FILM_RATING)
                 VALUES (:filmId,
-                    (SELECT CAST(SUM(FR_RATING) AS DOUBLE) / (COUNT(*))
+                    (SELECT COALESCE(CAST(SUM(FR_RATING) AS DOUBLE) /
+                                     NULLIF((SELECT COUNT(USER_ID_PK) FROM USERS), 0),0)
                     FROM FILMS_RATINGS
                     WHERE FR_FILM_ID_PK = :filmId)
                 )""";
@@ -101,8 +102,8 @@ public class JdbcRatingRepository implements RatingRepository {
         try {
             numRows = jdbc.update(sqlQuery, Map.of("filmId", filmId));
         } catch (DataIntegrityViolationException e) {
-            log.warn("Фильм не имеет лайков от пользователей");
-            return;
+            log.error("Неопознанная ошибка");
+            throw new InternalServiceException(thisService, e.getClass().getName(), e.getMessage());
         }
         if (numRows != 1) {
             String error = "Ошибка! SQL-запрос обновил более одной записи, или ни одной";
@@ -125,6 +126,16 @@ public class JdbcRatingRepository implements RatingRepository {
                 SELECT FR_USER_ID_PK, FR_FILM_ID_PK
                 from FILMS_RATINGS""";
         return jdbc.query(sqlQuery, likeMapper());
+    }
+
+    @Override
+    public double getFilmRate(int filmId) {
+        log.info("Получение рейтинга фильма ID {}", filmId);
+        String sqlQuery = """
+                SELECT FILM_RATING
+                from FILMS
+                WHERE FILM_ID_PK = :filmId""";
+        return jdbc.queryForObject(sqlQuery, Map.of("filmId", filmId), Double.class);
     }
 
     /**
