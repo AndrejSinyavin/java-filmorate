@@ -1,13 +1,15 @@
-package ru.yandex.practicum.filmorate;
+package ru.yandex.practicum.filmorate.entity;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import lombok.extern.log4j.Log4j2;
-import org.junit.jupiter.api.*;
-import ru.yandex.practicum.filmorate.entity.Film;
-import ru.yandex.practicum.filmorate.entity.User;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -15,13 +17,14 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static ru.yandex.practicum.filmorate.FilmorateApplicationTestsOld.Mode.FILM;
-import static ru.yandex.practicum.filmorate.FilmorateApplicationTestsOld.Mode.USER;
+import static ru.yandex.practicum.filmorate.entity.BaseEntityTests.Mode.FILM;
+import static ru.yandex.practicum.filmorate.entity.BaseEntityTests.Mode.USER;
 import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.MAX_DESCRIPTION_LENGTH;
 import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.VALID_RELEASE_DATE;
 
 @Log4j2
-class FilmorateApplicationTestsOld {
+@DisplayName("Базовый набор тестов сущностей приложения")
+class BaseEntityTests {
     private static Validator validator;
     private Set<ConstraintViolation<Film>> filmViolations;
     private Set<ConstraintViolation<User>> userViolations;

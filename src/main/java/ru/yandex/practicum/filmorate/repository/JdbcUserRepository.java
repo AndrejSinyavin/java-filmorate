@@ -34,6 +34,7 @@ import java.util.Optional;
 public class JdbcUserRepository implements UserRepository {
     private final NamedParameterJdbcOperations jdbc;
     private final DataSource source;
+    private final RatingRepository ratings;
     private final String thisService = this.getClass().getName();
     private final String entityNullError = "Ошибка! сущность User = null";
     private final String idError = "Ошибка! ID пользователя может быть только положительным значением";
@@ -122,14 +123,23 @@ public class JdbcUserRepository implements UserRepository {
     }
 
     @Override
-    public void removeUserById(int id) {
-        log.info("Удаление пользователия {} из БД", id);
+    public void removeUserById(int userId) {
+        log.info("Удаление пользователя ID {} из БД", userId);
+        var filmIds = ratings.getAllFilmIdThatUserLiked(userId);
         String sqlQuery = """
                 delete from USERS
                 where USER_ID_PK = :id""";
-        jdbc.update(sqlQuery, new MapSqlParameterSource().addValue("id", id));
+        int numRows = jdbc.update(sqlQuery, new MapSqlParameterSource().addValue("id", userId));
+        if (numRows == 0) {
+            String warn = String.format("Пользователь ID %d не найден в БД", userId);
+            log.warn(warn);
+            throw new EntityNotFoundException(thisService, jdbc.getClass().getName(), warn);
+        } else {
+            for (var filmId : filmIds) {
+                ratings.updateFilmRate(filmId);
+            }
+        }
     }
-
 
     /**
      * Метод возвращает из БД запись о пользователе по его ID

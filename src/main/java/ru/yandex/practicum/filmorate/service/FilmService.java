@@ -19,7 +19,7 @@ import ru.yandex.practicum.filmorate.exception.EntityValidateException;
 import ru.yandex.practicum.filmorate.exception.InternalServiceException;
 import ru.yandex.practicum.filmorate.repository.EventRepository;
 import ru.yandex.practicum.filmorate.repository.FilmRepository;
-import ru.yandex.practicum.filmorate.repository.LikeRepository;
+import ru.yandex.practicum.filmorate.repository.RatingRepository;
 import ru.yandex.practicum.filmorate.repository.UtilRepository;
 
 import java.time.Instant;
@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
 
-import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.DEFAULT_MPA_RATING;
+import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.*;
 
 /**
  * Сервис содержит логику работы с пользователями
@@ -45,7 +45,7 @@ public class FilmService implements BaseFilmService {
     /**
      * Подключение репозитория для работы с "лайками".
      */
-    private final LikeRepository likes;
+    private final RatingRepository ratings;
     /**
      * Подключение репозитория для работы с сервисными запросами в репозиторий.
      */
@@ -54,28 +54,32 @@ public class FilmService implements BaseFilmService {
     private final EventRepository events;
 
     /**
-     * Метод позволяет пользователю лайкнуть фильм.
+     * Метод позволяет пользователю поставить 'лайк' фильму.
      *
      * @param filmId ID фильма
      * @param userId ID пользователя
      */
     @Override
-    public void addLike(int filmId, int userId) {
-        log.info("Добавление лайка фильму на сервисе");
-        likes.likeFilm(filmId, userId);
-        events.create(new Event(Instant.now().toEpochMilli(), userId, EventType.LIKE.toString(), EventOperation.ADD.toString(), filmId));
+    public void likeFilm(int filmId, int userId) {
+        log.info("Добавление 'лайка' фильму на сервисе");
+        ratings.likeFilm(filmId, userId);
+        events.create(new Event(
+                Instant.now().toEpochMilli(),
+                userId, EventType.LIKE.toString(),
+                EventOperation.ADD.toString(),
+                filmId));
     }
 
     /**
-     * Метод позволяет пользователю удалить ранее поставленный лайк фильму.
+     * Метод позволяет пользователю поставить 'дизлайк' фильму.
      *
      * @param filmId ID фильма
      * @param userId ID пользователя
      */
     @Override
-    public void deleteLike(int filmId, int userId) {
-        log.info("Удаление лайка фильму на сервисе:");
-        likes.unLikeFilm(filmId, userId);
+    public void dislikeFilm(int filmId, int userId) {
+        log.info("Добавление 'дизлайка' фильму на сервисе");
+        ratings.dislikeFilm(filmId, userId);
         events.create(new Event(Instant.now().toEpochMilli(), userId, EventType.LIKE.toString(), EventOperation.REMOVE.toString(), filmId));
     }
 
@@ -87,7 +91,7 @@ public class FilmService implements BaseFilmService {
      */
     @Override
     public List<Film> getTopFilms(Integer topSize, Integer genreId, Integer year) {
-        log.info("Получение списка наиболее популярных фильмов по количеству лайков, топ {}:", topSize);
+        log.info("Получение списка наиболее популярных фильмов по рейтингу пользователей, топ {}:", topSize);
         return films.getPopularFilm(topSize, genreId, year);
     }
 
@@ -140,19 +144,18 @@ public class FilmService implements BaseFilmService {
      * @return список фильмов этого режиссера, отсортированный по критерию
      */
     @Override
-    public List<Film> getFilmsSortedByCriteria(int directorId,
-                                               String criteria) {
+    public List<Film> getFilmsSortedByCriteria(int directorId, String criteria) {
         log.info("Получение списка всех фильмов сервиса, отобранных по критериям:");
-        String conditions;
+        String condition;
         if (DirectorSortParams.year.toString().equals(criteria)) {
-            conditions = " order by FILM_RELEASE_DATE";
+            condition = " order by FILM_RELEASE_DATE";
         } else if (DirectorSortParams.likes.toString().equals(criteria)) {
-            conditions = " order by RATE desc;";
+            condition = " order by FILM_RATING desc;";
         } else {
             throw new EntityValidateException(
                     thisService, "Валидация параметров запроса", "Этот функционал не реализован");
         }
-        return films.findFilmsForDirectorByConditions(directorId, conditions);
+        return films.findFilmsForDirectorByConditions(directorId, condition);
     }
 
     /**
@@ -196,6 +199,7 @@ public class FilmService implements BaseFilmService {
         film.setMpa(getMpa(film));
         film.setGenres(getGenres(film).stream().toList());
         film.setDirectors(getDirectors(film));
+        film.setRate(DEFAULT_RATE);
     }
 
     private TreeSet<Genre> getGenres(Film film) {
@@ -251,13 +255,11 @@ public class FilmService implements BaseFilmService {
 
     @Override
     public List<Film> getFilmsByTitleAndDirector(String query, String searchParameters) {
-
         log.info("Начали проверять вошедшие параметры {}", searchParameters);
-
         String director = "";
         String title = "";
         List<Film> filmsList = new ArrayList<>();
-//Проверяем 1 или 2 параметра пришло на вход(по наличию запятой)
+        //Проверяем 1 или 2 параметра пришло на вход(по наличию запятой)
         if (searchParameters.contains(",")) {
             log.info("Пришло 2 параметра на вход query =  {} ,  searchParameters = {}",
                     query, searchParameters);
@@ -270,8 +272,7 @@ public class FilmService implements BaseFilmService {
             director = query;
             title = query;
             filmsList.addAll(films.search(title, director));
-
-            //Т.к. не сработало правило на 2 параметра через запятую - проверяем одинарный параметр фильтрации
+        //Т.к. не сработало правило на 2 параметра через запятую - проверяем одинарный параметр фильтрации
         } else {
             log.info("Сработало правило фильтрации searchParameters без запятой, на вход пришло {}",
                     searchParameters);

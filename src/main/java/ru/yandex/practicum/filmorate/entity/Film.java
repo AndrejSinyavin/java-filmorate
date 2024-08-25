@@ -13,7 +13,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
-import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.MAX_DESCRIPTION_LENGTH;
+import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.*;
 
 /**
  * Класс описывает поля записи "фильм" в фильмотеке
@@ -42,9 +42,7 @@ public class Film {
     @Positive(message = "Продолжительность фильма может быть только положительным значением")
     int duration;
 
-    @DecimalMin(value = "0", message = "Рейтинг фильма не может быть отрицательным значением")
-    int rate;
-
+    double rate;
     Mpa mpa;
     List<Genre> genres;
     Set<Director> directors;

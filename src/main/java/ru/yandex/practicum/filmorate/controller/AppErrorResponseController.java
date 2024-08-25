@@ -27,14 +27,14 @@ public class AppErrorResponseController {
      * Обработчик исключений для ответов BAD_REQUEST.
      *
      * @param e перехваченное исключение
-     * @return стандартный API-ответ об ошибке ErrorResponse c указанием компонента, источника и вероятных причинах
+     * @return стандартный API-ответ об ошибке ErrorResponse с описанием ошибки и вероятных причинах
      */
     @ExceptionHandler({EntityAlreadyExistsException.class, EntityValidateException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequestResponse(final AppException e) {
         String message = "Некорректный запрос. Сформирован ответ '400 Bad Request'.";
         log.warn("{} {} {} {} \n{}", message, e.getSource(), e.getError(), e.getMessage(), e.getStackTrace());
-        return new ErrorResponse(e.getError(), e.getMessage());
+        return new ErrorResponse(message, e.getMessage());
     }
 
     /**
@@ -55,35 +55,35 @@ public class AppErrorResponseController {
      * Обработчик исключений для ответов NOT_FOUND.
      *
      * @param e перехваченное исключение
-     * @return стандартный API-ответ об ошибке ErrorResponse c указанием компонента, источника и вероятных причинах
+     * @return стандартный API-ответ об ошибке ErrorResponse с описанием ошибки и вероятных причинах
      */
     @ExceptionHandler({EntityNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFoundErrorResponse(final AppException e) {
         String message = "Не найден объект, необходимый для выполнения запроса. Сформирован ответ '404 Not found'.";
         log.warn("{} {} {} {} \n{}", message, e.getSource(), e.getError(), e.getMessage(), e.getStackTrace());
-        return new ErrorResponse(e.getError(), e.getMessage());
+        return new ErrorResponse(message, e.getMessage());
     }
 
     /**
      * Обработчик исключений для ответов INTERNAL_SERVER_ERROR
      *
      * @param e перехваченное исключение
-     * @return стандартный API-ответ об ошибке ErrorResponse c указанием компонента, источника и вероятных причинах
+     * @return стандартный API-ответ об ошибке ErrorResponse с описанием ошибки и вероятных причинах
      */
     @ExceptionHandler({InternalServiceException.class})
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleServerInternalErrorResponse(final AppException e) {
         String message = "Сервер не смог обработать запрос. Сформирован ответ '500 Internal Server Error'";
         log.warn("{} {} {} {} \n{}", message, e.getSource(), e.getError(), e.getMessage(), e.getStackTrace());
-        return new ErrorResponse(e.getError(), e.getMessage());
+        return new ErrorResponse(message, e.getMessage());
     }
 
     /**
      * Обработчик исключений для ответов BAD_REQUEST при валидации в контроллере
      *
      * @param e перехваченное исключение
-     * @return стандартный API-ответ об ошибке ErrorResponse c указанием компонента, источника и вероятных причинах
+     * @return стандартный API-ответ об ошибке ErrorResponse с описанием ошибки и вероятных причинах
      */
     @ExceptionHandler({MethodArgumentNotValidException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -106,7 +106,7 @@ public class AppErrorResponseController {
      * Обработчик исключений для ответов NOT_FOUND при обработке параметров и/или переменных пути в запросах
      *
      * @param e перехваченное исключение
-     * @return стандартный API-ответ об ошибке ErrorResponse c указанием компонента, источника и вероятных причинах
+     * @return стандартный API-ответ об ошибке ErrorResponse с описанием ошибки и вероятных причинах
      */
     @ExceptionHandler({ConstraintViolationException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -120,7 +120,7 @@ public class AppErrorResponseController {
      * Обработчик исключений для ответов INTERNAL_SERVER_ERROR при ошибках в работе СУБД
      *
      * @param e перехваченное исключение
-     * @return стандартный API-ответ об ошибке ErrorResponse c указанием компонента, источника и вероятных причинах
+     * @return стандартный API-ответ об ошибке ErrorResponse с описанием ошибки и вероятных причинах
      */
     @ExceptionHandler({DataAccessException.class})
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -135,7 +135,7 @@ public class AppErrorResponseController {
      * Обработчик исключений - заглушка, для обработки прочих непредусмотренных исключений.
      *
      * @param e перехваченное исключение
-     * @return стандартный API-ответ об ошибке ErrorResponse c указанием компонента, источника и вероятных причинах
+     * @return стандартный API-ответ об ошибке ErrorResponse с описанием ошибки и вероятных причинах
      */
     @ExceptionHandler(Throwable.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

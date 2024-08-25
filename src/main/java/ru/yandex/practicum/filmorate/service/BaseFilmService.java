@@ -6,23 +6,23 @@ import java.util.List;
 
 public interface BaseFilmService {
     /**
-     * Метод позволяет пользователю лайкнуть фильм.
+     * Метод позволяет пользователю поставить 'лайк' фильму.
      *
      * @param filmId ID фильма
      * @param userId ID пользователя
      */
-    void addLike(int filmId, int userId);
+    void likeFilm(int filmId, int userId);
 
     /**
-     * Метод позволяет пользователю удалить ранее поставленный лайк фильму.
+     * Метод позволяет пользователю поставить 'дизлайк' фильму.
      *
      * @param filmId ID фильма
      * @param userId ID пользователя
      */
-    void deleteLike(int filmId, int userId);
+    void dislikeFilm(int filmId, int userId);
 
     /**
-     * Метод получает топ лучших фильмов по лайкам пользователей.
+     * Метод получает топ лучших фильмов по рейтингу пользователей.
      *
      * @param topSize размер топа
      * @param genreId идентификатор жанра
@@ -82,6 +82,6 @@ public interface BaseFilmService {
 
     void deleteFilm(int id);
 
-    //Метод для поиска фильмов по режисеру и/или названию, в том числе по подстроке
+    //Метод для поиска фильмов по режиссеру и/или названию, в том числе по подстроке
     List<Film> getFilmsByTitleAndDirector(String query, String searchParameters);
 }

@@ -10,7 +10,8 @@ import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.entity.Review;
 import ru.yandex.practicum.filmorate.repository.mappers.ReviewRowMapper;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 @JdbcTest
@@ -18,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @DisplayName("Класс тестов для JdbcReviewLikeRepository")
-class JdbcReviewLikeRepositoryTest {
+class JdbcReviewRatingRepositoryTest {
     private final JdbcReviewRepository reviewRepository;
     private final JdbcReviewLikeRepository reviewLikeRepository;
 
@@ -30,18 +31,18 @@ class JdbcReviewLikeRepositoryTest {
         reviewLikeRepository.addLike(review.getReviewId(), 1);
         Review resultReview = reviewRepository.getById(review.getReviewId()).orElse(null);
         assertNotNull(resultReview);
-        assertEquals(1, resultReview.getUseful(), "лайк не добавлен");
+        assertEquals(1, resultReview.getUseful(), "Лайк не добавлен");
     }
 
     @Test
-    @DisplayName("Добавление дизлайка для отзыва")
+    @DisplayName("Добавляется 'дизлайк' для отзыва")
     void shouldAddDislike() {
         Review review = reviewRepository.create(getTestReviewForFilmID1()).orElse(null);
         assertNotNull(review);
         reviewLikeRepository.addDislike(review.getReviewId(), 1);
         Review resultReview = reviewRepository.getById(review.getReviewId()).orElse(null);
         assertNotNull(resultReview);
-        assertEquals(-1, resultReview.getUseful(), "лайк не добавлен");
+        assertEquals(-1, resultReview.getUseful(), "Лайк не добавлен");
     }
 
     @Test
@@ -53,11 +54,11 @@ class JdbcReviewLikeRepositoryTest {
         reviewLikeRepository.deleteLike(review.getReviewId(), 1);
         Review resultReview = reviewRepository.getById(review.getReviewId()).orElse(null);
         assertNotNull(resultReview);
-        assertEquals(0, resultReview.getUseful(), "лайк не удален");
+        assertEquals(0, resultReview.getUseful(), "Лайк не удален");
     }
 
     @Test
-    @DisplayName("Удаление дизлайка отзыва")
+    @DisplayName("Удаляется 'дизлайк' отзыва")
     void shouldDeleteDislike() {
         Review review = reviewRepository.create(getTestReviewForFilmID1()).orElse(null);
         assertNotNull(review);
@@ -65,7 +66,7 @@ class JdbcReviewLikeRepositoryTest {
         reviewLikeRepository.deleteDislike(review.getReviewId(), 1);
         Review resultReview = reviewRepository.getById(review.getReviewId()).orElse(null);
         assertNotNull(resultReview);
-        assertEquals(0, resultReview.getUseful(), "лайк не удален");
+        assertEquals(0, resultReview.getUseful(), "Лайк не удален");
     }
 
     private static Review getTestReviewForFilmID1() {

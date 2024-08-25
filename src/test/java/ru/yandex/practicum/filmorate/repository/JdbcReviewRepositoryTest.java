@@ -13,8 +13,8 @@ import ru.yandex.practicum.filmorate.repository.mappers.ReviewRowMapper;
 import java.util.Collection;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @JdbcTest
 @Import({JdbcReviewRepository.class, ReviewRowMapper.class})
@@ -56,9 +56,9 @@ class JdbcReviewRepositoryTest {
         Review resultReview = reviewRepository.getById(review.getReviewId()).orElse(null);
         assertNotNull(resultReview);
         assertEquals(sourceReview.getContent(), resultReview.getContent(), "Неверное содержание отзыва");
-        assertEquals(sourceReview.getFilmId(), resultReview.getFilmId(), "Неверный идентификтор фильма");
-        assertEquals(sourceReview.getUserId(), resultReview.getUserId(), "Неверный идентификтор пользователя");
-        assertEquals(sourceReview.getIsPositive(), resultReview.getIsPositive(), "Невернвй тип отзыва");
+        assertEquals(sourceReview.getFilmId(), resultReview.getFilmId(), "Неверный идентификатор фильма");
+        assertEquals(sourceReview.getUserId(), resultReview.getUserId(), "Неверный идентификатор пользователя");
+        assertEquals(sourceReview.getIsPositive(), resultReview.getIsPositive(), "Неверный тип отзыва");
     }
 
     @Test
@@ -84,7 +84,7 @@ class JdbcReviewRepositoryTest {
         Review resultReview = reviewRepository.update(review).orElse(null);
         assertNotNull(resultReview);
         assertEquals(review.getContent(), resultReview.getContent(), "Неверное содержание отзыва");
-        assertEquals(review.getIsPositive(), resultReview.getIsPositive(), "Невернвй тип отзыва");
+        assertEquals(review.getIsPositive(), resultReview.getIsPositive(), "Неверный тип отзыва");
     }
 
     @Test
@@ -93,7 +93,9 @@ class JdbcReviewRepositoryTest {
         Review review = reviewRepository.create(getTestReviewForFilmID1()).orElse(null);
         assertNotNull(review);
         reviewRepository.delete(review.getReviewId());
-        assertEquals(Optional.empty(), reviewRepository.getById(review.getReviewId()), "Отзыв не удален");
+        assertEquals(Optional.empty(),
+                reviewRepository.getById(review.getReviewId()),
+                "Отзыв не удален");
     }
 
     private static Review getTestReviewForFilmID1() {

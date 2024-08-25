@@ -7,7 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
-import ru.yandex.practicum.filmorate.entity.*;
+import ru.yandex.practicum.filmorate.entity.Director;
+import ru.yandex.practicum.filmorate.entity.Film;
+import ru.yandex.practicum.filmorate.entity.Genre;
+import ru.yandex.practicum.filmorate.entity.Mpa;
+import ru.yandex.practicum.filmorate.entity.User;
 import ru.yandex.practicum.filmorate.service.DirectorService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -23,7 +27,7 @@ import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.
 import static ru.yandex.practicum.filmorate.config.FilmorateApplicationSettings.DirectorSortParams.likes;
 
 @JdbcTest
-@Import({JdbcFilmRepository.class, FilmService.class, UserService.class, JdbcLikeRepository.class,
+@Import({JdbcFilmRepository.class, FilmService.class, UserService.class, JdbcRatingRepository.class,
         JdbcUtilRepository.class, JdbcUserRepository.class, JdbcFilmRepository.class, JdbcFriendRepository.class,
         DirectorService.class, JdbcDirectorRepository.class, JdbcEventRepository.class})
 @AutoConfigureTestDatabase
@@ -40,8 +44,6 @@ class JdbcFilmRepositoryTest {
     @Test
     @DisplayName("Сценарий проверок на создание фильма")
     void createFilm() {
-        film = filmRepository.createFilm(null);
-        assertThat(film).isNotPresent();
         film = filmRepository.createFilm(testFilm());
         assertThat(film).isPresent();
         id = film.get().getId();
@@ -114,9 +116,9 @@ class JdbcFilmRepositoryTest {
                 LocalDate.of(2000, 1, 2)));
         var film1 = filmService.createfilm(testFilm());
         var film2 = filmService.createfilm(testFilm());
-        filmService.addLike(film1.getId(), user1.getId());
-        filmService.addLike(film1.getId(), user2.getId());
-        filmService.addLike(film2.getId(), user2.getId());
+        filmService.likeFilm(film1.getId(), user1.getId());
+        filmService.likeFilm(film1.getId(), user2.getId());
+        filmService.likeFilm(film2.getId(), user2.getId());
         var top = filmService.getTopFilms(2, null, null);
         assertThat(top.size() == 2).isTrue();
         assertThat(top.getFirst().getId() == film1.getId()).isTrue();
@@ -150,9 +152,9 @@ class JdbcFilmRepositoryTest {
         film2.setName("film2");
         film2.setReleaseDate(LocalDate.of(2010, 1, 1));
         film2 = filmService.createfilm(film2);
-        filmService.addLike(film1.getId(), user1.getId());
-        filmService.addLike(film1.getId(), user2.getId());
-        filmService.addLike(film2.getId(), user2.getId());
+        filmService.likeFilm(film1.getId(), user1.getId());
+        filmService.likeFilm(film1.getId(), user2.getId());
+        filmService.likeFilm(film2.getId(), user2.getId());
 
         var sortedFilmsByCriteria = filmService.getFilmsSortedByCriteria(directorId, likes.name());
         assertThat(sortedFilmsByCriteria.size() == 2).isTrue();
@@ -169,8 +171,6 @@ class JdbcFilmRepositoryTest {
     @Test
     @DisplayName("Сценарий проверки удаления фильма")
     void deleteFilm() {
-        film = filmRepository.createFilm(null);
-        assertThat(film).isNotPresent();
         film = filmRepository.createFilm(testFilm());
         assertThat(film).isPresent();
         id = film.get().getId();
